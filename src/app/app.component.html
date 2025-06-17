@@ -1,0 +1,38 @@
+<div class="app-container">
+  <!-- Show login page if not authenticated -->
+  <app-login *ngIf="!(currentUser$ | async)" (loginSuccess)="onLoginSuccess()"></app-login>
+
+  <!-- Show main app if authenticated -->
+  <div class="main-app" *ngIf="currentUser$ | async as user">
+    <app-header 
+      (toggleSidebar)="toggleSidebar()"
+      (logout)="onLogout()">
+    </app-header>
+    
+    <div class="content-wrapper">
+      <app-sidebar 
+        [isOpen]="isSidebarOpen"
+        [isCollapsed]="isSidebarCollapsed"
+        (sidebarToggle)="toggleSidebar()">
+      </app-sidebar>
+      
+      <main class="main-content" 
+            [class.sidebar-open]="isSidebarOpen"
+            [class.sidebar-collapsed]="isSidebarCollapsed">
+        <div class="container">
+          <div class="features-grid" *ngIf="!isFeaturePage()">
+            <div class="feature-card" *ngFor="let feature of features">
+              <div class="feature-icon">{{ feature.icon }}</div>
+              <h3 class="feature-title">{{ feature.name }}</h3>
+              <p class="feature-description">{{ feature.description }}</p>
+              <a [routerLink]="feature.route" class="btn btn-primary">Access Module</a>
+            </div>
+          </div>
+          
+          <router-outlet></router-outlet>
+        </div>
+      </main>
+    </div>
+   
+  </div>
+</div> 

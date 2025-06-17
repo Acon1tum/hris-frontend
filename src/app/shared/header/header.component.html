@@ -1,0 +1,92 @@
+<header class="app-header">
+  <div class="header-container">
+    <div class="header-left">
+      <button class="menu-toggle" (click)="onToggleSidebar()" aria-label="Toggle sidebar">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="app-brand">
+        <img alt="Company Logo" class="brand-logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqh15Elt4Qo4jwpz_7FUCoy0H6VqAlvGQS9q_f3bMBkk3NfMA6VW8wi4kdO1fmaGbG9chmIML-haKoCfduJnKIB5fAIspBF4k3MwL_JpvtO6lRaNDMgxM8ctiHhErGT2s0JHP3Z1a3Mx0DhMheV3YoL8CXCb5JMgGGjcXJBJZN0Wc0dBiH_CpNx437rTToFIFqGURqElSteOZaCTXgdh9IMoqpFwq2RKQrqqZa3zU673Aqqh1E8wEMNEaytH1iQNByo7ee_ITXUkc"/>
+        <h1 class="app-title">{{ title }}</h1>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Search Bar -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input type="text" placeholder="Search..." class="search-input">
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="notification-container">
+        <button class="notification-btn" (click)="toggleNotifications()" aria-label="Notifications">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="notification-badge" *ngIf="notifications.length > 0">{{ notifications.length }}</span>
+        </button>
+        
+        <div class="notification-dropdown" *ngIf="showNotifications">
+          <div class="notification-header">
+            <h3>Notifications</h3>
+            <button class="clear-all" (click)="clearAllNotifications()">
+              <span class="material-symbols-outlined">clear_all</span>
+              Clear All
+            </button>
+          </div>
+          <div class="notification-list">
+            <div class="notification-item" 
+                 *ngFor="let notification of notifications"
+                 (click)="onNotificationClick(notification)">
+              <div class="notification-icon" [class]="'type-' + notification.type">
+                <span class="material-symbols-outlined">
+                  {{ notification.type === 'success' ? 'check_circle' : notification.type === 'warning' ? 'warning' : 'info' }}
+                </span>
+              </div>
+              <div class="notification-content">
+                <p class="notification-message">{{ notification.message }}</p>
+                <span class="notification-time">{{ notification.time }}</span>
+              </div>
+              <button class="notification-close" (click)="removeNotification(notification.id)">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Menu -->
+      <div class="user-container" *ngIf="currentUser$ | async as currentUser">
+        <button class="user-btn" (click)="toggleUserMenu()" aria-label="User menu">
+          <div class="user-avatar">
+            <img [src]="currentUser.avatar" [alt]="currentUser.name" *ngIf="currentUser.avatar">
+            <span class="material-symbols-outlined" *ngIf="!currentUser.avatar">person</span>
+          </div>
+          <span class="user-name">{{ currentUser.name || 'User' }}</span>
+          <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
+        </button>
+        
+        <div class="user-dropdown" *ngIf="showUserMenu">
+          <div class="user-info">
+            <div class="user-avatar-large">
+              <img [src]="currentUser.avatar" [alt]="currentUser.name" *ngIf="currentUser.avatar">
+              <span class="material-symbols-outlined" *ngIf="!currentUser.avatar">person</span>
+            </div>
+            <div class="user-details">
+              <h4>{{ currentUser.name || 'User' }}</h4>
+              <p>{{ currentUser.role || 'User' | titlecase }}</p>
+            </div>
+          </div>
+          <div class="user-menu-items">
+            <button class="menu-item" 
+                    *ngFor="let item of userMenuItems"
+                    (click)="onUserAction(item.action)">
+              <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+              <span class="menu-text">{{ item.name }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header> 

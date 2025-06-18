@@ -44,7 +44,21 @@ export class AppComponent implements OnInit {
   constructor(private authService: AuthService) {}
 
   ngOnInit() {
-    // Authentication status is now managed by the AuthService
+    // Check screen size on init
+    this.checkScreenSize();
+    // Listen for window resize
+    window.addEventListener('resize', () => this.checkScreenSize());
+  }
+
+  private checkScreenSize() {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      this.isSidebarOpen = false;
+      this.isSidebarCollapsed = false;
+    } else {
+      this.isSidebarOpen = true;
+      this.isSidebarCollapsed = false;
+    }
   }
 
   onLoginSuccess() {
@@ -56,19 +70,30 @@ export class AppComponent implements OnInit {
   }
 
   toggleSidebar() {
-    // Cycle through states: open -> collapsed -> closed -> open
-    if (this.isSidebarOpen && !this.isSidebarCollapsed) {
-      // Currently open, collapse it
-      this.isSidebarCollapsed = true;
-    } else if (this.isSidebarOpen && this.isSidebarCollapsed) {
-      // Currently collapsed, close it
-      this.isSidebarOpen = false;
+    if (window.innerWidth <= 768) {
+      // On mobile, just toggle open/closed
+      this.isSidebarOpen = !this.isSidebarOpen;
       this.isSidebarCollapsed = false;
     } else {
-      // Currently closed, open it
-      this.isSidebarOpen = true;
-      this.isSidebarCollapsed = false;
+      // On desktop, cycle through states: open -> collapsed -> closed -> open
+      if (this.isSidebarOpen && !this.isSidebarCollapsed) {
+        // Currently open, collapse it
+        this.isSidebarCollapsed = true;
+      } else if (this.isSidebarOpen && this.isSidebarCollapsed) {
+        // Currently collapsed, close it
+        this.isSidebarOpen = false;
+        this.isSidebarCollapsed = false;
+      } else {
+        // Currently closed, open it
+        this.isSidebarOpen = true;
+        this.isSidebarCollapsed = false;
+      }
     }
+  }
+
+  onSidebarStateChange(state: {isOpen: boolean; isCollapsed: boolean}) {
+    this.isSidebarOpen = state.isOpen;
+    this.isSidebarCollapsed = state.isCollapsed;
   }
 
   isFeaturePage(): boolean {

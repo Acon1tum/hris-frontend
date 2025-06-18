@@ -13,13 +13,14 @@
       <app-sidebar 
         [isOpen]="isSidebarOpen"
         [isCollapsed]="isSidebarCollapsed"
-        (sidebarToggle)="toggleSidebar()">
+        (sidebarToggle)="toggleSidebar()"
+        (stateChange)="onSidebarStateChange($event)">
       </app-sidebar>
       
       <main class="main-content" 
             [class.sidebar-open]="isSidebarOpen"
             [class.sidebar-collapsed]="isSidebarCollapsed">
-        <div class="container">
+        <div class="container" [class.container-expanded]="!isSidebarOpen || isSidebarCollapsed">
           <div class="features-grid" *ngIf="!isFeaturePage()">
             <div class="feature-card" *ngFor="let feature of features">
               <div class="feature-icon">{{ feature.icon }}</div>
@@ -33,6 +34,5 @@
         </div>
       </main>
     </div>
-   
   </div>
 </div> 

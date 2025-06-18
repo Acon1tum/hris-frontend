@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -24,9 +24,9 @@ interface User {
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
-  @Output() toggleSidebar = new EventEmitter<void>();
+  @HostBinding('class.sidebar-collapsed') isSidebarCollapsed = false;
+  @HostBinding('class.sidebar-open') isSidebarOpen = false;
   
-  title = 'Quanby HRIS';
   currentUser$ = this.authService.currentUser$;
   
   userMenuItems = [
@@ -48,10 +48,6 @@ export class HeaderComponent {
     private authService: AuthService,
     private router: Router
   ) {}
-
-  onToggleSidebar() {
-    this.toggleSidebar.emit();
-  }
 
   toggleUserMenu() {
     this.showUserMenu = !this.showUserMenu;

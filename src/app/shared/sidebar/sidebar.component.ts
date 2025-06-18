@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService, UserRole, MenuItem } from '../../services/auth.service';
@@ -14,18 +14,39 @@ export class SidebarComponent implements OnInit {
   @Input() isOpen = false;
   @Input() isCollapsed = false;
   @Output() sidebarToggle = new EventEmitter<void>();
+  @Output() sidebarCollapse = new EventEmitter<boolean>();
+  @Output() stateChange = new EventEmitter<{isOpen: boolean; isCollapsed: boolean}>();
 
   menuItems: MenuItem[] = [];
   currentUser$ = this.authService.currentUser$;
   expandedItems: Set<string> = new Set();
+  isMobile = window.innerWidth <= 768;
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
 
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    const wasNotMobile = !this.isMobile;
+    this.isMobile = window.innerWidth <= 768;
+    
+    if (wasNotMobile && this.isMobile) {
+      this.isOpen = false;
+      this.emitStateChange();
+    } else if (!wasNotMobile && !this.isMobile) {
+      this.isOpen = true;
+      this.isCollapsed = false;
+      this.emitStateChange();
+    }
+  }
+
   ngOnInit() {
     this.updateMenuItems();
+    this.isOpen = !this.isMobile;
+    this.isCollapsed = false;
+    this.emitStateChange();
   }
 
   private updateMenuItems() {
@@ -129,17 +150,22 @@ export class SidebarComponent implements OnInit {
     );
   }
 
-  canAccess(roles: UserRole[]): boolean {
-    return this.authService.canAccess(roles);
-  }
-
-  logout() {
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
-
   toggleSidebar() {
-    this.sidebarToggle.emit();
+    if (this.isMobile) {
+      this.isOpen = !this.isOpen;
+      this.sidebarToggle.emit();
+    } else {
+      this.isCollapsed = !this.isCollapsed;
+      this.sidebarCollapse.emit(this.isCollapsed);
+    }
+    this.emitStateChange();
+  }
+
+  private emitStateChange() {
+    this.stateChange.emit({
+      isOpen: this.isOpen,
+      isCollapsed: this.isCollapsed
+    });
   }
 
   toggleMenuItem(itemName: string, event: Event) {
@@ -158,9 +184,14 @@ export class SidebarComponent implements OnInit {
   }
 
   onMenuItemClick() {
-    // Close sidebar on mobile when menu item is clicked
-    if (window.innerWidth <= 768) {
-      this.toggleSidebar();
+    if (this.isMobile) {
+      this.isOpen = false;
+      this.sidebarToggle.emit();
     }
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 } 

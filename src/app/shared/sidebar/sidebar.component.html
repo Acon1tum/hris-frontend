@@ -1,10 +1,17 @@
-<aside class="sidebar" [class.open]="isOpen" [class.collapsed]="isCollapsed">
+<aside class="sidebar" 
+       [class.open]="isOpen" 
+       [class.collapsed]="!isMobile && isCollapsed">
   <!-- Sidebar Header -->
   <div class="sidebar-header">
     <div class="logo">
-      <img alt="Company Logo" class="logo-icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqh15Elt4Qo4jwpz_7FUCoy0H6VqAlvGQS9q_f3bMBkk3NfMA6VW8wi4kdO1fmaGbG9chmIML-haKoCfduJnKIB5fAIspBF4k3MwL_JpvtO6lRaNDMgxM8ctiHhErGT2s0JHP3Z1a3Mx0DhMheV3YoL8CXCb5JMgGGjcXJBJZN0Wc0dBiH_CpNx437rTToFIFqGURqElSteOZaCTXgdh9IMoqpFwq2RKQrqqZa3zU673Aqqh1E8wEMNEaytH1iQNByo7ee_ITXUkc"/>
-      <span class="logo-text" *ngIf="!isCollapsed">Quanby HRIS</span>
-    </div>
+      <img alt="Company Logo" class="logo-icon" src="assets/images/QuanbyLogo.png" />
+      <span class="logo-text" *ngIf="!isCollapsed || isMobile">Quanby HRIS</span>
+    </div>  
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <span class="material-symbols-outlined">
+        {{ (isOpen && !isCollapsed) ? 'chevron_left' : 'chevron_right' }}
+      </span>
+    </button>
   </div>
 
   <!-- Sidebar Navigation -->
@@ -19,10 +26,10 @@
            [class.expanded]="isMenuItemExpanded(item.name)"
            (click)="item.children && item.children.length > 0 ? toggleMenuItem(item.name, $event) : onMenuItemClick()">
           <span class="nav-icon material-symbols-outlined">{{ item.icon }}</span>
-          <span class="nav-text" *ngIf="!isCollapsed">{{ item.name }}</span>
-          <span class="nav-badge" *ngIf="item.badge && !isCollapsed">{{ item.badge }}</span>
+          <span class="nav-text" *ngIf="!isCollapsed || isMobile">{{ item.name }}</span>
+          <span class="nav-badge" *ngIf="(item.badge && !isCollapsed) || isMobile">{{ item.badge }}</span>
           <span class="nav-arrow material-symbols-outlined" 
-                *ngIf="item.children && item.children.length > 0 && !isCollapsed"
+                *ngIf="item.children && item.children.length > 0 && (!isCollapsed || isMobile)"
                 [class.rotated]="isMenuItemExpanded(item.name)">
             expand_more
           </span>
@@ -30,7 +37,7 @@
         
         <!-- Submenu items -->
         <ul class="submenu" 
-            *ngIf="item.children && item.children.length > 0 && !isCollapsed"
+            *ngIf="item.children && item.children.length > 0 && (!isCollapsed || isMobile)"
             [class.expanded]="isMenuItemExpanded(item.name)">
           <li class="submenu-item" *ngFor="let child of item.children">
             <a [routerLink]="child.path" 
@@ -48,9 +55,9 @@
   </nav>
 </aside>
 
-<!-- Sidebar Overlay -->
+<!-- Sidebar Overlay - only show on mobile -->
 <div class="sidebar-overlay" 
-     [class.active]="isOpen" 
+     [class.active]="isOpen && isMobile" 
      (click)="toggleSidebar()"
-     *ngIf="isOpen">
+     *ngIf="isMobile">
 </div> 

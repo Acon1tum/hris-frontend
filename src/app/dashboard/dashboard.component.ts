@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -9,6 +9,9 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent {
+  @HostBinding('class.sidebar-collapsed') isSidebarCollapsed = false;
+  @HostBinding('class.sidebar-open') isSidebarOpen = false;
+  
   title = 'HRIS Dashboard';
   
   dashboardStats = [
@@ -31,4 +34,9 @@ export class DashboardComponent {
     { name: 'Generate Report', icon: '📊', route: '/report-generation' },
     { name: 'View Attendance', icon: '⏰', route: '/timekeeping-attendance' }
   ];
+
+  onSidebarStateChange(state: {isOpen: boolean; isCollapsed: boolean}) {
+    this.isSidebarCollapsed = state.isCollapsed;
+    this.isSidebarOpen = state.isOpen;
+  }
 } 

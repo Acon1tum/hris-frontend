@@ -121,6 +121,12 @@ export class SidebarComponent implements OnInit {
             icon: 'person',
             path: '/employee-self-service/my-profile',
             roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+          },
+          {
+            name: 'My Requests',
+            icon: 'request_page',
+            path: '/employee-self-service/my-requests',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
           }
         ]
       },

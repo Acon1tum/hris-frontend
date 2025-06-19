@@ -6,7 +6,8 @@
   <div class="main-app" *ngIf="currentUser$ | async as user">
     <app-header 
       (toggleSidebar)="toggleSidebar()"
-      (logout)="onLogout()">
+      (logout)="onLogout()"
+      [isSidebarCollapsed]="isSidebarCollapsed">
     </app-header>
     
     <div class="content-wrapper">

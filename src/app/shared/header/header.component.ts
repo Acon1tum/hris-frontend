@@ -1,7 +1,8 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { FormsModule } from '@angular/forms';
 
 interface Notification {
   id: string;
@@ -19,13 +20,13 @@ interface User {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule,FormsModule],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
-  @HostBinding('class.sidebar-collapsed') isSidebarCollapsed = false;
   @HostBinding('class.sidebar-open') isSidebarOpen = false;
+  @Input() isSidebarCollapsed = false;
   
   currentUser$ = this.authService.currentUser$;
   
@@ -43,6 +44,8 @@ export class HeaderComponent {
 
   showUserMenu = false;
   showNotifications = false;
+  searchText = '';
+  isOnline = true;
 
   constructor(
     private authService: AuthService,
@@ -81,5 +84,13 @@ export class HeaderComponent {
   onNotificationClick(notification: Notification) {
     console.log('Notification clicked:', notification);
     this.showNotifications = false;
+  }
+
+  clearSearch() {
+    this.searchText = '';
+  }
+
+  onSearchInput() {
+    // Optionally, implement search logic here
   }
 } 

@@ -87,6 +87,25 @@
         color: var(--text-secondary);
       }
     }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0.2rem;
+      border-radius: 50%;
+      transition: background 0.2s;
+      &:hover, &:focus {
+        background: #e2e8f0;
+        color: var(--primary-color);
+      }
+    }
   }
 }
 
@@ -132,6 +151,16 @@
       font-weight: 600;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
+  }
+
+  .notification-btn.pulse {
+    animation: pulse-bell 1.2s infinite;
+  }
+
+  @keyframes pulse-bell {
+    0% { box-shadow: 0 0 0 0 rgba(12,127,242,0.3); }
+    70% { box-shadow: 0 0 0 8px rgba(12,127,242,0); }
+    100% { box-shadow: 0 0 0 0 rgba(12,127,242,0); }
   }
 
   .notification-dropdown {
@@ -485,4 +514,108 @@
       margin-left: var(--sidebar-width);
     }
   }
-} 
+}
+
+.header-logo {
+  width: 40px;
+  height: 40px;
+  margin-right: 0.75rem;
+  border-radius: 8px;
+  object-fit: contain;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.app-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 1px;
+  margin-right: 1.5rem;
+}
+
+.dark-mode-toggle {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  margin-left: 0.5rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0.4rem;
+  transition: background 0.2s, color 0.2s;
+  &:hover, &:focus {
+    background: #e2e8f0;
+    color: var(--primary-color);
+  }
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: 2px solid #fff;
+  &.online {
+    background: #22c55e;
+  }
+}
+.user-avatar, .user-avatar-large {
+  position: relative;
+}
+
+// Dropdown improvements
+.notification-dropdown, .user-dropdown {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  border-radius: 1rem;
+  padding-bottom: 0.5rem;
+}
+.notification-header, .user-info {
+  border-radius: 1rem 1rem 0 0;
+}
+.user-dropdown .user-menu-items {
+  padding-bottom: 0.5rem;
+}
+
+// Mobile improvements
+@media (max-width: 600px) {
+  .header-logo { width: 32px; height: 32px; }
+  .app-title { font-size: 1.1rem; margin-right: 0.5rem; }
+  .header-container { padding: 0 0.5rem; }
+}
+
+// Dark mode support
+body.dark-mode {
+  .app-header {
+    background: #181f2a;
+    color: #f1f5f9;
+    border-bottom: 1px solid #334155;
+  }
+  .header-logo {
+    background: #181f2a;
+  }
+  .app-title {
+    color: #60a5fa;
+  }
+  .search-input {
+    background: #232e3c;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+  }
+  .search-input::placeholder {
+    color: #64748b;
+  }
+  .notification-dropdown, .user-dropdown {
+    background: #232e3c;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+  }
+  .notification-item:hover, .menu-item:hover {
+    background: #334155;
+  }
+  .dark-mode-toggle {
+    color: #60a5fa;
+  }
+}

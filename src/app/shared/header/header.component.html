@@ -1,7 +1,7 @@
 <header class="app-header">
   <div class="header-container">
     <div class="header-left">
-      <!-- Empty div to maintain flex spacing -->
+      <span class="app-title" *ngIf="isSidebarCollapsed">Quanby HRIS</span>
     </div>
 
     <div class="header-right">
@@ -9,13 +9,16 @@
       <div class="search-container">
         <div class="search-input-wrapper">
           <span class="material-symbols-outlined search-icon">search</span>
-          <input type="text" placeholder="Search..." class="search-input">
+          <input type="text" placeholder="Search..." class="search-input" [(ngModel)]="searchText" (input)="onSearchInput()" aria-label="Search">
+          <button *ngIf="searchText" class="search-clear-btn" (click)="clearSearch()" aria-label="Clear search">
+            <span class="material-symbols-outlined">close</span>
+          </button>
         </div>
       </div>
 
       <!-- Notifications -->
       <div class="notification-container">
-        <button class="notification-btn" (click)="toggleNotifications()" aria-label="Notifications">
+        <button class="notification-btn" (click)="toggleNotifications()" aria-label="Notifications" [class.pulse]="notifications.length > 0">
           <span class="material-symbols-outlined">notifications</span>
           <span class="notification-badge" *ngIf="notifications.length > 0">{{ notifications.length }}</span>
         </button>
@@ -55,6 +58,7 @@
           <div class="user-avatar">
             <img [src]="currentUser.avatar" [alt]="currentUser.name" *ngIf="currentUser.avatar">
             <span class="material-symbols-outlined" *ngIf="!currentUser.avatar">person</span>
+            <span class="status-indicator" [class.online]="isOnline" aria-label="Online status"></span>
           </div>
           <span class="user-name">{{ currentUser.name || 'User' }}</span>
           <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
@@ -65,6 +69,7 @@
             <div class="user-avatar-large">
               <img [src]="currentUser.avatar" [alt]="currentUser.name" *ngIf="currentUser.avatar">
               <span class="material-symbols-outlined" *ngIf="!currentUser.avatar">person</span>
+              <span class="status-indicator" [class.online]="isOnline" aria-label="Online status"></span>
             </div>
             <div class="user-details">
               <h4>{{ currentUser.name || 'User' }}</h4>

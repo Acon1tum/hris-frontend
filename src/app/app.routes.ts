@@ -32,6 +32,12 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN] }
   },
   {
+    path: 'system-administration/audit-trail',
+    loadComponent: () => import('./features/system-administration/audit-trail/audit-trail.component').then(m => m.AuditTrailComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN] }
+  },
+  {
     path: 'personnel-information-management',
     loadComponent: () => import('./features/personnel-information-management/index.component').then(m => m.PersonnelInformationManagementComponent),
     canActivate: [RoleGuard],

@@ -74,6 +74,12 @@ export class SidebarComponent implements OnInit {
             icon: 'security',
             path: '/system-administration/role-management',
             roles: [UserRole.ADMIN]
+          },
+          {
+            name: 'Audit Trail',
+            icon: 'history',
+            path: '/system-administration/audit-trail',
+            roles: [UserRole.ADMIN]
           }
         ]
       },

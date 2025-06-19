@@ -140,7 +140,39 @@ export class SidebarComponent implements OnInit {
         name: 'Timekeeping & Attendance',
         icon: 'schedule',
         path: '/timekeeping-attendance',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER],
+        children: [
+          {
+            name: 'Attendance Overview',
+            icon: 'analytics',
+            path: '/timekeeping-attendance/attendance-overview',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+          },
+          {
+            name: 'Attendance Logs',
+            icon: 'history',
+            path: '/timekeeping-attendance/attendance-logs',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+          },
+          {
+            name: 'Time Schedules',
+            icon: 'schedule',
+            path: '/timekeeping-attendance/time-schedules',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+          },
+          {
+            name: 'DTR Adjustment',
+            icon: 'adjust',
+            path: '/timekeeping-attendance/dtr-adjustment',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+          },
+          {
+            name: 'Employee Attendance',
+            icon: 'person',
+            path: '/timekeeping-attendance/employee-attendance',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+          }
+        ]
       },
       {
         name: 'Payroll Management',

@@ -92,6 +92,36 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER] }
   },
   {
+    path: 'timekeeping-attendance/attendance-overview',
+    loadComponent: () => import('./features/timekeeping-attendance/attendance-overview/attendance-overview.component').then(m => m.AttendanceOverviewComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER] }
+  },
+  {
+    path: 'timekeeping-attendance/attendance-logs',
+    loadComponent: () => import('./features/timekeeping-attendance/attendance-logs/attendance-logs.component').then(m => m.AttendanceLogsComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER] }
+  },
+  {
+    path: 'timekeeping-attendance/time-schedules',
+    loadComponent: () => import('./features/timekeeping-attendance/time-schedules/time-schedules.component').then(m => m.TimeSchedulesComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER] }
+  },
+  {
+    path: 'timekeeping-attendance/dtr-adjustment',
+    loadComponent: () => import('./features/timekeeping-attendance/dtr-adjustment/dtr-adjustment.component').then(m => m.DtrAdjustmentComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER] }
+  },
+  {
+    path: 'timekeeping-attendance/employee-attendance',
+    loadComponent: () => import('./features/timekeeping-attendance/employee-attendance/employee-attendance.component').then(m => m.EmployeeAttendanceComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER] }
+  },
+  {
     path: 'payroll-management',
     loadComponent: () => import('./features/payroll-management/index.component').then(m => m.PayrollManagementComponent),
     canActivate: [RoleGuard],

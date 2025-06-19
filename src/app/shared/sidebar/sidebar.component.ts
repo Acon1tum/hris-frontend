@@ -80,6 +80,12 @@ export class SidebarComponent implements OnInit {
             icon: 'history',
             path: '/system-administration/audit-trail',
             roles: [UserRole.ADMIN]
+          },
+          {
+            name: 'System Parameters',
+            icon: 'settings',
+            path: '/system-administration/system-parameters',
+            roles: [UserRole.ADMIN]
           }
         ]
       },

@@ -266,8 +266,8 @@
             <span class="material-icons">{{ isEditMode ? '' : '' }}</span>
             {{ isEditMode ? 'Save Card Changes' : 'Edit Cards' }}
           </button>
-        </div>
-      </div>
+              </div>
+            </div>
 
       <div class="stats-grid"
            cdkDropList
@@ -296,19 +296,18 @@
           <div class="stat-value">{{ getFormattedValue(card) }}</div>
           <div class="stat-description">{{ card.description }}</div>
           <div *ngIf="isEditMode" class="edit-overlay">
-            <div class="edit-actions">
-              <button class="remove-button" (click)="removeCard(card); $event.stopPropagation()">
-                <span class="material-icons">delete</span>
-              </button>
-              <div class="drag-handle" cdkDragHandle>
-                <span class="material-icons">drag_indicator</span>
-              </div>
-            </div>
-            <span>Drag to reorder or click to customize</span>
-              </div>
-            </div>
+            <button 
+              class="absolute top-3 right-3 p-2 rounded-full text-red-500 hover:text-white hover:bg-red-500 transition duration-200"
+              (click)="removeCard(card); $event.stopPropagation()" 
+              title="Remove card"
+            >
+              <span class="material-icons">delete</span>
+            </button>
+            <span class="edit-instruction">Drag to reorder, click edit to customize</span>
           </div>
-        </section>
+        </div>
+      </div>
+    </section>
 
     <!-- Employee Table -->
     <div class="flex flex-col gap-4 p-4 scroll-animate">
@@ -520,7 +519,17 @@
       <form [formGroup]="customizeForm" (ngSubmit)="saveCustomization()">
         <div class="form-group">
           <label for="title">Title</label>
-          <input type="text" id="title" formControlName="title" class="form-control">
+          <select id="title" formControlName="title" class="form-control" (change)="onTitleChange($event)">
+            <option value="Total Employees">Total Employees</option>
+            <option value="Pending Requests">Pending Requests</option>
+            <option value="Recent Movements">Recent Movements</option>
+            <option value="Employee Turnover Rate">Employee Turnover Rate</option>
+            <option value="Average Satisfaction Level">Average Satisfaction Level</option>
+            <option value="Performance Rating">Performance Rating</option>
+            <option value="Total Active Employees">Total Active Employees</option>
+            <option value="Total Inactive Employees">Total Inactive Employees</option>
+            <option value="Total Onleave Employees">Total Onleave Employees</option>
+          </select>
         </div>
         
         <div class="form-group">
@@ -550,14 +559,13 @@
           </select>
         </div>
         
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" formControlName="isVisible">
-            <span>Show this card</span>
-          </label>
-        </div>
-        
         <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="selectedCard && removeCard(selectedCard); closeCustomizeModal($event)">
+            Delete Card
+          </button>
           <button type="button" class="btn btn-secondary" (click)="closeCustomizeModal($event)">Cancel</button>
           <button type="submit" class="btn btn-primary" [disabled]="!customizeForm.valid">Save Changes</button>
         </div>
@@ -934,7 +942,6 @@
   }
 
   .stat-card.edit-mode::before {
-    content: 'Click to customize';
     position: absolute;
     top: 50%;
     left: 50%;
@@ -1046,5 +1053,100 @@
     border-radius: 1.25rem;
     min-height: 160px;
     transition: all 0.3s;
+  }
+
+  .edit-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.92);
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 10;
+    transition: opacity 0.2s;
+  }
+
+  .edit-actions {
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .drag-handle {
+    cursor: grab;
+    color: #1993e5;
+    background: #e0e7ef;
+    border-radius: 50%;
+    padding: 0.5rem;
+    font-size: 1.6rem;
+    box-shadow: 0 2px 8px rgba(25, 147, 229, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+  }
+  .drag-handle:hover {
+    background: #1993e5;
+    color: #fff;
+  }
+
+  .edit-btn {
+    background: #f0f3f4;
+    color: #1993e5;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .edit-btn:hover {
+    background: #e0e7ef;
+  }
+
+  .remove-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    z-index: 20;
+  }
+
+  .remove-btn:hover {
+    background: #b91c1c;
+  }
+
+  .edit-instruction {
+    color: #637988;
+    font-size: 0.875rem;
+  }
+
+  .btn-danger {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-right: auto;
+  }
+  .btn-danger:hover {
+    background: #b91c1c;
   }
 </style>

@@ -283,6 +283,84 @@ export class AdminDashboardComponent implements OnInit {
     value: 0
   };
 
+  totalActiveEmployees = 300;
+  totalInactiveEmployees = 30;
+  totalOnleaveEmployees = 15;
+
+  metricOptions: {
+    title: string;
+    value: number;
+    description: string;
+    dataType: 'number' | 'percentage' | 'rating';
+  }[] = [
+    {
+      title: 'Total Employees',
+      value: this.totalEmployees,
+      description: 'Current headcount',
+      dataType: 'number'
+    },
+    {
+      title: 'Pending Requests',
+      value: this.pendingRequests,
+      description: 'Awaiting approval',
+      dataType: 'number'
+    },
+    {
+      title: 'Recent Movements',
+      value: this.recentMovements,
+      description: 'Last 30 days',
+      dataType: 'number'
+    },
+    {
+      title: 'Employee Turnover Rate',
+      value: this.turnoverRate,
+      description: 'Last 12 months',
+      dataType: 'percentage'
+    },
+    {
+      title: 'Average Satisfaction Level',
+      value: this.satisfactionLevel,
+      description: 'Employee survey',
+      dataType: 'percentage'
+    },
+    {
+      title: 'Performance Rating',
+      value: this.performanceRating,
+      description: 'Average score',
+      dataType: 'rating'
+    },
+    {
+      title: 'Total Active Employees',
+      value: this.totalActiveEmployees,
+      description: 'Active employees',
+      dataType: 'number'
+    },
+    {
+      title: 'Total Inactive Employees',
+      value: this.totalInactiveEmployees,
+      description: 'Inactive employees',
+      dataType: 'number'
+    },
+    {
+      title: 'Total Onleave Employees',
+      value: this.totalOnleaveEmployees,
+      description: 'Employees on leave',
+      dataType: 'number'
+    }
+  ];
+
+  titleIconMap: { [key: string]: string } = {
+    'Total Employees': 'https://cdn-icons-png.flaticon.com/512/2922/2922510.png',
+    'Pending Requests': 'https://cdn-icons-png.flaticon.com/512/3596/3596095.png', 
+    'Recent Movements': 'https://cdn-icons-png.flaticon.com/512/3303/3303892.png', 
+    'Employee Turnover Rate': 'https://cdn-icons-png.flaticon.com/512/1040/1040230.png',
+    'Average Satisfaction Level': 'https://cdn-icons-png.flaticon.com/512/2583/2583395.png', 
+    'Performance Rating': 'https://cdn-icons-png.flaticon.com/512/1828/1828884.png', 
+    'Total Active Employees': 'https://cdn-icons-png.flaticon.com/512/190/190411.png', 
+    'Total Inactive Employees': 'https://cdn-icons-png.flaticon.com/512/1828/1828843.png',
+    'Total Onleave Employees': 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png' 
+  };  
+
   constructor(
     private router: Router,
     private fb: FormBuilder,
@@ -313,13 +391,20 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Initialize component
+    const savedCards = localStorage.getItem('statCards');
+    if (savedCards) {
+      this.statCards = JSON.parse(savedCards);
+    }
+    // Restore chart type if present
+    const savedChartType = localStorage.getItem('chartType');
+    if (savedChartType && this.chartTypes.includes(savedChartType as any)) {
+      this.chartType = savedChartType as any;
+      this.currentChartTypeIndex = this.chartTypes.indexOf(this.chartType);
+    }
     this.updatePagination();
-    // Initial check for elements in view
     setTimeout(() => {
       this.checkScroll();
     }, 100);
-
     // Initialize stat cards with actual data
     this.statCards[0].value = this.totalEmployees;
     this.statCards[0].change = this.employeeChange;
@@ -531,6 +616,7 @@ export class AdminDashboardComponent implements OnInit {
       } else {
         this.renderer.removeClass(dropListElement, 'edit-mode');
         this.saveDashboardChanges();
+        this.saveStatCardsToStorage(); // Save card order on save
       }
     }
   }
@@ -562,8 +648,10 @@ export class AdminDashboardComponent implements OnInit {
       this.selectedCard.color = formValue.color;
       this.selectedCard.dataType = formValue.dataType;
       this.selectedCard.isVisible = formValue.isVisible;
+      this.selectedCard.icon = this.titleIconMap[formValue.title];
       this.showCustomizeModal = false;
       this.selectedCard = null;
+      this.saveStatCardsToStorage();
     }
   }
 
@@ -589,8 +677,6 @@ export class AdminDashboardComponent implements OnInit {
       const draggedElement = event.item.element.nativeElement;
       const previousIndex = event.previousIndex;
       const cards = Array.from(this.dropList?.element.nativeElement.children || []);
-
-      // Get pointer position (fallback to center of dragged element)
       let pointerX: number | null = null;
       let pointerY: number | null = null;
       if ((event as any).event && (event as any).event.clientX !== undefined) {
@@ -607,8 +693,6 @@ export class AdminDashboardComponent implements OnInit {
           y: draggedRect.top + draggedRect.height / 2
         };
       }
-
-      // Find the nearest card
       let minDistance = Number.MAX_VALUE;
       let nearestIndex = previousIndex;
       cards.forEach((card: any, idx: number) => {
@@ -627,12 +711,11 @@ export class AdminDashboardComponent implements OnInit {
           nearestIndex = idx;
         }
       });
-
-      // Swap the two cards in the array
       if (previousIndex !== nearestIndex) {
         const temp = this.statCards[previousIndex];
         this.statCards[previousIndex] = this.statCards[nearestIndex];
         this.statCards[nearestIndex] = temp;
+        this.saveStatCardsToStorage(); // Save card order after swap
       }
     }
   }
@@ -804,6 +887,7 @@ export class AdminDashboardComponent implements OnInit {
 
   exitChartEditMode() {
     this.isChartEditMode = false;
+    this.saveChartTypeToStorage();
   }
 
   showChartTooltip(event: MouseEvent, label: string, value: number) {
@@ -836,5 +920,29 @@ export class AdminDashboardComponent implements OnInit {
     }, { threshold: 0.15 });
 
     elements.forEach(el => observer.observe(el));
+  }
+
+  onTitleChange(event: Event) {
+    const selectedTitle = (event.target as HTMLSelectElement).value;
+    const metric = this.metricOptions.find((m: { title: string }) => m.title === selectedTitle);
+    if (metric && this.selectedCard) {
+      this.customizeForm.patchValue({
+        title: metric.title,
+        description: metric.description,
+        dataType: metric.dataType
+      });
+      this.selectedCard.value = metric.value;
+      this.selectedCard.description = metric.description;
+      this.selectedCard.dataType = metric.dataType;
+      this.selectedCard.icon = this.titleIconMap[metric.title];
+    }
+  }
+
+  saveStatCardsToStorage() {
+    localStorage.setItem('statCards', JSON.stringify(this.statCards));
+  }
+
+  saveChartTypeToStorage() {
+    localStorage.setItem('chartType', this.chartType);
   }
 } 

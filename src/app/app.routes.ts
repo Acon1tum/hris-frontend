@@ -80,6 +80,12 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE] }
   },
   {
+    path: 'employee-self-service/my-reports',
+    loadComponent: () => import('./features/employee-self-service/my-reports/my-reports.component').then(m => m.MyReportsComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE] }
+  },
+  {
     path: 'timekeeping-attendance',
     loadComponent: () => import('./features/timekeeping-attendance/index.component').then(m => m.TimekeepingAttendanceComponent),
     canActivate: [RoleGuard],

@@ -114,7 +114,15 @@ export class SidebarComponent implements OnInit {
         icon: 'person',
         path: '/employee-self-service',
         badge: '3',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE],
+        children: [
+          {
+            name: 'My Profile',
+            icon: 'person',
+            path: '/employee-self-service/my-profile',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+          }
+        ]
       },
       {
         name: 'Timekeeping & Attendance',

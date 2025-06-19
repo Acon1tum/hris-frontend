@@ -86,7 +86,6 @@
 }
 
 .stat-card {
-  background: white;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -694,4 +693,8 @@ body.dragging {
   &.cdk-drop-list-dragging {
     padding: 1rem;
   }
+}
+
+.stat-card.colored-shadow {
+  box-shadow: 0 4px 16px 0 rgba(25, 147, 229, 0.10), 0 2px 8px rgba(0,0,0,0.10);
 } 

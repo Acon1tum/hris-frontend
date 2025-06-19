@@ -74,7 +74,8 @@ export class AdminDashboardComponent implements OnInit {
     { name: 'HR', count: 30, percentage: 20 },
     { name: 'Finance', count: 25, percentage: 17 },
     { name: 'Marketing', count: 20, percentage: 13 },
-    { name: 'Operations', count: 30, percentage: 20 }
+    { name: 'Operations', count: 30, percentage: 20 },
+    { name: 'Graphics', count: 20, percentage: 40 }
   ];
 
   recentEmployees: Employee[] = [
@@ -175,11 +176,13 @@ export class AdminDashboardComponent implements OnInit {
   showCustomizeModal = false;
   customizeForm: FormGroup;
   availableColors = [
-    { name: 'Blue', value: '#1993e5' },
-    { name: 'Green', value: '#10b981' },
-    { name: 'Purple', value: '#8b5cf6' },
-    { name: 'Orange', value: '#f97316' },
-    { name: 'Red', value: '#ef4444' }
+    { name: 'White', value: '#fff' },
+    { name: 'Blue', value: '#649dfa' },
+    { name: 'Green', value: '#38ffbd' },
+    { name: 'Purple', value: '#a182e8' },
+    { name: 'Orange', value: '#fc9751' },
+    { name: 'Yellow', value: '#f4fa57' },
+    { name: 'Cyan', value: "#02faf6"}
   ];
 
   statCards: StatCard[] = [
@@ -260,7 +263,7 @@ export class AdminDashboardComponent implements OnInit {
     icon: 'https://cdn-icons-png.flaticon.com/512/1828/1828843.png',
     description: 'Add description',
     isVisible: true,
-    color: '#1993e5',
+    color: '#fff',
     dataType: 'number'
   };
 
@@ -358,7 +361,7 @@ export class AdminDashboardComponent implements OnInit {
     'Performance Rating': 'https://cdn-icons-png.flaticon.com/512/1828/1828884.png', 
     'Total Active Employees': 'https://cdn-icons-png.flaticon.com/512/190/190411.png', 
     'Total Inactive Employees': 'https://cdn-icons-png.flaticon.com/512/1828/1828843.png',
-    'Total Onleave Employees': 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png' 
+    'Total Onleave Employees': 'https://cdn-icons-png.flaticon.com/512/11498/11498606.png' 
   };  
 
   constructor(
@@ -379,7 +382,7 @@ export class AdminDashboardComponent implements OnInit {
     this.customizeForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
-      color: ['#1993e5'],
+      color: ['#fff'],
       dataType: ['number'],
       isVisible: [true]
     });
@@ -628,7 +631,8 @@ export class AdminDashboardComponent implements OnInit {
 
   onCardClick(card: StatCard) {
     if (this.isEditMode) {
-      this.selectedCard = card;
+      // Make a shallow copy for editing
+      this.selectedCard = { ...card };
       this.customizeForm.patchValue({
         title: card.title,
         description: card.description,
@@ -643,12 +647,23 @@ export class AdminDashboardComponent implements OnInit {
   saveCustomization() {
     if (this.selectedCard && this.customizeForm.valid) {
       const formValue = this.customizeForm.value;
-      this.selectedCard.title = formValue.title;
-      this.selectedCard.description = formValue.description;
-      this.selectedCard.color = formValue.color;
-      this.selectedCard.dataType = formValue.dataType;
-      this.selectedCard.isVisible = formValue.isVisible;
-      this.selectedCard.icon = this.titleIconMap[formValue.title];
+      // Find the card in statCards by id and update it
+      const idx = this.statCards.findIndex(c => c.id === this.selectedCard!.id);
+      if (idx !== -1) {
+        this.statCards[idx] = {
+          ...this.statCards[idx],
+          ...formValue,
+          icon: this.titleIconMap[formValue.title]
+        };
+      } else {
+        // If not found, it's a new card (from addNewCard)
+        const newCard: StatCard = {
+          ...this.selectedCard,
+          ...formValue,
+          icon: this.titleIconMap[formValue.title]
+        };
+        this.statCards.push(newCard);
+      }
       this.showCustomizeModal = false;
       this.selectedCard = null;
       this.saveStatCardsToStorage();
@@ -755,13 +770,12 @@ export class AdminDashboardComponent implements OnInit {
 
   addNewCard() {
     if (this.isEditMode) {
+      // Prepare a new card but do not add to statCards yet
       const newCard: StatCard = {
         ...this.newCardTemplate,
         id: `card-${Date.now()}` // Generate unique ID
       };
-      this.statCards.push(newCard);
-      // Open customization modal for the new card
-      this.selectedCard = newCard;
+      this.selectedCard = { ...newCard };
       this.customizeForm.patchValue({
         title: newCard.title,
         description: newCard.description,
@@ -944,5 +958,30 @@ export class AdminDashboardComponent implements OnInit {
 
   saveChartTypeToStorage() {
     localStorage.setItem('chartType', this.chartType);
+  }
+
+  getPreviewCard(): StatCard {
+    if (!this.selectedCard) {
+      // Fallback: return a default card
+      return {
+        id: '',
+        title: this.customizeForm.get('title')?.value || '',
+        value: 0,
+        change: 0,
+        icon: '',
+        description: this.customizeForm.get('description')?.value || '',
+        isVisible: true,
+        color: this.customizeForm.get('color')?.value || '#fff',
+        dataType: this.customizeForm.get('dataType')?.value || 'number'
+      };
+    }
+    return {
+      ...this.selectedCard,
+      title: this.customizeForm.get('title')?.value ?? this.selectedCard.title,
+      description: this.customizeForm.get('description')?.value ?? this.selectedCard.description,
+      color: this.customizeForm.get('color')?.value ?? this.selectedCard.color,
+      dataType: this.customizeForm.get('dataType')?.value ?? this.selectedCard.dataType,
+      isVisible: this.customizeForm.get('isVisible')?.value ?? this.selectedCard.isVisible
+    };
   }
 } 

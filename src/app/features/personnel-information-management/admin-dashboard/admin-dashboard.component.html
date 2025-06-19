@@ -275,11 +275,12 @@
            #dropList="cdkDropList">
         <div *ngFor="let card of statCards"
              class="stat-card"
+             [class.colored-shadow]="card.color && card.color !== '#fff'"
              cdkDrag
              [cdkDragDisabled]="!isEditMode"
              [class.edit-mode]="isEditMode"
              [class.hidden]="!card.isVisible"
-             [style.--card-color]="card.color"
+             [ngStyle]="{'background': card.color || '#fff'}"
              (click)="onCardClick(card)"
              (cdkDragStarted)="onDragStarted($event)"
              (cdkDragEnded)="onDragEnded($event)">
@@ -288,10 +289,6 @@
               <img [src]="card.icon" [alt]="card.title" class="stat-icon">
               <h3>{{ card.title }}</h3>
               </div>
-            <div class="stat-change" [class.positive]="card.change > 0" [class.negative]="card.change < 0">
-              <span class="material-icons">{{ card.change > 0 ? 'trending_up' : 'trending_down' }}</span>
-              {{ Math.abs(card.change) }}%
-            </div>
           </div>
           <div class="stat-value">{{ getFormattedValue(card) }}</div>
           <div class="stat-description">{{ card.description }}</div>
@@ -516,6 +513,20 @@
     </div>
     
     <div class="modal-body">
+      <!-- Card Preview -->
+      <div class="stat-card mb-6" [ngStyle]="{'background': customizeForm.get('color')?.value || '#fff'}">
+        <div class="stat-header">
+          <div class="stat-title">
+            <img [src]="selectedCard?.icon" [alt]="customizeForm.get('title')?.value" class="stat-icon">
+            <h3>{{ customizeForm.get('title')?.value }}</h3>
+          </div>
+        </div>
+        <div class="stat-value">
+          {{ getFormattedValue(getPreviewCard()) }}
+        </div>
+        <div class="stat-description">{{ customizeForm.get('description')?.value }}</div>
+      </div>
+      <!-- End Card Preview -->
       <form [formGroup]="customizeForm" (ngSubmit)="saveCustomization()">
         <div class="form-group">
           <label for="title">Title</label>

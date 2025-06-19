@@ -61,7 +61,21 @@ export class SidebarComponent implements OnInit {
         name: 'System Administration',
         icon: 'admin_panel_settings',
         path: '/system-administration',
-        roles: [UserRole.ADMIN]
+        roles: [UserRole.ADMIN],
+        children: [
+          {
+            name: 'User Management',
+            icon: 'manage_accounts',
+            path: '/system-administration/user-management',
+            roles: [UserRole.ADMIN]
+          },
+          {
+            name: 'Role Management',
+            icon: 'security',
+            path: '/system-administration/role-management',
+            roles: [UserRole.ADMIN]
+          }
+        ]
       },
       {
         name: 'Personnel Information',

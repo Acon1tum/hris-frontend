@@ -20,6 +20,18 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN] }
   },
   {
+    path: 'system-administration/user-management',
+    loadComponent: () => import('./features/system-administration/user-management/user-management.component').then(m => m.UserManagementComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN] }
+  },
+  {
+    path: 'system-administration/role-management',
+    loadComponent: () => import('./features/system-administration/role-management/role-management.component').then(m => m.RoleManagementComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN] }
+  },
+  {
     path: 'personnel-information-management',
     loadComponent: () => import('./features/personnel-information-management/index.component').then(m => m.PersonnelInformationManagementComponent),
     canActivate: [RoleGuard],

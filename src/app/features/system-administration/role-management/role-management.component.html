@@ -1,0 +1,52 @@
+<div class="role-management-container">
+  <div class="header-section">
+    <div class="header-content">
+      <div class="title-description">
+        <h2 class="page-title">Roles and Permissions</h2>
+        <p class="page-description">Manage roles and their associated permissions within the system.</p>
+      </div>
+      <button class="btn-create-role" (click)="onCreateNewRole()">
+        <svg fill="currentColor" height="16" viewBox="0 0 256 256" width="16" xmlns="http://www.w3.org/2000/svg">
+          <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+        </svg>
+        <span>Create New Role</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div class="table-wrapper">
+      <table class="roles-table">
+        <thead>
+          <tr>
+            <th class="col-role-name">Role Name</th>
+            <th class="col-description">Description</th>
+            <th class="col-users">Users</th>
+            <th class="col-permissions">Permissions</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let role of roles; trackBy: trackByRoleId">
+            <td class="role-name">{{ role.name }}</td>
+            <td class="role-description">{{ role.description }}</td>
+            <td class="role-users">{{ role.userCount }}</td>
+            <td class="role-permissions">
+              <span 
+                *ngFor="let permission of role.permissions; let last = last" 
+                class="permission-badge"
+                [style.background-color]="permission.bgColor"
+                [style.color]="permission.color"
+              >
+                {{ permission.name }}
+              </span>
+            </td>
+            <td class="role-actions">
+              <button class="edit-button" (click)="onEditRole(role)">Edit</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div> 

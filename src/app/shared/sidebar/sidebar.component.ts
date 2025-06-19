@@ -74,6 +74,12 @@ export class SidebarComponent implements OnInit {
             icon: 'analytics',
             path: '/personnel-information-management/admin-dashboard',
             roles: [UserRole.ADMIN, UserRole.HR_MANAGER]
+          },
+          {
+            name: 'Admin Custom',
+            icon: 'build',
+            path: '/personnel-information-management/admin-custom',
+            roles: [UserRole.ADMIN]
           }
         ]
       },

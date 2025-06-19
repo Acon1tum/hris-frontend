@@ -17,7 +17,12 @@
         <div class="feature-icon">{{ feature.icon }}</div>
         <h3>{{ feature.name }}</h3>
         <p>{{ feature.description }}</p>
-        <button class="btn btn-primary">Access</button>
+        <a *ngIf="feature.route; else noRoute" 
+           [routerLink]="feature.route" 
+           class="btn btn-primary">Access</a>
+        <ng-template #noRoute>
+          <button class="btn btn-primary" disabled>Access</button>
+        </ng-template>
       </div>
     </div>
 

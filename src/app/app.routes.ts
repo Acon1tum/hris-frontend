@@ -62,6 +62,12 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN] }
   },
   {
+    path: 'personnel-information-management/admin-request',
+    loadComponent: () => import('./features/personnel-information-management/admin-request/admin-request.component').then(m => m.AdminRequestComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN] }
+  },
+  {
     path: 'employee-self-service',
     loadComponent: () => import('./features/employee-self-service/index.component').then(m => m.EmployeeSelfServiceComponent),
     canActivate: [RoleGuard],

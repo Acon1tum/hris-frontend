@@ -106,6 +106,12 @@ export class SidebarComponent implements OnInit {
             icon: 'build',
             path: '/personnel-information-management/admin-custom',
             roles: [UserRole.ADMIN]
+          },
+          {
+            name: 'Admin Request',
+            icon: 'build',
+            path: '/personnel-information-management/admin-request',
+            roles: [UserRole.ADMIN]
           }
         ]
       },

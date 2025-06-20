@@ -185,7 +185,15 @@ export class SidebarComponent implements OnInit {
         icon: 'payments',
         path: '/payroll-management',
         badge: '1',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF],
+        children: [
+          {
+            name: 'Payroll Overview',
+            icon: 'analytics',
+            path: '/payroll-management/payroll-overview',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+          }
+        ]
       },
       {
         name: 'Leave Management',

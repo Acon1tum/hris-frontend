@@ -17,7 +17,7 @@ export class PayrollManagementComponent {
   payrollFeatures = [
     { name: 'Salary Processing', description: 'Calculate and process employee salaries', icon: '💰', route: '/payroll-management/payroll-overview' },
     { name: 'Master Payroll', description: 'Manage employee master payroll records', icon: '👥', route: '/payroll-management/master-payroll' },
-    { name: 'Tax Calculations', description: 'Automated tax deductions and calculations', icon: '🧮', route: null },
+    { name: 'Deduction Formulas', description: 'Configure tax tables and deduction formulas', icon: '🧮', route: '/payroll-management/deductions' },
     { name: 'Benefits Deductions', description: 'Manage benefits and insurance deductions', icon: '🏥', route: null },
     { name: 'Payslip Generation', description: 'Generate and distribute payslips', icon: '📄', route: null },
     { name: 'Payroll Reports', description: 'Comprehensive payroll reporting and analytics', icon: '📊', route: null }
@@ -37,5 +37,9 @@ export class PayrollManagementComponent {
 
   navigateToPayrollOverview() {
     this.router.navigate(['/payroll-management/payroll-overview']);
+  }
+
+  navigateToDeductions() {
+    this.router.navigate(['/payroll-management/deductions']);
   }
 } 

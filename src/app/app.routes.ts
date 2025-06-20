@@ -146,6 +146,12 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF] }
   },
   {
+    path: 'payroll-management/deductions',
+    loadComponent: () => import('./features/payroll-management/deductions/deductions.component').then(m => m.DeductionsComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF] }
+  },
+  {
     path: 'leave-management',
     loadComponent: () => import('./features/leave-management/index.component').then(m => m.LeaveManagementComponent),
     canActivate: [RoleGuard],

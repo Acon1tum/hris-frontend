@@ -140,6 +140,18 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE] }
   },
   {
+    path: 'leave-management/leave-request-management',
+    loadComponent: () => import('./features/leave-management/leave-request-management/leave-request-management.component').then(m => m.LeaveRequestManagementComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE] }
+  },
+  {
+    path: 'leave-management/leave-type-management',
+    loadComponent: () => import('./features/leave-management/leave-type-management/leave-type-management.component').then(m => m.LeaveTypeManagementComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE] }
+  },
+  {
     path: 'report-generation',
     loadComponent: () => import('./features/report-generation/index.component').then(m => m.ReportGenerationComponent),
     canActivate: [RoleGuard],

@@ -192,7 +192,21 @@ export class SidebarComponent implements OnInit {
         icon: 'event',
         path: '/leave-management',
         badge: '5',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE],
+        children: [
+          {
+            name: 'Leave Request Management',
+            icon: 'event',
+            path: '/leave-management/leave-request-management',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+          },
+          {
+            name: 'Leave Type Management',
+            icon: 'event',
+            path: '/leave-management/leave-type-management',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+          }
+        ]
       },
       {
         name: 'Report Generation',

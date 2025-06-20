@@ -1,0 +1,52 @@
+<div class="leave-type-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>{{ title }}</h1>
+      <p class="subtitle">Configure and manage different types of leave policies, accrual rules, and eligibility requirements</p>
+    </div>
+    <button class="btn btn-primary add-button" (click)="onAddNewLeaveType()">
+      <span class="material-symbols-outlined">add</span>
+      <span>New Leave Type</span>
+    </button>
+  </div>
+
+  <div class="table-container">
+    <div class="table-wrapper">
+      <table class="leave-types-table">
+        <thead>
+          <tr>
+            <th class="col-leave-type">Leave Type</th>
+            <th class="col-description">Description</th>
+            <th class="col-accrual">Accrual Rules</th>
+            <th class="col-usage">Usage Limits</th>
+            <th class="col-expiration">Expiration</th>
+            <th class="col-documents">Documents Required</th>
+            <th class="col-eligibility">Eligibility</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let leaveType of leaveTypes" class="table-row">
+            <td class="col-leave-type font-medium">{{ leaveType.name }}</td>
+            <td class="col-description">{{ leaveType.description }}</td>
+            <td class="col-accrual">{{ leaveType.accrualRules }}</td>
+            <td class="col-usage">{{ leaveType.usageLimits }}</td>
+            <td class="col-expiration">{{ leaveType.expiration }}</td>
+            <td class="col-documents">{{ leaveType.documentsRequired }}</td>
+            <td class="col-eligibility">{{ leaveType.eligibility }}</td>
+            <td class="col-actions">
+              <div class="action-buttons">
+                <button class="btn-icon edit-btn" (click)="onEditLeaveType(leaveType)" title="Edit">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="btn-icon delete-btn" (click)="onDeleteLeaveType(leaveType)" title="Delete">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div> 

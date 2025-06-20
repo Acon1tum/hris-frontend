@@ -205,6 +205,12 @@ export class SidebarComponent implements OnInit {
             icon: 'event',
             path: '/leave-management/leave-type-management',
             roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+          },
+          {
+            name: 'Leave Balance',
+            icon: 'event',
+            path: '/leave-management/leave-balance',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
           }
         ]
       },

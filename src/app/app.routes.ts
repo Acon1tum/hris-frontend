@@ -152,6 +152,12 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE] }
   },
   {
+    path: 'leave-management/leave-balance',
+    loadComponent: () => import('./features/leave-management/leave-balance/leave-balance.component').then(m => m.LeaveBalanceComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE] }
+  },
+  {
     path: 'report-generation',
     loadComponent: () => import('./features/report-generation/index.component').then(m => m.ReportGenerationComponent),
     canActivate: [RoleGuard],

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-payroll-management',
@@ -11,12 +12,30 @@ import { CommonModule } from '@angular/common';
 export class PayrollManagementComponent {
   title = 'Payroll Management';
   
+  constructor(private router: Router) {}
+  
   payrollFeatures = [
-    { name: 'Salary Processing', description: 'Calculate and process employee salaries', icon: '💰' },
-    { name: 'Tax Calculations', description: 'Automated tax deductions and calculations', icon: '🧮' },
-    { name: 'Benefits Deductions', description: 'Manage benefits and insurance deductions', icon: '🏥' },
-    { name: 'Payslip Generation', description: 'Generate and distribute payslips', icon: '📄' },
-    { name: 'Overtime Pay', description: 'Calculate overtime and bonus payments', icon: '⏰' },
-    { name: 'Payroll Reports', description: 'Comprehensive payroll reporting and analytics', icon: '📊' }
+    { name: 'Salary Processing', description: 'Calculate and process employee salaries', icon: '💰', route: '/payroll-management/payroll-overview' },
+    { name: 'Master Payroll', description: 'Manage employee master payroll records', icon: '👥', route: '/payroll-management/master-payroll' },
+    { name: 'Tax Calculations', description: 'Automated tax deductions and calculations', icon: '🧮', route: null },
+    { name: 'Benefits Deductions', description: 'Manage benefits and insurance deductions', icon: '🏥', route: null },
+    { name: 'Payslip Generation', description: 'Generate and distribute payslips', icon: '📄', route: null },
+    { name: 'Payroll Reports', description: 'Comprehensive payroll reporting and analytics', icon: '📊', route: null }
   ];
+
+  navigateToFeature(feature: any) {
+    if (feature.route) {
+      this.router.navigate([feature.route]);
+    } else {
+      console.log(`Feature ${feature.name} not yet implemented`);
+    }
+  }
+
+  navigateToMasterPayroll() {
+    this.router.navigate(['/payroll-management/master-payroll']);
+  }
+
+  navigateToPayrollOverview() {
+    this.router.navigate(['/payroll-management/payroll-overview']);
+  }
 } 

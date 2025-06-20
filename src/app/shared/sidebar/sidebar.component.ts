@@ -192,6 +192,12 @@ export class SidebarComponent implements OnInit {
             icon: 'analytics',
             path: '/payroll-management/payroll-overview',
             roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+          },
+          {
+            name: 'Master Payroll',
+            icon: 'payments',
+            path: '/payroll-management/master-payroll',
+            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
           }
         ]
       },

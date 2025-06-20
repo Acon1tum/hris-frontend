@@ -158,6 +158,18 @@ export const routes: Routes = [
     data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF] }
   },
   {
+    path: 'payroll-management/payroll-adjustment',
+    loadComponent: () => import('./features/payroll-management/payroll-adjustment/payroll-adjustment.component').then(m => m.PayrollAdjustmentComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF] }
+  },
+  {
+    path: 'payroll-management/payroll-run',
+    loadComponent: () => import('./features/payroll-management/payroll-run/payroll-run.component').then(m => m.PayrollRunComponent),
+    canActivate: [RoleGuard],
+    data: { roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF] }
+  },
+  {
     path: 'leave-management',
     loadComponent: () => import('./features/leave-management/index.component').then(m => m.LeaveManagementComponent),
     canActivate: [RoleGuard],

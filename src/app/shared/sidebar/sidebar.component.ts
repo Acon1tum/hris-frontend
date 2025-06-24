@@ -1,7 +1,8 @@
 import { Component, Input, Output, EventEmitter, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { AuthService, UserRole, MenuItem } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
+import { MenuItem, Permission } from '../../interfaces/auth.interface';
 
 @Component({
   selector: 'app-sidebar',
@@ -47,6 +48,11 @@ export class SidebarComponent implements OnInit {
     this.isOpen = !this.isMobile;
     this.isCollapsed = false;
     this.emitStateChange();
+
+    // Update menu items when user changes
+    this.currentUser$.subscribe(() => {
+      this.updateMenuItems();
+    });
   }
 
   private updateMenuItems() {
@@ -55,37 +61,37 @@ export class SidebarComponent implements OnInit {
         name: 'Dashboard',
         icon: 'dashboard',
         path: '/dashboard',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+        permissions: [] // Dashboard accessible to all authenticated users
       },
       {
         name: 'System Administration',
         icon: 'admin_panel_settings',
         path: '/system-administration',
-        roles: [UserRole.ADMIN],
+        permissions: [Permission.user_read, Permission.role_read, Permission.permission_read],
         children: [
           {
             name: 'User Management',
             icon: 'manage_accounts',
             path: '/system-administration/user-management',
-            roles: [UserRole.ADMIN]
+            permissions: [Permission.user_read, Permission.user_create, Permission.user_update]
           },
           {
             name: 'Role Management',
             icon: 'security',
             path: '/system-administration/role-management',
-            roles: [UserRole.ADMIN]
+            permissions: [Permission.role_read, Permission.role_create, Permission.role_update]
           },
           {
             name: 'Audit Trail',
             icon: 'history',
             path: '/system-administration/audit-trail',
-            roles: [UserRole.ADMIN]
+            permissions: [Permission.audit_log_read, Permission.audit_trail_read]
           },
           {
             name: 'System Parameters',
             icon: 'settings',
             path: '/system-administration/system-parameters',
-            roles: [UserRole.ADMIN]
+            permissions: [Permission.parameter_read, Permission.config_read]
           }
         ]
       },
@@ -93,31 +99,31 @@ export class SidebarComponent implements OnInit {
         name: 'Personnel Information',
         icon: 'people',
         path: '/personnel-information-management',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF],
+        permissions: [Permission.employee_read],
         children: [
           {
             name: 'Admin Dashboard',
             icon: 'analytics',
             path: '/personnel-information-management/admin-dashboard',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER]
+            permissions: [Permission.employee_read]
           },
           {
             name: 'Admin Custom',
             icon: 'build',
             path: '/personnel-information-management/admin-custom',
-            roles: [UserRole.ADMIN]
+            permissions: [Permission.custom_field_read, Permission.custom_field_create]
           },
           {
             name: 'Admin Request',
             icon: 'build',
             path: '/personnel-information-management/admin-request',
-            roles: [UserRole.ADMIN]
+            permissions: [Permission.request_read, Permission.request_update]
           },
           {
             name: 'Personnel 201 File',
             icon: 'build',
             path: '/personnel-information-management/personnel-201-file',
-            roles: [UserRole.ADMIN]
+            permissions: [Permission.employee_read, Permission.employment_record_read]
           }
         ]
       },
@@ -126,25 +132,25 @@ export class SidebarComponent implements OnInit {
         icon: 'person',
         path: '/employee-self-service',
         badge: '3',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE],
+        permissions: [], // Accessible to all employees
         children: [
           {
             name: 'My Profile',
             icon: 'person',
             path: '/employee-self-service/my-profile',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+            permissions: [Permission.employee_read]
           },
           {
             name: 'My Requests',
             icon: 'request_page',
             path: '/employee-self-service/my-requests',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+            permissions: [Permission.request_read, Permission.leave_request_read]
           },
           {
             name: 'My Reports',
             icon: 'report',
             path: '/employee-self-service/my-reports',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+            permissions: [Permission.report_read]
           }
         ]
       },
@@ -152,37 +158,37 @@ export class SidebarComponent implements OnInit {
         name: 'Timekeeping & Attendance',
         icon: 'schedule',
         path: '/timekeeping-attendance',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER],
+        permissions: [Permission.attendance_log_read],
         children: [
           {
             name: 'Attendance Overview',
             icon: 'analytics',
             path: '/timekeeping-attendance/attendance-overview',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+            permissions: [Permission.attendance_log_read]
           },
           {
             name: 'Attendance Logs',
             icon: 'history',
             path: '/timekeeping-attendance/attendance-logs',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+            permissions: [Permission.attendance_log_read]
           },
           {
             name: 'Time Schedules',
             icon: 'schedule',
             path: '/timekeeping-attendance/time-schedules',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+            permissions: [Permission.schedule_read, Permission.schedule_create]
           },
           {
             name: 'DTR Adjustment',
             icon: 'adjust',
             path: '/timekeeping-attendance/dtr-adjustment',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+            permissions: [Permission.dtr_adjustment_read, Permission.dtr_adjustment_create]
           },
           {
             name: 'Employee Attendance',
             icon: 'person',
             path: '/timekeeping-attendance/employee-attendance',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+            permissions: [Permission.attendance_log_read]
           }
         ]
       },
@@ -191,43 +197,43 @@ export class SidebarComponent implements OnInit {
         icon: 'payments',
         path: '/payroll-management',
         badge: '1',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF],
+        permissions: [Permission.payroll_record_read],
         children: [
           {
             name: 'Payroll Overview',
             icon: 'analytics',
             path: '/payroll-management/payroll-overview',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+            permissions: [Permission.payroll_record_read]
           },
           {
             name: 'Master Payroll',
             icon: 'payments',
             path: '/payroll-management/master-payroll',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+            permissions: [Permission.payroll_record_read, Permission.payroll_record_create]
           },
           {
             name: 'Deductions',
             icon: 'payments',
             path: '/payroll-management/deductions',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+            permissions: [Permission.payroll_record_read, Permission.salary_adjustment_read]
           },
           {
             name: 'Loan Management',
             icon: 'payments',
             path: '/payroll-management/loan-management',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+            permissions: [Permission.loan_balance_read, Permission.loan_balance_create]
           },
           {
             name: 'Payroll Adjustment',
             icon: 'payments',
             path: '/payroll-management/payroll-adjustment',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+            permissions: [Permission.salary_adjustment_read, Permission.salary_adjustment_create]
           },
           {
             name: 'Payroll Run',
             icon: 'payments',
             path: '/payroll-management/payroll-run',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+            permissions: [Permission.payroll_record_create, Permission.payroll_record_update]
           }
         ]
       },
@@ -236,25 +242,25 @@ export class SidebarComponent implements OnInit {
         icon: 'event',
         path: '/leave-management',
         badge: '5',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE],
+        permissions: [Permission.leave_request_read, Permission.leave_balance_read],
         children: [
           {
             name: 'Leave Request Management',
             icon: 'event',
             path: '/leave-management/leave-request-management',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+            permissions: [Permission.leave_request_read, Permission.leave_request_create]
           },
           {
             name: 'Leave Type Management',
             icon: 'event',
             path: '/leave-management/leave-type-management',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+            permissions: [Permission.leave_type_read, Permission.leave_type_create]
           },
           {
             name: 'Leave Balance',
             icon: 'event',
             path: '/leave-management/leave-balance',
-            roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+            permissions: [Permission.leave_balance_read]
           }
         ]
       },
@@ -262,46 +268,60 @@ export class SidebarComponent implements OnInit {
         name: 'Report Generation',
         icon: 'assessment',
         path: '/report-generation',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+        permissions: [Permission.report_read, Permission.report_generate]
       },
       {
         name: 'Recruitment',
         icon: 'work',
         path: '/recruitment',
         badge: '2',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF]
+        permissions: [Permission.applicant_read, Permission.job_posting_read]
       },
       {
         name: 'Job Portal',
         icon: 'language',
         path: '/online-job-application-portal',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.GUEST]
+        permissions: [] // Public access
       },
       {
         name: 'Performance Management',
         icon: 'trending_up',
         path: '/performance-management',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER]
+        permissions: [Permission.performance_review_read]
       },
       {
         name: 'Learning & Development',
         icon: 'school',
         path: '/learning-development',
         badge: '4',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+        permissions: [Permission.training_program_read, Permission.training_enrollment_read]
       },
       {
         name: 'Health & Wellness',
         icon: 'health_and_safety',
         path: '/health-wellness',
-        roles: [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.HR_STAFF, UserRole.MANAGER, UserRole.EMPLOYEE]
+        permissions: [] // Accessible to all employees
       }
     ];
 
-    // Filter menu items based on user role
-    this.menuItems = allMenuItems.filter(item => 
-      this.authService.canAccess(item.roles)
-    );
+    // Filter menu items based on user permissions
+    this.menuItems = this.filterMenuItemsByPermissions(allMenuItems);
+  }
+
+  private filterMenuItemsByPermissions(items: MenuItem[]): MenuItem[] {
+    return items.filter(item => {
+      // Check if user has access to this menu item
+      const hasAccess = this.authService.canAccessRoute(item.permissions);
+      
+      if (hasAccess && item.children) {
+        // Filter children based on permissions
+        item.children = this.filterMenuItemsByPermissions(item.children);
+        // Only show parent if it has accessible children or direct access
+        return item.children.length > 0 || item.permissions.length === 0;
+      }
+      
+      return hasAccess;
+    });
   }
 
   toggleSidebar() {

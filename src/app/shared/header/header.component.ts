@@ -2,6 +2,7 @@ import { Component, HostBinding, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { User } from '../../interfaces/auth.interface';
 import { FormsModule } from '@angular/forms';
 
 interface Notification {
@@ -11,16 +12,10 @@ interface Notification {
   type: 'success' | 'warning' | 'info';
 }
 
-interface User {
-  name: string;
-  role: string;
-  avatar?: string;
-}
-
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })

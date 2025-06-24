@@ -30,11 +30,18 @@ export class LoginComponent {
   ) {}
 
   onLogin() {
+    if (!this.loginData.username || !this.loginData.password) {
+      this.errorMessage = 'Please enter both username and password';
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
 
     this.authService.login(this.loginData.username, this.loginData.password).subscribe({
       next: (user) => {
+        console.log('Login successful:', user);
+        
         // Emit login success event
         this.loginSuccess.emit();
 
@@ -43,7 +50,8 @@ export class LoginComponent {
         this.isLoading = false;
       },
       error: (error) => {
-        this.errorMessage = 'Invalid username or password. Please try again.';
+        console.error('Login error:', error);
+        this.errorMessage = error.message || 'Login failed. Please try again.';
         this.isLoading = false;
       }
     });
@@ -56,30 +64,49 @@ export class LoginComponent {
   onForgotPassword() {
     // Implement forgot password functionality
     console.log('Forgot password clicked');
+    // You can navigate to a forgot password page or show a modal
   }
 
   onDemoLogin(role: string) {
-    switch (role) {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    // Set demo credentials based on seed data
+    switch (role.toLowerCase()) {
       case 'admin':
         this.loginData.username = 'admin';
-        this.loginData.password = 'password';
+        this.loginData.password = 'Admin123!';
         break;
       case 'hr':
-        this.loginData.username = 'hr';
-        this.loginData.password = 'password';
-        break;
-      case 'manager':
-        this.loginData.username = 'manager';
-        this.loginData.password = 'password';
+        this.loginData.username = 'hr_manager';
+        this.loginData.password = 'HR123!';
         break;
       case 'employee':
         this.loginData.username = 'employee';
-        this.loginData.password = 'password';
+        this.loginData.password = 'Employee123!';
         break;
       default:
         this.loginData.username = 'admin';
-        this.loginData.password = 'password';
+        this.loginData.password = 'Admin123!';
     }
-    this.onLogin();
+    
+    // Use the demoLogin method from auth service for consistency
+    this.authService.demoLogin(role).subscribe({
+      next: (user) => {
+        console.log('Demo login successful:', user);
+        
+        // Emit login success event
+        this.loginSuccess.emit();
+
+        // Navigate to dashboard
+        this.router.navigate(['/dashboard']);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Demo login error:', error);
+        this.errorMessage = error.message || 'Demo login failed. Please try again.';
+        this.isLoading = false;
+      }
+    });
   }
 } 

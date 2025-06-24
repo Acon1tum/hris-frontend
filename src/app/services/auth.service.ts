@@ -1,32 +1,16 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  role: UserRole;
-  name: string;
-  avatar?: string;
-}
-
-export enum UserRole {
-  ADMIN = 'admin',
-  HR_MANAGER = 'hr_manager',
-  HR_STAFF = 'hr_staff',
-  MANAGER = 'manager',
-  EMPLOYEE = 'employee',
-  GUEST = 'guest'
-}
-
-export interface MenuItem {
-  name: string;
-  path: string;
-  icon: string;
-  badge?: string;
-  roles: UserRole[];
-  children?: MenuItem[];
-}
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+import { 
+  User, 
+  LoginRequest, 
+  LoginResponse, 
+  Permission, 
+  ApiResponse, 
+  MenuItem 
+} from '../interfaces/auth.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -35,83 +19,89 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor() {
+  constructor(private http: HttpClient) {
     // Check if user is logged in from localStorage
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      this.currentUserSubject.next(JSON.parse(storedUser));
+    this.loadUserFromStorage();
+  }
+
+  private loadUserFromStorage(): void {
+    const token = localStorage.getItem(environment.auth.tokenKey);
+    const userData = localStorage.getItem(environment.auth.userKey);
+    
+    if (token && userData) {
+      try {
+        const user = JSON.parse(userData);
+        this.currentUserSubject.next(user);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        this.logout();
+      }
     }
   }
 
-  login(username: string, password: string): Observable<User> {
-    // Mock login - in real app, this would call an API
-    return new Observable(observer => {
-      setTimeout(() => {
-        let user: User;
-        
-        // Demo users based on username
-        switch (username.toLowerCase()) {
-          case 'admin':
-            user = {
-              id: 1,
-              username: 'admin',
-              email: 'admin@company.com',
-              role: UserRole.ADMIN,
-              name: 'System Administrator',
-              avatar: 'https://randomuser.me/api/portraits/men/1.jpg'
-            };
-            break;
-          case 'hr':
-            user = {
-              id: 2,
-              username: 'hr',
-              email: 'hr@company.com',
-              role: UserRole.HR_MANAGER,
-              name: 'HR Manager',
-              avatar: 'https://randomuser.me/api/portraits/women/2.jpg'
-            };
-            break;
-          case 'manager':
-            user = {
-              id: 3,
-              username: 'manager',
-              email: 'manager@company.com',
-              role: UserRole.MANAGER,
-              name: 'Department Manager',
-              avatar: 'https://randomuser.me/api/portraits/men/3.jpg'
-            };
-            break;
-          case 'employee':
-            user = {
-              id: 4,
-              username: 'employee',
-              email: 'employee@company.com',
-              role: UserRole.EMPLOYEE,
-              name: 'Regular Employee',
-              avatar: 'https://randomuser.me/api/portraits/women/4.jpg'
-            };
-            break;
-          default:
-            user = {
-              id: 5,
-              username: 'guest',
-              email: 'guest@company.com',
-              role: UserRole.GUEST,
-              name: 'Guest User',
-              avatar: 'https://randomuser.me/api/portraits/men/5.jpg'
-            };
-        }
+  private enhanceUserData(user: User): User {
+    // Enhance user object with display properties
+    const enhancedUser = { ...user };
+    
+    // Set display name from personnel data
+    if (user.personnel && user.personnel.length > 0) {
+      const personnel = user.personnel[0];
+      enhancedUser.name = `${personnel.first_name} ${personnel.last_name}`;
+    } else {
+      enhancedUser.name = user.username;
+    }
+    
+    // Set primary role for display
+    if (user.roles && user.roles.length > 0) {
+      enhancedUser.role = user.roles[0].replace(/_/g, ' ');
+    } else {
+      enhancedUser.role = 'User';
+    }
+    
+    // Set default avatar (you can implement avatar upload later)
+    enhancedUser.avatar = user.avatar || this.generateAvatarUrl(enhancedUser.name || user.username);
+    
+    return enhancedUser;
+  }
 
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        this.currentUserSubject.next(user);
-        observer.next(user);
-        observer.complete();
-      }, 1000);
-    });
+  private generateAvatarUrl(name: string): string {
+    // Generate a default avatar URL using a service like UI Avatars or similar
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=40`;
+  }
+
+  login(username: string, password: string): Observable<User> {
+    const loginData: LoginRequest = { username, password };
+    
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/login`, loginData)
+      .pipe(
+        map(response => {
+          if (response.success && response.data) {
+            const { user, token } = response.data;
+            
+            // Enhance user data with display properties
+            const enhancedUser = this.enhanceUserData(user);
+            
+            // Store token and user data
+            localStorage.setItem(environment.auth.tokenKey, token);
+            localStorage.setItem(environment.auth.userKey, JSON.stringify(enhancedUser));
+            
+            // Update current user
+            this.currentUserSubject.next(enhancedUser);
+            
+            return enhancedUser;
+          } else {
+            throw new Error(response.message || 'Login failed');
+          }
+        }),
+        catchError(this.handleError)
+      );
   }
 
   logout(): void {
-    localStorage.removeItem('currentUser');
+    localStorage.removeItem(environment.auth.tokenKey);
+    localStorage.removeItem(environment.auth.userKey);
+    localStorage.removeItem(environment.auth.refreshTokenKey);
     this.currentUserSubject.next(null);
   }
 
@@ -120,20 +110,127 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.currentUserSubject.value !== null;
+    const token = localStorage.getItem(environment.auth.tokenKey);
+    const user = this.currentUserSubject.value;
+    return !!(token && user);
   }
 
-  hasRole(role: UserRole): boolean {
+  getToken(): string | null {
+    return localStorage.getItem(environment.auth.tokenKey);
+  }
+
+  hasPermission(permission: Permission): boolean {
     const user = this.getCurrentUser();
-    return user?.role === role;
+    return user?.permissions?.includes(permission) || false;
   }
 
-  hasAnyRole(roles: UserRole[]): boolean {
+  hasAnyPermission(permissions: Permission[]): boolean {
     const user = this.getCurrentUser();
-    return user ? roles.includes(user.role) : false;
+    if (!user?.permissions) return false;
+    
+    return permissions.some(permission => user.permissions.includes(permission));
   }
 
-  canAccess(requiredRoles: UserRole[]): boolean {
-    return this.hasAnyRole(requiredRoles);
+  hasAllPermissions(permissions: Permission[]): boolean {
+    const user = this.getCurrentUser();
+    if (!user?.permissions) return false;
+    
+    return permissions.every(permission => user.permissions.includes(permission));
   }
+
+  canAccess(requiredPermissions: Permission[]): boolean {
+    return this.hasAnyPermission(requiredPermissions);
+  }
+
+  canAccessRoute(routePermissions: Permission[]): boolean {
+    // If no permissions are required, allow access
+    if (!routePermissions || routePermissions.length === 0) return true;
+    
+    // Check if user has any of the required permissions
+    return this.hasAnyPermission(routePermissions);
+  }
+
+  refreshToken(): Observable<string> {
+    const refreshToken = localStorage.getItem(environment.auth.refreshTokenKey);
+    
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    return this.http.post<ApiResponse<{ token: string }>>(`${environment.apiUrl}/auth/refresh-token`, {
+      refreshToken
+    }).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          const { token } = response.data;
+          localStorage.setItem(environment.auth.tokenKey, token);
+          return token;
+        } else {
+          throw new Error(response.message || 'Token refresh failed');
+        }
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.post<ApiResponse>(`${environment.apiUrl}/auth/change-password`, {
+      currentPassword,
+      newPassword
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // Demo login functionality for testing
+  demoLogin(role: string): Observable<User> {
+    let username: string;
+    let password: string;
+
+    switch (role.toLowerCase()) {
+      case 'admin':
+        username = 'admin';
+        password = 'Admin123!';
+        break;
+      case 'hr':
+        username = 'hr_manager';
+        password = 'HR123!';
+        break;
+      case 'employee':
+        username = 'employee';
+        password = 'Employee123!';
+        break;
+      default:
+        username = 'admin';
+        password = 'Admin123!';
+    }
+
+    return this.login(username, password);
+  }
+
+  private handleError = (error: HttpErrorResponse) => {
+    let errorMessage = 'An error occurred';
+    
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = error.error.message;
+    } else {
+      // Server-side error
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.status === 0) {
+        errorMessage = 'Unable to connect to server';
+      } else if (error.status === 401) {
+        errorMessage = 'Invalid credentials';
+        this.logout(); // Auto logout on 401
+      } else if (error.status >= 500) {
+        errorMessage = 'Server error occurred';
+      } else {
+        errorMessage = `Error: ${error.status} - ${error.statusText}`;
+      }
+    }
+    
+    console.error('Auth Service Error:', error);
+    return throwError(() => new Error(errorMessage));
+  };
 } 

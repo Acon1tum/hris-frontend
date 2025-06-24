@@ -5,6 +5,7 @@ import { provideClientHydration } from '@angular/platform-browser';
 
 import { routes } from './app.routes';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { SessionInterceptor } from './interceptors/session.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +15,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: SessionInterceptor,
       multi: true
     }
   ]

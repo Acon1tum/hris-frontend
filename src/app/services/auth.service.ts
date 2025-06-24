@@ -77,13 +77,16 @@ export class AuthService {
       .pipe(
         map(response => {
           if (response.success && response.data) {
-            const { user, token } = response.data;
+            const { user, token, refreshToken } = response.data;
             
             // Enhance user data with display properties
             const enhancedUser = this.enhanceUserData(user);
             
-            // Store token and user data
+            // Store tokens and user data
             localStorage.setItem(environment.auth.tokenKey, token);
+            if (refreshToken) {
+              localStorage.setItem(environment.auth.refreshTokenKey, refreshToken);
+            }
             localStorage.setItem(environment.auth.userKey, JSON.stringify(enhancedUser));
             
             // Update current user
@@ -98,10 +101,16 @@ export class AuthService {
       );
   }
 
-  logout(): void {
+  logout(reason?: string): void {
     localStorage.removeItem(environment.auth.tokenKey);
     localStorage.removeItem(environment.auth.userKey);
     localStorage.removeItem(environment.auth.refreshTokenKey);
+    
+    // Store logout reason for display on login page
+    if (reason) {
+      localStorage.setItem('logout_reason', reason);
+    }
+    
     this.currentUserSubject.next(null);
   }
 
@@ -117,6 +126,14 @@ export class AuthService {
 
   getToken(): string | null {
     return localStorage.getItem(environment.auth.tokenKey);
+  }
+
+  getAndClearLogoutReason(): string | null {
+    const reason = localStorage.getItem('logout_reason');
+    if (reason) {
+      localStorage.removeItem('logout_reason');
+    }
+    return reason;
   }
 
   hasPermission(permission: Permission): boolean {

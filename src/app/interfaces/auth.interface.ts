@@ -211,6 +211,9 @@ export interface LoginResponse {
   data: {
     user: User;
     token: string;
+    refreshToken?: string;
+    expiresIn?: string;
+    tokenType?: string;
   };
 }
 

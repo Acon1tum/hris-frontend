@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { HeaderComponent } from './shared/header/header.component';
 import { SidebarComponent } from './shared/sidebar/sidebar.component';
 import { LoginComponent } from './auth/login/login.component';
+import { SessionWarningDialogComponent } from './shared/components/session-warning-dialog/session-warning-dialog.component';
 import { AuthService } from './services/auth.service';
+import { InactivityService } from './services/inactivity.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -15,16 +18,18 @@ import { AuthService } from './services/auth.service';
     RouterLink,
     HeaderComponent, 
     SidebarComponent, 
-    LoginComponent
+    LoginComponent,
+    SessionWarningDialogComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'hris-frontend';
   isSidebarOpen = true;
   isSidebarCollapsed = false;
   currentUser$ = this.authService.currentUser$;
+  private subscriptions: Subscription[] = [];
   
   features = [
     { name: 'System Administration', icon: '⚙️', route: '/system-administration', description: 'Manage system settings and configurations' },
@@ -41,13 +46,32 @@ export class AppComponent implements OnInit {
     { name: 'Health & Wellness', icon: '🏥', route: '/health-wellness', description: 'Health and wellness programs' }
   ];
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private inactivityService: InactivityService
+  ) {}
 
   ngOnInit() {
     // Check screen size on init
     this.checkScreenSize();
     // Listen for window resize
     window.addEventListener('resize', () => this.checkScreenSize());
+
+    // Initialize inactivity service when user is authenticated
+    this.subscriptions.push(
+      this.authService.currentUser$.subscribe(user => {
+        if (user) {
+          this.inactivityService.initialize();
+        } else {
+          this.inactivityService.destroy();
+        }
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.inactivityService.destroy();
   }
 
   private checkScreenSize() {

@@ -1,7 +1,7 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -11,7 +11,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   @Output() loginSuccess = new EventEmitter<void>();
 
   loginData = {
@@ -23,11 +23,28 @@ export class LoginComponent {
   isLoading = false;
   showPassword = false;
   errorMessage = '';
+  sessionTimeoutMessage = '';
 
   constructor(
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private authService: AuthService
   ) {}
+
+  ngOnInit() {
+    // Check for session timeout reason from URL parameters
+    this.activatedRoute.queryParams.subscribe(params => {
+      if (params['reason'] === 'session_timeout') {
+        this.sessionTimeoutMessage = 'Your session has expired due to inactivity. Please log in again.';
+      }
+    });
+
+    // Check for logout reason from auth service
+    const logoutReason = this.authService.getAndClearLogoutReason();
+    if (logoutReason === 'session_timeout') {
+      this.sessionTimeoutMessage = 'Your session has expired due to inactivity. Please log in again.';
+    }
+  }
 
   onLogin() {
     if (!this.loginData.username || !this.loginData.password) {

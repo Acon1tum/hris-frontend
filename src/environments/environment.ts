@@ -13,6 +13,11 @@ export const environment = {
     refreshTokenKey: 'hris_refresh_token',
     userKey: 'hris_user'
   },
+  session: {
+    inactivityTimeout: 5 * 60 * 1000, // 30 minutes in milliseconds
+    warningTime: 1 * 60 * 1000, // 5 minutes warning before logout
+    checkInterval: 1000 // Check every second
+  },
   pagination: {
     defaultPageSize: 10,
     pageSizeOptions: [5, 10, 25, 50, 100]

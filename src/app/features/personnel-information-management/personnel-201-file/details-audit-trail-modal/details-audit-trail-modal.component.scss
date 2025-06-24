@@ -1,11 +1,12 @@
 @import '../../../../../styles.scss';
 
 .profile-card {
-  background: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 2px 8px rgba(31,38,135,0.04);
+  background: rgba(255,255,255,0.92);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
-  padding: 1.5rem 2rem;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  border: 1px solid #e2e8f0;
   transition: box-shadow 0.2s;
 }
 .profile-card:hover {

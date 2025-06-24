@@ -1,0 +1,218 @@
+<div class="modal-overlay-custom"
+     [ngClass]="closing ? 'animate-slide-out-right' : 'animate-slide-in-right'" style="padding-top: 35px;">
+  <div class="my-profile-container wide-modal modal-elevated flex flex-col" style="max-width: 1100px; padding: 20px; width: 100%; min-height: 10vh; border-radius: 1rem; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12); background: #fff; padding-bottom: 0rem; max-height: 85vh; overflow-y: auto;">
+    <div class="header-section">
+      <div class="header-content">
+        <div class="title-description">
+          <h1 class="page-title">201 File Details</h1>
+          <p class="page-description">View the employee's personal and employment details.</p>
+        </div>
+      </div>
+    </div>
+    <div class="overflow-y-auto flex-1 px-6 pb-6">
+      <!-- Profile Picture Display -->
+      <section class="profile-picture-section flex flex-col items-center mb-8">
+        <div class="relative">
+          <img
+            *ngIf="file?.profilePictureUrl; else defaultAvatar"
+            [src]="file?.profilePictureUrl"
+            alt="Profile Picture"
+            class="w-28 h-28 rounded-full object-cover border-4 border-gray-200 shadow"
+          />
+          <ng-template #defaultAvatar>
+            <div class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-5xl text-gray-400 border-4 border-gray-200 shadow">
+              <span>👤</span>
+            </div>
+          </ng-template>
+        </div>
+        <div class="mt-3 text-lg font-semibold">{{ file?.employeeName }}</div>
+        <div class="text-gray-500">{{ file?.email }}</div>
+      </section>
+      <!-- End Profile Picture Display -->
+      <div class="profile-card">
+        <div class="card-header">
+          <h2 class="section-title">General Information</h2>
+        </div>
+        <div class="card-content">
+          <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div class="profile-field">
+              <p class="field-label">First Name</p>
+              <div>{{ file?.firstName }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Middle Name</p>
+              <div>{{ file?.middleName }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Last Name</p>
+              <div>{{ file?.lastName }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Suffix</p>
+              <div>{{ file?.suffix }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Birthdate</p>
+              <div>{{ file?.birthdate }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Gender</p>
+              <div>{{ file?.gender }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Civil Status</p>
+              <div>{{ file?.civilStatus }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Citizenship</p>
+              <div>{{ file?.citizenship }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="profile-card">
+        <div class="card-header">
+          <h2 class="section-title">Contact Information</h2>
+        </div>
+        <div class="card-content">
+          <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div class="profile-field">
+              <p class="field-label">Email</p>
+              <div>{{ file?.email }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Number</p>
+              <div>{{ file?.number }}</div>
+            </div>
+            <div class="profile-field md:col-span-3">
+              <p class="field-label">Address</p>
+              <div>{{ file?.address }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="profile-card">
+        <div class="card-header">
+          <h2 class="section-title">Employment Details</h2>
+        </div>
+        <div class="card-content">
+          <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div class="profile-field">
+              <p class="field-label">Employment Type</p>
+              <div>{{ file?.employmentType }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Designation</p>
+              <div>{{ file?.designation }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Department</p>
+              <div>{{ file?.department }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Position</p>
+              <div>{{ file?.position }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Appointment Date</p>
+              <div>{{ file?.appointmentDate }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Start Date</p>
+              <div>{{ file?.startDate }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Employment Status</p>
+              <div>{{ file?.employmentStatus }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Job Level</p>
+              <div>{{ file?.jobLevel }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Job Grade</p>
+              <div>{{ file?.jobGrade }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="profile-card">
+        <div class="card-header">
+          <h2 class="section-title">Government IDs</h2>
+        </div>
+        <div class="card-content">
+          <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div class="profile-field">
+              <p class="field-label">GSIS</p>
+              <div>{{ file?.gsis }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Pag-IBIG</p>
+              <div>{{ file?.pagibig }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">PhilHealth</p>
+              <div>{{ file?.philhealth }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">SSS</p>
+              <div>{{ file?.sss }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="profile-card">
+        <div class="card-header">
+          <h2 class="section-title">Dependents & Emergency Contact</h2>
+        </div>
+        <div class="card-content">
+          <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div class="profile-field md:col-span-3">
+              <p class="field-label">Dependents</p>
+              <div>{{ file?.dependents }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Emergency Contact Name</p>
+              <div>{{ file?.emergencyContactName }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Emergency Contact Number</p>
+              <div>{{ file?.emergencyContactNumber }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Emergency Contact Relationship</p>
+              <div>{{ file?.emergencyContactRelationship }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="profile-card">
+        <div class="card-header">
+          <h2 class="section-title">Attachments</h2>
+        </div>
+        <div class="card-content">
+          <div class="profile-grid">
+            <div class="profile-field md:col-span-3">
+              <p class="field-label">Attached File</p>
+              <div *ngIf="file?.fileName; else noFile" class="file-preview flex items-center gap-2">
+                <span class="file-icon">📄</span>
+                <span class="file-name">{{ file?.fileName }}</span>
+              </div>
+              <ng-template #noFile>
+                <span class="text-gray-400">No file attached</span>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sticky-footer flex justify-end gap-3 px-6 py-4">
+      <button type="button" class="btn btn-secondary" (click)="onClose()">Close</button>
+    </div>
+  </div>
+</div> 

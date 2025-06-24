@@ -1,0 +1,114 @@
+<div class="relative flex flex-1 flex-col bg-transparent overflow-x-hidden" style="font-family: Inter, 'Noto Sans', sans-serif;">
+  <div class="layout-container flex h-full grow flex-col w-full px-4 md:px-8 lg:px-0">
+    <div class="layout-content-container flex flex-col w-full max-w-[1280px] mx-auto">
+        <div class="flex flex-wrap justify-between gap-3 p-4">
+          <p class="text-[#111418] tracking-light text-[32px] font-bold leading-tight min-w-72">Employee 201 Files</p>
+          <button
+            class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#f0f2f5] text-[#111418] text-sm font-medium leading-normal"
+            (click)="openCreateModal()"
+          >
+            <span class="truncate">Create New</span>
+          </button>
+        </div>
+        <div class="px-4 py-3">
+          <label class="flex flex-col min-w-40 h-12 w-full">
+            <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+              <div
+                class="text-[#60758a] flex border-none bg-[#f0f2f5] items-center justify-center pl-4 rounded-l-lg border-r-0"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                  <path
+                    d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
+                  ></path>
+                </svg>
+              </div>
+              <input
+                placeholder="Search by name or department"
+                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111418] focus:outline-0 focus:ring-0 border-none bg-[#f0f2f5] focus:border-none h-full placeholder:text-[#60758a] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
+                [(ngModel)]="searchTerm"
+              />
+            </div>
+          </label>
+        </div>
+
+        <!-- Employee Table (copied from admin-dashboard.component.html, adapted for personnel 201 files) -->
+        <div class="rounded-xl border border-[#dce1e5] bg-white overflow-hidden mx-4">
+          <table class="flex-1">
+            <thead>
+              <tr class="bg-blue-100 text-black">
+                <th class="table-column-120 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">Employee</th>
+                <th class="table-column-240 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">Department</th>
+                <th class="table-column-120 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">Position</th>
+                <th class="table-column-120 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">Date Created</th>
+                <th class="table-column-120 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">Last Modified</th>
+                <th class="table-column-120 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let file of filteredPersonnelFiles; let i = index" 
+                  class="border-t border-t-[#dce1e5] hover:bg-blue-50 transition-all duration-300 scroll-animate"
+                  [style.transition-delay]="i * 50 + 'ms'">
+                <td class="table-column-120 h-[72px] px-4 py-2 w-[400px]">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                      <img *ngIf="file.profilePictureUrl" [src]="file.profilePictureUrl" [alt]="file.employeeName" class="h-10 w-10 rounded-full object-cover">
+                      <div *ngIf="!file.profilePictureUrl" class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-lg">
+                        <span>{{ file.employeeName ? file.employeeName.charAt(0) : '?' }}</span>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">
+                        {{ file.employeeName }}
+                      </div>
+                      <div class="text-sm text-gray-500">{{ file.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="table-column-240 h-[72px] px-4 py-2 w-[400px] text-[#637988] text-sm font-normal leading-normal">
+                  {{ file.department }}
+                </td>
+                <td class="table-column-120 h-[72px] px-4 py-2 w-[400px] text-[#637988] text-sm font-normal leading-normal">
+                  {{ file.position }}
+                </td>
+                <td class="table-column-120 h-[72px] px-4 py-2 w-[400px] text-[#637988] text-sm font-normal leading-normal">
+                  {{ file.dateCreated }}
+                </td>
+                <td class="table-column-120 h-[72px] px-4 py-2 w-[400px] text-[#637988] text-sm font-normal leading-normal">
+                  {{ file.lastModified }}
+                </td>
+                <td class="table-column-120 h-[72px] px-4 py-2 w-[400px]">
+                  <div class="flex items-center gap-2">
+                    <button class="p-2 text-[#1993e5] hover:text-[#1476b8] transition-colors" (click)="viewFile(file)">
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                    <button class="p-2 text-[#1993e5] hover:text-[#1476b8] transition-colors" (click)="editFile(file)">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="p-2 text-[#e73508] hover:text-[#c42d06] transition-colors" (click)="deleteFile(file)">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+  </div>
+
+  <!-- Details & Audit Trail Modal -->
+  <app-details-audit-trail-modal
+    *ngIf="showDetailsModal"
+    [file]="selectedFile"
+    (close)="closeDetailsModal()"
+  ></app-details-audit-trail-modal>
+
+  <!-- Create/Edit Modal -->
+<app-create-edit-modal 
+  *ngIf="showEditModal"
+  [mode]="editMode"
+  [data]="editFileData"
+  (save)="handleModalSave($event)"
+  (cancel)="handleModalCancel()"
+></app-create-edit-modal>
+</div> 

@@ -1,22 +1,245 @@
-<div class="performance-container">
-  <div class="page-header">
-    <h1>{{ title }}</h1>
-    <p>Manage employee goals, reviews, and performance analytics</p>
-  </div>
-  <div class="features-grid">
-    <div class="feature-card" *ngFor="let feature of performanceFeatures">
-      <div class="feature-icon">{{ feature.icon }}</div>
-      <h3>{{ feature.name }}</h3>
-      <p>{{ feature.description }}</p>
-      <button class="btn btn-primary">Access</button>
+<div class="flex flex-1 justify-center py-5">
+  <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+    <div class="flex flex-wrap justify-between gap-3 p-4">
+      <div class="flex min-w-72 flex-col gap-3">
+        <p class="text-[#0d141c] tracking-light text-[32px] font-bold leading-tight">Performance Overview</p>
+        <p class="text-[#49739c] text-sm font-normal leading-normal">Monitor key performance indicators across the organization.</p>
+      </div>
     </div>
-  </div>
-  <div class="quick-actions">
-    <h2>Quick Actions</h2>
-    <div class="action-buttons">
-      <button class="btn btn-secondary">Set Goal</button>
-      <button class="btn btn-secondary">Review Performance</button>
-      <button class="btn btn-secondary">Give Feedback</button>
+    <h3 class="text-[#0d141c] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Filters</h3>
+    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+      <label class="flex flex-col min-w-40 flex-1">
+        <select
+          class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141c] focus:outline-0 focus:ring-0 border border-[#cedbe8] bg-slate-50 focus:border-[#cedbe8] h-14 bg-[image:--select-button-svg] placeholder:text-[#49739c] p-[15px] text-base font-normal leading-normal"
+          [(ngModel)]="selectedOffice"
+          name="office"
+        >
+          <option *ngFor="let office of offices" [value]="office.name">{{ office.name }}</option>
+        </select>
+      </label>
+    </div>
+    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+      <label class="flex flex-col min-w-40 flex-1">
+        <select
+          class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141c] focus:outline-0 focus:ring-0 border border-[#cedbe8] bg-slate-50 focus:border-[#cedbe8] h-14 bg-[image:--select-button-svg] placeholder:text-[#49739c] p-[15px] text-base font-normal leading-normal"
+          [(ngModel)]="selectedDepartment"
+          name="department"
+        >
+          <option value="">All Departments</option>
+          <option *ngFor="let dept of departmentStats" [value]="dept.name">{{ dept.name }}</option>
+        </select>
+      </label>
+    </div>
+    <h3 class="text-[#0d141c] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Key Performance Indicators</h3>
+    <div class="flex flex-wrap gap-4 p-4">
+      <div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#cedbe8]">
+        <p class="text-[#0d141c] text-base font-medium leading-normal">Overall Satisfaction</p>
+        <p class="text-[#0d141c] tracking-light text-2xl font-bold leading-tight">{{ overallSatisfaction }}</p>
+        <p class="text-[#078838] text-base font-medium leading-normal">&nbsp;</p>
+      </div>
+      <div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#cedbe8]">
+        <p class="text-[#0d141c] text-base font-medium leading-normal">Average Resolution Time</p>
+        <p class="text-[#0d141c] tracking-light text-2xl font-bold leading-tight">{{ avgResolutionTime }}</p>
+        <p class="text-[#e73908] text-base font-medium leading-normal">&nbsp;</p>
+      </div>
+      <div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#cedbe8]">
+        <p class="text-[#0d141c] text-base font-medium leading-normal">Customer Retention Rate</p>
+        <p class="text-[#0d141c] tracking-light text-2xl font-bold leading-tight">{{ avgRetentionRate }}</p>
+        <p class="text-[#078838] text-base font-medium leading-normal">&nbsp;</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-4 px-4 py-6">
+      <div class="flex min-w-72 flex-1 flex-col gap-2 rounded-lg border border-[#cedbe8] p-6">
+        <p class="text-[#0d141c] text-base font-medium leading-normal">Satisfaction Trends</p>
+        <p class="text-[#0d141c] tracking-light text-[32px] font-bold leading-tight truncate">
+          {{ satisfactionTrends[5] ? satisfactionTrends[5] + '%' : 'N/A' }}
+        </p>
+        <div class="flex gap-1">
+          <p class="text-[#49739c] text-base font-normal leading-normal">Last 6 Months</p>
+          <p class="text-[#078838] text-base font-medium leading-normal">
+            <!-- Show change if possible -->
+            <ng-container *ngIf="satisfactionTrends[4] && satisfactionTrends[5]">
+              {{ (satisfactionTrends[5] - satisfactionTrends[4]) >= 0 ? '+' : '' }}{{ (satisfactionTrends[5] - satisfactionTrends[4]).toFixed(1) }}%
+            </ng-container>
+          </p>
+        </div>
+        <div class="flex min-h-[180px] flex-1 flex-col gap-8 py-4">
+          <svg width="100%" height="148" viewBox="0 0 472 148" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <ng-container *ngIf="satisfactionTrends.length === 6">
+              <path
+                [attr.d]="getSatisfactionTrendsPath(satisfactionTrends)"
+                fill="url(#paint0_linear_1131_5935)"
+              ></path>
+              <path
+                [attr.d]="getSatisfactionTrendsLine(satisfactionTrends)"
+                stroke="#49739c"
+                stroke-width="3"
+                stroke-linecap="round"
+              ></path>
+            </ng-container>
+            <defs>
+              <linearGradient id="paint0_linear_1131_5935" x1="236" y1="1" x2="236" y2="149" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#e7edf4"></stop>
+                <stop offset="1" stop-color="#e7edf4" stop-opacity="0"></stop>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="flex justify-around">
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Jan</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Feb</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Mar</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Apr</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">May</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Jun</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Jul</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Aug</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Sep</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Oct</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Nov</p>
+            <p class="text-[#49739c] text-[13px] font-bold leading-normal tracking-[0.015em]">Dec</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex min-w-72 flex-1 flex-col gap-2 rounded-lg border border-[#cedbe8] p-6">
+        <p class="text-[#0d141c] text-base font-medium leading-normal">Current Time by Department</p>
+        <p class="text-[#0d141c] tracking-light text-[32px] font-bold leading-tight truncate">
+          {{ getMaxDeptResolutionTime() }} hours
+        </p>
+        <div class="flex gap-1">
+          <p class="text-[#49739c] text-base font-normal leading-normal">Current Quarter</p>
+          <p class="text-[#e73908] text-base font-medium leading-normal">&nbsp;</p>
+        </div>
+        <div class="flex flex-col items-stretch">
+          <!-- Bars Row -->
+          <div class="grid grid-flow-col gap-6 items-end justify-items-center px-3" style="min-height: 120px;">
+            <ng-container *ngFor="let dept of departmentStats">
+              <div
+                class="border-[#49739c] border-t-2 w-full"
+                [style.height]="(resolutionTimeByDepartment[dept.name] / getMaxDeptResolutionTime() * 100) + 'px'"
+                [style.background]="'linear-gradient(to top, ' + getDepartmentBarColor(dept.name, 0.1) + ', ' + getDepartmentBarColor(dept.name, 0.7) + ')'"
+                [style.opacity]="!selectedDepartment || selectedDepartment === dept.name ? 1 : 0.3"
+                style="min-height: 10px; max-height: 100px; border-radius: 6px 6px 0 0;"
+              ></div>
+            </ng-container>
+          </div>
+          <!-- Department Names Row -->
+          <div class="grid grid-cols-3 gap-y-4 gap-x-6 pt-6 px-3 mt-2">
+            <ng-container *ngFor="let dept of departmentStats">
+              <div class="flex flex-col items-center text-center space-y-1" [style.opacity]="!selectedDepartment || selectedDepartment === dept.name ? 1 : 0.3">
+                <span
+                  class="inline-block w-4 h-4 rounded-full"
+                  [style.background]="getDepartmentBarColor(dept.name, 0.7)"
+                ></span>
+                <span
+                  class="text-[#49739c] text-[10px] font-bold leading-normal tracking-[0.015em] break-words max-w-[70px]"
+                >
+                  {{ dept.name }}
+                </span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h3 class="text-[#0d141c] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Employee Performance</h3>
+    <div class="px-4 py-3 @container">
+      <div class="flex overflow-hidden rounded-lg border border-[#cedbe8] bg-slate-50">
+        <table class="flex-1">
+          <thead>
+            <tr class="bg-slate-50">
+              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
+                Employee
+              </th>
+              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
+                Department
+              </th>
+              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
+                Satisfaction
+              </th>
+              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
+                Resolution Time
+              </th>
+              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
+                Retention Rate
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t border-t-[#cedbe8]">
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
+                Ethan Harper
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">Sales</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
+                <div class="flex items-center gap-3">
+                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 90.9091%;"></div></div>
+                  <p class="text-[#0d141c] text-sm font-medium leading-normal">80</p>
+                </div>
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">26 hours</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">90%</td>
+            </tr>
+            <tr class="border-t border-t-[#cedbe8]">
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
+                Olivia Bennett
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">Support</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
+                <div class="flex items-center gap-3">
+                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 100%;"></div></div>
+                  <p class="text-[#0d141c] text-sm font-medium leading-normal">90</p>
+                </div>
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">22 hours</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">95%</td>
+            </tr>
+            <tr class="border-t border-t-[#cedbe8]">
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
+                Noah Carter
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">
+                Marketing
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
+                <div class="flex items-center gap-3">
+                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 96.5909%;"></div></div>
+                  <p class="text-[#0d141c] text-sm font-medium leading-normal">85</p>
+                </div>
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">24 hours</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">92%</td>
+            </tr>
+            <tr class="border-t border-t-[#cedbe8]">
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
+                Ava Morgan
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">Product</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
+                <div class="flex items-center gap-3">
+                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 85.2273%;"></div></div>
+                  <p class="text-[#0d141c] text-sm font-medium leading-normal">75</p>
+                </div>
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">28 hours</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">88%</td>
+            </tr>
+            <tr class="border-t border-t-[#cedbe8]">
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
+                Liam Foster
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">Sales</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
+                <div class="flex items-center gap-3">
+                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 100%;"></div></div>
+                  <p class="text-[#0d141c] text-sm font-medium leading-normal">95</p>
+                </div>
+              </td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">20 hours</td>
+              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">98%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div> 

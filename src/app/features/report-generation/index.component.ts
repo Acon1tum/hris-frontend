@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { trigger, transition, style, animate, state } from '@angular/animations';
+import { TemplateManagementComponent } from './template-management/template-management.component';
+import { AuditTrailComponent } from './audit-trail/audit-trail.component';
+import { ScheduledReportsComponent } from './scheduled-reports/scheduled-reports.component';
+import { SensitiveReportsComponent } from './sensitive-reports/sensitive-reports.component';
 
 interface ReportFeature {
   name: string;
@@ -219,44 +222,13 @@ enum ReportType {
 @Component({
   selector: 'app-report-generation',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TemplateManagementComponent, AuditTrailComponent, ScheduledReportsComponent, SensitiveReportsComponent],
   templateUrl: './index.component.html',
-  styleUrls: ['./index.component.scss'],
-  animations: [
-    trigger('fadeSlide', [
-      state('void', style({
-        opacity: 0,
-        transform: 'translateY(20px)'
-      })),
-      state('*', style({
-        opacity: 1,
-        transform: 'translateY(0)'
-      })),
-      transition(':enter', [
-        animate('300ms ease-out')
-      ]),
-      transition(':leave', [
-        animate('300ms ease-in')
-      ])
-    ]),
-    trigger('cardHover', [
-      state('normal', style({
-        transform: 'translateY(0)',
-        boxShadow: 'var(--shadow-sm)'
-      })),
-      state('hovered', style({
-        transform: 'translateY(-4px)',
-        boxShadow: 'var(--shadow-lg)'
-      })),
-      transition('normal <=> hovered', [
-        animate('200ms ease-in-out')
-      ])
-    ])
-  ]
+  styleUrls: ['./index.component.scss']
 })
 export class ReportGenerationComponent implements OnInit {
   title = 'Report Generation';
-  currentView: 'main' | ReportType = 'main';
+  currentView: 'main' | 'templates' | 'audit-trail' | 'scheduled-reports' | 'sensitive-reports' | ReportType = 'main';
   
   // Dashboard Metrics
   keyMetrics: DashboardMetric[] = [
@@ -266,26 +238,26 @@ export class ReportGenerationComponent implements OnInit {
     { label: 'System Uptime', value: 99.9, trend: 0.1, icon: 'fas fa-server' }
   ];
 
-  moduleActivities: ModuleActivity[] = [
-    { module: 'Employee Management', activeUsers: 45, lastActivity: new Date(), status: 'active' },
-    { module: 'Payroll', activeUsers: 12, lastActivity: new Date(), status: 'active' },
-    { module: 'Attendance', activeUsers: 89, lastActivity: new Date(), status: 'active' },
-    { module: 'Leave Management', activeUsers: 34, lastActivity: new Date(), status: 'active' },
-    { module: 'Performance', activeUsers: 23, lastActivity: new Date(), status: 'maintenance' }
+  moduleActivities: (ModuleActivity & { icon: string })[] = [
+    { module: 'Employee Management', activeUsers: 45, lastActivity: new Date(), status: 'active', icon: 'fas fa-id-badge' },
+    { module: 'Payroll', activeUsers: 12, lastActivity: new Date(), status: 'active', icon: 'fas fa-money-check-alt' },
+    { module: 'Attendance', activeUsers: 89, lastActivity: new Date(), status: 'active', icon: 'fas fa-calendar-check' },
+    { module: 'Leave Management', activeUsers: 34, lastActivity: new Date(), status: 'active', icon: 'fas fa-calendar-alt' },
+    { module: 'Performance', activeUsers: 23, lastActivity: new Date(), status: 'maintenance', icon: 'fas fa-chart-line' }
   ];
 
-  departmentMetrics: DepartmentMetric[] = [
-    { name: 'Human Resources', employeeCount: 25, activeRequests: 12, completionRate: 87.5 },
-    { name: 'IT Department', employeeCount: 45, activeRequests: 8, completionRate: 92.3 },
-    { name: 'Finance', employeeCount: 30, activeRequests: 15, completionRate: 78.9 },
-    { name: 'Operations', employeeCount: 150, activeRequests: 25, completionRate: 85.2 }
+  departmentMetrics: (DepartmentMetric & { icon: string })[] = [
+    { name: 'Human Resources', employeeCount: 25, activeRequests: 12, completionRate: 87.5, icon: 'fas fa-user-friends' },
+    { name: 'IT Department', employeeCount: 45, activeRequests: 8, completionRate: 92.3, icon: 'fas fa-laptop-code' },
+    { name: 'Finance', employeeCount: 30, activeRequests: 15, completionRate: 78.9, icon: 'fas fa-coins' },
+    { name: 'Operations', employeeCount: 150, activeRequests: 25, completionRate: 85.2, icon: 'fas fa-cogs' }
   ];
 
-  roleDistribution: RoleDistribution[] = [
-    { role: 'Employee', count: 980, percentage: 78.4 },
-    { role: 'Manager', count: 145, percentage: 11.6 },
-    { role: 'HR Staff', count: 85, percentage: 6.8 },
-    { role: 'Admin', count: 40, percentage: 3.2 }
+  roleDistribution: (RoleDistribution & { icon: string })[] = [
+    { role: 'Employee', count: 980, percentage: 78.4, icon: 'fas fa-user' },
+    { role: 'Manager', count: 145, percentage: 11.6, icon: 'fas fa-user-tie' },
+    { role: 'HR Staff', count: 85, percentage: 6.8, icon: 'fas fa-user-cog' },
+    { role: 'Admin', count: 40, percentage: 3.2, icon: 'fas fa-user-shield' }
   ];
 
   // Report Templates
@@ -867,6 +839,8 @@ export class ReportGenerationComponent implements OnInit {
   selectedRoleAccess: RoleAccess | null = null;
   selectedAccessRequest: AccessRequest | null = null;
 
+  showModulesOverview = false;
+
   constructor() {
     // Initialize card states
     this.reportFeatures.forEach(feature => {
@@ -874,7 +848,7 @@ export class ReportGenerationComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     // Here you would typically fetch real data from your services
   }
 
@@ -1304,5 +1278,18 @@ export class ReportGenerationComponent implements OnInit {
         inline: 'nearest'
       });
     }
+  }
+
+  openModulesOverview() {
+    this.showModulesOverview = true;
+  }
+
+  closeModulesOverview() {
+    this.showModulesOverview = false;
+  }
+
+  // Add method to toggle views
+  toggleView(view: 'main' | 'templates' | 'audit-trail' | 'scheduled-reports' | 'sensitive-reports' | ReportType) {
+    this.currentView = view;
   }
 }

@@ -74,6 +74,24 @@ export const routes: Routes = [
     data: { permissions: [Permission.employee_read, Permission.employment_record_read] }
   },
   {
+    path: 'personnel-information-management/personnel-movement',
+    loadComponent: () => import('./features/personnel-information-management/personnel-movement/personnel-movement.component').then(m => m.PersonnelMovementComponent),
+    canActivate: [PermissionGuard],
+    data: { permissions: [Permission.employee_read, Permission.employment_record_read] }
+  },
+  {
+    path: 'personnel-information-management/workflows',
+    loadComponent: () => import('./features/personnel-information-management/personnel-movement/workflows/workflows.component').then(m => m.WorkflowsComponent),
+    canActivate: [PermissionGuard],
+    data: { permissions: [Permission.employee_read, Permission.request_read] }
+  },
+  {
+    path: 'personnel-information-management/audit-trail',
+    loadComponent: () => import('./features/personnel-information-management/personnel-movement/audit-trail/audit-trail.component').then(m => m.AuditTrailComponent),
+    canActivate: [PermissionGuard],
+    data: { permissions: [Permission.audit_log_read, Permission.audit_trail_read] }
+  },
+  {
     path: 'employee-self-service',
     loadComponent: () => import('./features/employee-self-service/index.component').then(m => m.EmployeeSelfServiceComponent),
     canActivate: [PermissionGuard],

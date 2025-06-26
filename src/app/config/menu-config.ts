@@ -69,6 +69,12 @@ export const MENU_CONFIG: MenuItem[] = [
         icon: 'build',
         path: '/personnel-information-management/personnel-201-file',
         permissions: PermissionGroups.PERSONNEL_ADMIN
+      },
+      {
+        name: 'Personnel Movement',
+        icon: 'build',
+        path: '/personnel-information-management/personnel-movement',
+        permissions: PermissionGroups.PERSONNEL_ADMIN
       }
     ]
   },

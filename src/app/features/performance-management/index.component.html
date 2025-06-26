@@ -1,5 +1,5 @@
 <div class="flex flex-1 justify-center py-5">
-  <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+  <div class="layout-content-container flex flex-col max-w-[960px] flex-1 fade-in">
     <div class="flex flex-wrap justify-between gap-3 p-4">
       <div class="flex min-w-72 flex-col gap-3">
         <p class="text-[#0d141c] tracking-light text-[32px] font-bold leading-tight">Performance Overview</p>
@@ -11,42 +11,90 @@
       <label class="flex flex-col min-w-40 flex-1">
         <select
           class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141c] focus:outline-0 focus:ring-0 border border-[#cedbe8] bg-slate-50 focus:border-[#cedbe8] h-14 bg-[image:--select-button-svg] placeholder:text-[#49739c] p-[15px] text-base font-normal leading-normal"
-          [(ngModel)]="selectedOffice"
-          name="office"
-        >
-          <option *ngFor="let office of offices" [value]="office.name">{{ office.name }}</option>
-        </select>
-      </label>
-    </div>
-    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-      <label class="flex flex-col min-w-40 flex-1">
-        <select
-          class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141c] focus:outline-0 focus:ring-0 border border-[#cedbe8] bg-slate-50 focus:border-[#cedbe8] h-14 bg-[image:--select-button-svg] placeholder:text-[#49739c] p-[15px] text-base font-normal leading-normal"
           [(ngModel)]="selectedDepartment"
           name="department"
+          (ngModelChange)="onDepartmentChange()"
         >
           <option value="">All Departments</option>
           <option *ngFor="let dept of departmentStats" [value]="dept.name">{{ dept.name }}</option>
         </select>
       </label>
     </div>
-    <h3 class="text-[#0d141c] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Key Performance Indicators</h3>
-    <div class="flex flex-wrap gap-4 p-4">
-      <div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#cedbe8]">
-        <p class="text-[#0d141c] text-base font-medium leading-normal">Overall Satisfaction</p>
-        <p class="text-[#0d141c] tracking-light text-2xl font-bold leading-tight">{{ overallSatisfaction }}</p>
-        <p class="text-[#078838] text-base font-medium leading-normal">&nbsp;</p>
+    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3" *ngIf="selectedDepartment">
+      <label class="flex flex-col min-w-40 flex-1">
+        <select
+          class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141c] focus:outline-0 focus:ring-0 border border-[#cedbe8] bg-slate-50 focus:border-[#cedbe8] h-14 bg-[image:--select-button-svg] placeholder:text-[#49739c] p-[15px] text-base font-normal leading-normal"
+          [ngClass]="{'popup-in': selectedDepartment}"
+          [(ngModel)]="selectedRole"
+          name="role"
+          (ngModelChange)="onRoleChange()"
+        >
+          <option value="">All Role</option>
+          <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+        </select>
+      </label>
+    </div>
+    <h3 class="text-[#0d141c] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4 flex items-center justify-between">
+      Identify Key Responsibilities
+      <button type="button"
+        class="ml-4 px-3 py-1 rounded bg-[#0c7ff2] text-white text-sm font-semibold hover:bg-[#095ecb] transition-colors"
+        (click)="openCustomKpiModal()">
+        + Add Custom Responsibility
+      </button>
+    </h3>
+    <!-- Modal for Custom Responsibility -->
+    <div *ngIf="showCustomKpiModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs flex flex-col gap-4 relative">
+        <h4 class="text-lg font-bold mb-2">Add Custom Responsibility</h4>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Title</span>
+          <input type="text" class="form-input border border-[#cedbe8] rounded px-2 py-1" [(ngModel)]="customKpiTitle" placeholder="Enter KPI title" />
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">Value</span>
+          <input type="text" class="form-input border border-[#cedbe8] rounded px-2 py-1" [(ngModel)]="customKpiValue" placeholder="Enter KPI value (optional)" />
+        </label>
+        <div class="flex gap-2 justify-end mt-2">
+          <button type="button" class="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" (click)="closeCustomKpiModal()">Cancel</button>
+          <button type="button" class="px-3 py-1 rounded bg-[#0c7ff2] text-white hover:bg-[#095ecb]" (click)="saveCustomKpi()">Save</button>
+        </div>
       </div>
-      <div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#cedbe8]">
-        <p class="text-[#0d141c] text-base font-medium leading-normal">Average Resolution Time</p>
-        <p class="text-[#0d141c] tracking-light text-2xl font-bold leading-tight">{{ avgResolutionTime }}</p>
-        <p class="text-[#e73908] text-base font-medium leading-normal">&nbsp;</p>
+    </div>
+    <div class="p-4" [ngClass]="{'move-down': !moveDownChecklist, 'move-down-active': moveDownChecklist}">
+      <div class="mb-4 flex gap-2 items-center">
+        <span class="text-sm font-medium">Show:</span>
+        <div class="inline-flex rounded-md shadow-sm bg-[#f1f5f9] border border-[#cedbe8]">
+          <button type="button"
+            class="px-3 py-1 text-sm font-medium focus:outline-none transition-colors rounded-l-md"
+            [ngClass]="{'bg-[#0c7ff2] text-white': checkedFilter === 'all', 'text-[#0c7ff2]': checkedFilter !== 'all'}"
+            (click)="checkedFilter = 'all'; onCheckedFilterChange()">
+            All
+          </button>
+          <button type="button"
+            class="px-3 py-1 text-sm font-medium focus:outline-none transition-colors border-l border-[#cedbe8]"
+            [ngClass]="{'bg-[#0c7ff2] text-white': checkedFilter === 'checked', 'text-[#0c7ff2]': checkedFilter !== 'checked'}"
+            (click)="checkedFilter = 'checked'; onCheckedFilterChange()">
+            Checked
+          </button>
+          <button type="button"
+            class="px-3 py-1 text-sm font-medium focus:outline-none transition-colors rounded-r-md border-l border-[#cedbe8]"
+            [ngClass]="{'bg-[#0c7ff2] text-white': checkedFilter === 'unchecked', 'text-[#0c7ff2]': checkedFilter !== 'unchecked'}"
+            (click)="checkedFilter = 'unchecked'; onCheckedFilterChange()">
+            Unchecked
+          </button>
+        </div>
       </div>
-      <div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-lg p-6 border border-[#cedbe8]">
-        <p class="text-[#0d141c] text-base font-medium leading-normal">Customer Retention Rate</p>
-        <p class="text-[#0d141c] tracking-light text-2xl font-bold leading-tight">{{ avgRetentionRate }}</p>
-        <p class="text-[#078838] text-base font-medium leading-normal">&nbsp;</p>
-      </div>
+      <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" [ngClass]="{'fade-in': fadeInChecklist}">
+        <li *ngFor="let kpi of filteredCustomKPIs; let i = index" class="flex items-center gap-3 p-3 bg-white rounded-lg border border-[#cedbe8]">
+          <input type="checkbox" [id]="'kpi-check-' + i" class="form-checkbox h-5 w-5 text-[#0c7ff2] border-[#cedbe8] rounded" [checked]="kpi.checked" (change)="toggleKpiChecked(i)" />
+          <label [for]="'kpi-check-' + i" class="flex flex-col cursor-pointer">
+            <span class="text-[#0d141c] text-base font-medium leading-normal">{{ kpi.title }}</span>
+            <span class="text-[#49739c] text-sm">{{ kpi.value }}</span>
+            <span *ngIf="!selectedDepartment" class="text-xs text-blue-500 mt-1">{{ getKpiDepartmentLabel(kpi) }}</span>
+            <span *ngIf="selectedDepartment" class="text-xs text-blue-500 mt-1">{{ getKpiRoleLabel(kpi) }}</span>
+          </label>
+        </li>
+      </ul>
     </div>
     <div class="flex flex-wrap gap-4 px-4 py-6">
       <div class="flex min-w-72 flex-1 flex-col gap-2 rounded-lg border border-[#cedbe8] p-6">
@@ -101,7 +149,7 @@
         </div>
       </div>
       <div class="flex min-w-72 flex-1 flex-col gap-2 rounded-lg border border-[#cedbe8] p-6">
-        <p class="text-[#0d141c] text-base font-medium leading-normal">Current Time by Department</p>
+        <p class="text-[#0d141c] text-base font-medium leading-normal">Identify Key Responsibilities Data</p>
         <p class="text-[#0d141c] tracking-light text-[32px] font-bold leading-tight truncate">
           {{ getMaxDeptResolutionTime() }} hours
         </p>
@@ -111,15 +159,28 @@
         </div>
         <div class="flex flex-col items-stretch">
           <!-- Bars Row -->
-          <div class="grid grid-flow-col gap-6 items-end justify-items-center px-3" style="min-height: 120px;">
+          <div class="grid grid-flow-col gap-6 items-end justify-items-center px-3" style="min-height: 120px;" (mouseleave)="hoveredDept = null">
             <ng-container *ngFor="let dept of departmentStats">
-              <div
-                class="border-[#49739c] border-t-2 w-full"
-                [style.height]="(resolutionTimeByDepartment[dept.name] / getMaxDeptResolutionTime() * 100) + 'px'"
-                [style.background]="'linear-gradient(to top, ' + getDepartmentBarColor(dept.name, 0.1) + ', ' + getDepartmentBarColor(dept.name, 0.7) + ')'"
-                [style.opacity]="!selectedDepartment || selectedDepartment === dept.name ? 1 : 0.3"
-                style="min-height: 10px; max-height: 100px; border-radius: 6px 6px 0 0;"
-              ></div>
+              <div class="relative w-full flex items-end justify-center"
+                   (mouseenter)="hoveredDept = dept.name">
+                <div
+                  class="border-[#49739c] border-t-2 w-full"
+                  [style.height]="(resolutionTimeByDepartment[dept.name] / getMaxDeptResolutionTime() * 100) + 'px'"
+                  [style.background]="'linear-gradient(to top, ' + getDepartmentBarColor(dept.name, 0.1) + ', ' + getDepartmentBarColor(dept.name, 0.7) + ')'"
+                  [style.opacity]="!selectedDepartment || selectedDepartment === dept.name ? 1 : 0.3"
+                  style="min-height: 10px; max-height: 100px; border-radius: 6px 6px 0 0;"
+                ></div>
+                <ng-container *ngIf="hoveredDept === dept.name">
+                  <div
+                    class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded text-xs text-white whitespace-nowrap opacity-100 z-10 shadow-lg"
+                    [style.background]="getDepartmentBarColor(dept.name, 0.7)">
+                    {{ dept.name }}
+                    <span class="ml-2 font-semibold">
+                    [ {{ resolutionTimeByDepartment[dept.name] ? resolutionTimeByDepartment[dept.name] + ' hrs' : '' }} ]
+                    </span>
+                  </div>
+                </ng-container>
+              </div>
             </ng-container>
           </div>
           <!-- Department Names Row -->
@@ -141,104 +202,58 @@
         </div>
       </div>
     </div>
-    <h3 class="text-[#0d141c] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Employee Performance</h3>
+    <h3 class="text-[#0d141c] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">KPI Table</h3>
     <div class="px-4 py-3 @container">
-      <div class="flex overflow-hidden rounded-lg border border-[#cedbe8] bg-slate-50">
-        <table class="flex-1">
+      <div class="flex overflow-hidden rounded-2xl border border-[#cedbe8] bg-white shadow-sm">
+        <table class="flex-1 min-w-full rounded-2xl overflow-hidden">
           <thead>
-            <tr class="bg-slate-50">
-              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
-                Employee
-              </th>
-              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
-                Department
-              </th>
-              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
-                Satisfaction
-              </th>
-              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
-                Resolution Time
-              </th>
-              <th class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 px-4 py-3 text-left text-[#0d141c] w-[400px] text-sm font-medium leading-normal">
-                Retention Rate
-              </th>
+            <tr class="bg-[#f8fafc] sticky top-0 z-10">
+              <th class="px-6 py-4 text-left text-[#0d141c] text-base font-bold leading-normal">KPI Name</th>
+              <th class="px-6 py-4 text-left text-[#0d141c] text-base font-bold leading-normal">Description</th>
+              <th class="px-6 py-4 text-left text-[#0d141c] text-base font-bold leading-normal">Target Value</th>
+              <th class="px-6 py-4 text-left text-[#0d141c] text-base font-bold leading-normal">Unit</th>
+              <th class="px-6 py-4 text-left text-[#0d141c] text-base font-bold leading-normal">Frequency</th>
+              <th class="px-6 py-4 text-left text-[#0d141c] text-base font-bold leading-normal">Weight (%)</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-t border-t-[#cedbe8]">
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
-                Ethan Harper
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">Sales</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                <div class="flex items-center gap-3">
-                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 90.9091%;"></div></div>
-                  <p class="text-[#0d141c] text-sm font-medium leading-normal">80</p>
-                </div>
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">26 hours</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">90%</td>
+            <tr class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
+              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">New Leads per Month</td>
+              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">Number of new qualified leads</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">30</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Leads</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Monthly</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">30%</td>
             </tr>
-            <tr class="border-t border-t-[#cedbe8]">
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
-                Olivia Bennett
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">Support</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                <div class="flex items-center gap-3">
-                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 100%;"></div></div>
-                  <p class="text-[#0d141c] text-sm font-medium leading-normal">90</p>
-                </div>
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">22 hours</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">95%</td>
+            <tr class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
+              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">Conversion Rate</td>
+              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">Percentage of leads converted</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">20%</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">%</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Monthly</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">40%</td>
             </tr>
-            <tr class="border-t border-t-[#cedbe8]">
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
-                Noah Carter
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">
-                Marketing
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                <div class="flex items-center gap-3">
-                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 96.5909%;"></div></div>
-                  <p class="text-[#0d141c] text-sm font-medium leading-normal">85</p>
-                </div>
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">24 hours</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">92%</td>
+            <tr class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
+              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">Avg. Deal Value</td>
+              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">Average value of closed deals</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">$5,000</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">USD</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Quarterly</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">20%</td>
             </tr>
-            <tr class="border-t border-t-[#cedbe8]">
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
-                Ava Morgan
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">Product</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                <div class="flex items-center gap-3">
-                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 85.2273%;"></div></div>
-                  <p class="text-[#0d141c] text-sm font-medium leading-normal">75</p>
-                </div>
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">28 hours</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">88%</td>
-            </tr>
-            <tr class="border-t border-t-[#cedbe8]">
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-120 h-[72px] px-4 py-2 w-[400px] text-[#0d141c] text-sm font-normal leading-normal">
-                Liam Foster
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-240 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">Sales</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-360 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                <div class="flex items-center gap-3">
-                  <div class="w-[88px] overflow-hidden rounded-sm bg-[#cedbe8]"><div class="h-1 rounded-full bg-[#0c7ff2]" style="width: 100%;"></div></div>
-                  <p class="text-[#0d141c] text-sm font-medium leading-normal">95</p>
-                </div>
-              </td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-480 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">20 hours</td>
-              <td class="table-4bdc5e92-94ca-4497-b059-7b1f0a6bc2a3-column-600 h-[72px] px-4 py-2 w-[400px] text-[#49739c] text-sm font-normal leading-normal">98%</td>
+            <tr class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
+              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">CRM Usage Compliance</td>
+              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">% of leads entered into CRM</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">95%</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">%</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Monthly</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">10%</td>
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button class="px-5 py-2 rounded-lg bg-[#0c7ff2] text-white text-sm font-semibold shadow hover:bg-[#095ecb] transition-colors">+ Add KPI</button>
       </div>
     </div>
   </div>

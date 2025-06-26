@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -38,7 +38,7 @@ interface Office {
   templateUrl: './index.component.html',
   styleUrls: ['./index.component.scss']
 })
-export class PerformanceManagementComponent {
+export class PerformanceManagementComponent implements OnInit {
   title = 'Performance Management';
   performanceFeatures = [
     { name: 'Goal Setting', description: 'Set and track employee goals', icon: '🎯' },
@@ -49,41 +49,231 @@ export class PerformanceManagementComponent {
     { name: 'Development Plans', description: 'Create and monitor development plans', icon: '🗂️' }
   ];
 
-  offices: Office[] = [
-    {
-      name: 'Head Office',
-      departments: [
-        { name: 'IT', count: 45, percentage: 30 },
-        { name: 'Human Resources', count: 30, percentage: 20 },
-        { name: 'Finance', count: 25, percentage: 17 },
-        { name: 'Marketing', count: 20, percentage: 13 },
-        { name: 'Operations', count: 30, percentage: 20 },
-        { name: 'Graphics', count: 20, percentage: 40 }
-      ]
-    },
-    {
-      name: 'Regional Office',
-      departments: [
-        { name: 'IT', count: 20, percentage: 25 },
-        { name: 'Finance', count: 15, percentage: 19 },
-        { name: 'Marketing', count: 10, percentage: 12 },
-        { name: 'Operations', count: 25, percentage: 31 },
-        { name: 'Support', count: 10, percentage: 13 }
-      ]
-    },
-    {
-      name: 'Branch Office',
-      departments: [
-        { name: 'IT', count: 10, percentage: 20 },
-        { name: 'Finance', count: 8, percentage: 16 },
-        { name: 'Sales', count: 22, percentage: 44 },
-        { name: 'Support', count: 10, percentage: 20 }
-      ]
-    }
+  selectedDepartment: string = '';
+
+  hoveredDept: string | null = null;
+
+  // Dummy roles by department
+  rolesByDepartment: { [dept: string]: string[] } = {
+    'IT': ['Developer', 'System Admin', 'QA Engineer'],
+    'Human Resources': ['HR Manager', 'Recruiter', 'HR Assistant'],
+    'Finance': ['Accountant', 'Payroll Specialist', 'Finance Analyst'],
+    'Marketing': ['Marketing Manager', 'Content Creator', 'SEO Specialist'],
+    'Operations': ['Operations Manager', 'Logistics Coordinator', 'Process Analyst'],
+    'Graphics': ['Graphic Designer', 'UI/UX Designer', 'Animator'],
+    'Support': ['Support Agent', 'Customer Success', 'Helpdesk'],
+    'Sales': ['Sales Executive', 'Sales Associate', 'Account Manager'],
+    'Product': ['Product Manager', 'Product Owner', 'Business Analyst'],
+    'Regional': ['Regional Manager', 'Regional Coordinator'],
+    'Branch': ['Branch Manager', 'Branch Assistant'],
+  };
+
+  selectedRole: string = '';
+
+  // Custom KPIs
+  customKPIs: { title: string; value: string; checked: boolean; department: string; role: string }[] = [
+
   ];
 
-  selectedOffice: string = this.offices[0].name;
-  selectedDepartment: string = '';
+  checkedFilter: 'all' | 'checked' | 'unchecked' = 'all';
+
+  get filteredCustomKPIs() {
+    let list = this.customKPIs;
+    if (this.selectedDepartment) {
+      list = list.filter(kpi => kpi.department === this.selectedDepartment || kpi.department === '');
+    }
+    if (this.selectedRole && this.selectedRole !== 'All Role') {
+      list = list.filter(kpi => kpi.role === this.selectedRole || kpi.role === 'All Role');
+    }
+    if (this.checkedFilter === 'checked') {
+      list = list.filter(kpi => kpi.checked);
+    } else if (this.checkedFilter === 'unchecked') {
+      list = list.filter(kpi => !kpi.checked);
+    }
+    return list;
+  }
+
+  // Modal state for custom KPI
+  showCustomKpiModal: boolean = false;
+  customKpiTitle: string = '';
+  customKpiValue: string = '';
+
+  // Dummy data for additional KPIs by department
+  engagementByDepartment: { [dept: string]: number } = {
+    'IT': 82,
+    'Human Resources': 88,
+    'Finance': 85,
+    'Marketing': 80,
+    'Operations': 86,
+    'Graphics': 90,
+    'Support': 83,
+    'Sales': 87,
+    'Product': 84,
+    'Regional': 81,
+    'Branch': 79,
+  };
+  attendanceByDepartment: { [dept: string]: number } = {
+    'IT': 96,
+    'Human Resources': 98,
+    'Finance': 97,
+    'Marketing': 95,
+    'Operations': 99,
+    'Graphics': 97,
+    'Support': 96,
+    'Sales': 98,
+    'Product': 97,
+    'Regional': 95,
+    'Branch': 94,
+  };
+  taskCompletionByDepartment: { [dept: string]: number } = {
+    'IT': 91,
+    'Human Resources': 93,
+    'Finance': 92,
+    'Marketing': 90,
+    'Operations': 94,
+    'Graphics': 95,
+    'Support': 91,
+    'Sales': 93,
+    'Product': 92,
+    'Regional': 90,
+    'Branch': 89,
+  };
+  qualityScoreByDepartment: { [dept: string]: string } = {
+    'IT': 'A',
+    'Human Resources': 'A',
+    'Finance': 'B+',
+    'Marketing': 'A-',
+    'Operations': 'A',
+    'Graphics': 'A+',
+    'Support': 'B',
+    'Sales': 'A-',
+    'Product': 'A',
+    'Regional': 'B+',
+    'Branch': 'B',
+  };
+
+  // Helper to aggregate dummy data for all departments
+  getAvgDummy(deptMap: { [dept: string]: number }, department: string | null): string {
+    if (department && deptMap[department] !== undefined) {
+      return deptMap[department].toString() + '%';
+    }
+    // Aggregate for all departments
+    const vals = Object.values(deptMap);
+    if (!vals.length) return 'N/A';
+    return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(0) + '%';
+  }
+  getMostCommonDummy(deptMap: { [dept: string]: string }, department: string | null): string {
+    if (department && deptMap[department] !== undefined) {
+      return deptMap[department];
+    }
+    // Aggregate for all departments: pick most common
+    const counts: { [score: string]: number } = {};
+    Object.values(deptMap).forEach(val => { counts[val] = (counts[val] || 0) + 1; });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+  }
+
+  // Get default value for KPI title and department
+  getDefaultKpiValue(title: string, department: string): string {
+    const dept = department || null;
+    switch (title) {
+      case 'Overall Satisfaction':
+        return this.getKpiForDepartment(dept, 'satisfaction');
+      case 'Average Resolution Time':
+        return this.getKpiForDepartment(dept, 'resolutionTime');
+      case 'Customer Retention Rate':
+        return this.getKpiForDepartment(dept, 'retentionRate');
+      case 'Employee Engagement':
+        return this.getAvgDummy(this.engagementByDepartment, dept);
+      case 'Attendance Rate':
+        return this.getAvgDummy(this.attendanceByDepartment, dept);
+      case 'Task Completion':
+        return this.getAvgDummy(this.taskCompletionByDepartment, dept);
+      case 'Quality Score':
+        return this.getMostCommonDummy(this.qualityScoreByDepartment, dept);
+      default:
+        return 'N/A';
+    }
+  }
+
+  // Helper to get KPI value from employees for a department
+  getKpiForDepartment(department: string | null, kpi: 'satisfaction' | 'resolutionTime' | 'retentionRate'): string {
+    let emps;
+    if (!department) {
+      emps = this.employees;
+    } else {
+      emps = this.employees.filter(e => e.department === department);
+    }
+    if (!emps.length) return 'N/A';
+    switch (kpi) {
+      case 'satisfaction':
+        return (emps.reduce((sum, e) => sum + e.satisfaction, 0) / emps.length).toFixed(0) + '%';
+      case 'resolutionTime':
+        const totalHours = emps.reduce((sum, e) => {
+          const match = e.resolutionTime.match(/(\d+)/);
+          return sum + (match ? parseInt(match[1], 10) : 0);
+        }, 0);
+        return (totalHours / emps.length).toFixed(0) + ' hours';
+      case 'retentionRate':
+        return (emps.reduce((sum, e) => sum + e.retentionRate, 0) / emps.length).toFixed(0) + '%';
+    }
+  }
+
+  // Save customKPIs to localStorage
+  saveCustomKpisToStorage() {
+    localStorage.setItem('customKPIs', JSON.stringify(this.customKPIs));
+  }
+
+  // Load customKPIs from localStorage
+  loadCustomKpisFromStorage() {
+    const data = localStorage.getItem('customKPIs');
+    if (data) {
+      this.customKPIs = JSON.parse(data);
+    }
+  }
+
+  ngOnInit() {
+    this.loadCustomKpisFromStorage();
+  }
+
+  openCustomKpiModal() {
+    this.customKpiTitle = '';
+    this.customKpiValue = 'Pending';
+    this.showCustomKpiModal = true;
+  }
+
+  closeCustomKpiModal() {
+    this.showCustomKpiModal = false;
+  }
+
+  saveCustomKpi() {
+    if (this.customKpiTitle.trim()) {
+      this.customKPIs.push({
+        title: this.customKpiTitle,
+        value: this.customKpiValue || 'N/A',
+        checked: false,
+        department: this.selectedDepartment || 'All Departments',
+        role: this.selectedRole || 'All Role'
+      });
+      this.saveCustomKpisToStorage();
+      this.closeCustomKpiModal();
+    }
+  }
+
+  toggleKpiChecked(index: number) {
+    const filteredKpi = this.filteredCustomKPIs[index];
+    const actualIndex = this.customKPIs.findIndex(kpi => 
+      kpi.title === filteredKpi.title && 
+      kpi.department === filteredKpi.department
+    );
+    if (actualIndex !== -1) {
+      this.customKPIs[actualIndex].checked = !this.customKPIs[actualIndex].checked;
+      this.saveCustomKpisToStorage();
+    }
+  }
+
+  get roles(): string[] {
+    return this.rolesByDepartment[this.selectedDepartment] || [];
+  }
 
   employees: PerformanceEmployee[] = [
     {
@@ -229,8 +419,14 @@ export class PerformanceManagementComponent {
   ];
 
   get departmentStats(): DepartmentStat[] {
-    const office = this.offices.find(o => o.name === this.selectedOffice);
-    return office ? office.departments : [];
+    return [
+      { name: 'IT', count: 45, percentage: 30 },
+      { name: 'Human Resources', count: 30, percentage: 20 },
+      { name: 'Finance', count: 25, percentage: 17 },
+      { name: 'Marketing', count: 20, percentage: 13 },
+      { name: 'Operations', count: 30, percentage: 20 },
+      { name: 'Graphics', count: 20, percentage: 40 },
+    ];
   }
 
   get filteredDepartments(): DepartmentStat[] {
@@ -238,14 +434,11 @@ export class PerformanceManagementComponent {
     return this.departmentStats.filter(d => d.name === this.selectedDepartment);
   }
 
-  // Filtered employees based on selected office and department
+  // Filtered employees based on selected department
   get filteredEmployees(): PerformanceEmployee[] {
     let emps = this.employees;
     if (this.selectedDepartment) {
       emps = emps.filter(e => e.department === this.selectedDepartment);
-    } else if (this.selectedOffice) {
-      // Optionally, filter by office if you map employees to offices
-      // For now, all employees are global
     }
     return emps;
   }
@@ -358,10 +551,10 @@ export class PerformanceManagementComponent {
   // Color palette for department bars (base RGB, alpha applied dynamically)
   private departmentColors: { [key: string]: [number, number, number] } = {
     'IT': [37, 99, 235], // blue
-    'Human Resources': [16, 185, 129], // green
+    'Human Resources': [7, 247, 168], // green
     'Finance': [234, 179, 8], // yellow
     'Marketing': [236, 72, 153], // pink
-    'Operations': [251, 191, 36], // amber
+    'Operations': [28, 201, 187], // amber
     'Graphics': [168, 85, 247], // purple
     'Support': [59, 130, 246], // light blue
     'Sales': [239, 68, 68], // red
@@ -373,5 +566,63 @@ export class PerformanceManagementComponent {
   getDepartmentBarColor(deptName: string, alpha: number = 0.5): string {
     const rgb = this.departmentColors[deptName] || [100, 116, 139]; // fallback: slate
     return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+  }
+
+  // Update all custom KPI values based on their title and the current department
+  updateAllCustomKpiValues() {
+    this.customKPIs = this.customKPIs.map(kpi => {
+      return kpi;
+    });
+  }
+
+  fadeInChecklist: boolean = true;
+  moveDownChecklist: boolean = true;
+
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  triggerChecklistFadeIn() {
+    this.fadeInChecklist = false;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.fadeInChecklist = true;
+      this.cdr.detectChanges();
+    }, 10);
+  }
+
+  triggerChecklistMoveDown() {
+    this.moveDownChecklist = false;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.moveDownChecklist = true;
+      this.cdr.detectChanges();
+    }, 10);
+  }
+
+  onDepartmentChange() {
+    if (!this.selectedDepartment) {
+      this.selectedRole = '';
+    }
+    this.updateAllCustomKpiValues();
+    this.triggerChecklistFadeIn();
+    this.triggerChecklistMoveDown();
+  }
+
+  onRoleChange() {
+    this.triggerChecklistFadeIn();
+    this.triggerChecklistMoveDown();
+  }
+
+  getKpiDepartmentLabel(kpi: { department: string }): string {
+    if (!kpi.department || kpi.department === 'All Departments') return 'All Departments';
+    return kpi.department;
+  }
+
+  getKpiRoleLabel(kpi: { role: string }): string {
+    if (!kpi.role || kpi.role === 'All Role') return 'All Role';
+    return kpi.role;
+  }
+
+  onCheckedFilterChange() {
+    this.triggerChecklistFadeIn();
   }
 } 

@@ -42,4 +42,13 @@ describe('CreateEditModalComponent', () => {
     expect(compiled.querySelector('input[name="position"]')).toBeTruthy();
     expect(compiled.querySelector('input[type="file"]')).toBeTruthy();
   });
+
+  it('should hide validation message when OK is clicked', () => {
+    component.showValidationMessage = true;
+    fixture.detectChanges();
+    const okButton = fixture.debugElement.query(By.css('button'));
+    okButton.triggerEventHandler('click', null);
+    fixture.detectChanges();
+    expect(component.showValidationMessage).toBeFalse();
+  });
 }); 

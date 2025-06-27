@@ -10,8 +10,11 @@
       </div>
     </div>
     <form (ngSubmit)="onSave()" #modalForm="ngForm" autocomplete="off" class="flex flex-col flex-1 overflow-hidden">
-      <div *ngIf="showValidationMessage" class="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-2">
-        <span class="text-lg">&#9888;</span> Please complete all required fields.
+      <div *ngIf="showValidationMessage" class="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-2 justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">&#9888;</span> Please complete all required fields.
+        </div>
+        <button type="button" class="ml-4 px-3 py-1 rounded bg-[#ef4444] text-white text-xs font-semibold hover:bg-[#b91c1c] transition-colors" (click)="hideValidationMessage()">OK</button>
       </div>
       <div class="overflow-y-auto flex-1 px-6 pb-6">
       <!-- Profile Picture Upload -->

@@ -647,6 +647,58 @@ export class PerformanceManagementComponent implements OnInit {
     { name: 'CRM Usage Compliance', description: '% of leads entered into CRM', targetValue: '95%', unit: '%', frequency: 'Monthly', weight: '10%' }
   ];
 
+  // Edit KPI State
+  editKpiIndex: number | null = null;
+  editKpiData: any = null;
+
+  // Delete KPI Confirmation State
+  showDeleteConfirm: boolean = false;
+  deleteKpiIndex: number | null = null;
+
+  openDeleteKpiConfirm(index: number) {
+    this.deleteKpiIndex = index;
+    this.showDeleteConfirm = true;
+  }
+
+  confirmDeleteKpi() {
+    if (this.deleteKpiIndex !== null) {
+      this.kpiTableData.splice(this.deleteKpiIndex, 1);
+      if (this.editKpiIndex === this.deleteKpiIndex) {
+        this.cancelEditKpi();
+      }
+    }
+    this.showDeleteConfirm = false;
+    this.deleteKpiIndex = null;
+  }
+
+  cancelDeleteKpi() {
+    this.showDeleteConfirm = false;
+    this.deleteKpiIndex = null;
+  }
+
+  deleteKpi(index: number) {
+    this.openDeleteKpiConfirm(index);
+  }
+
+  openEditKpiModal(index: number) {
+    this.editKpiIndex = index;
+    this.editKpiData = { ...this.kpiTableData[index] };
+    this.showAddKpiModal = false;
+  }
+
+  saveEditKpi() {
+    if (this.editKpiIndex !== null && this.editKpiData) {
+      this.kpiTableData[this.editKpiIndex] = { ...this.editKpiData };
+      this.editKpiIndex = null;
+      this.editKpiData = null;
+    }
+  }
+
+  cancelEditKpi() {
+    this.editKpiIndex = null;
+    this.editKpiData = null;
+  }
+
   openAddKpiModal() {
     this.showAddKpiModal = true;
     this.newKpi = { name: '', description: '', targetValue: '', unit: '', frequency: '', weight: '' };

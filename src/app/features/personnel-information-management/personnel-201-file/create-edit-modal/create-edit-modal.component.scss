@@ -474,3 +474,20 @@ input.no-spinner[type=number] {
     transform: translateY(0);
   }
 }
+
+/* Validation message OK button */
+.validation-ok-btn {
+  margin-left: 1.5rem;
+  padding: 0.4rem 1.2rem;
+  border-radius: 0.7rem;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border: none;
+  transition: background 0.18s;
+  box-shadow: 0 2px 8px rgba(239,68,68,0.08);
+  &:hover, &:focus {
+    background: #b91c1c;
+  }
+}

@@ -169,12 +169,13 @@ export class CreateEditModalComponent implements AfterViewInit {
     const isFileValid = !!this.data.fileName;
     if (this.modalForm && (!this.modalForm.form.valid || !isFileValid)) {
       this.showValidationMessage = true;
-      setTimeout(() => {
-        this.showValidationMessage = false;
-      }, 1000);
       return;
     }
     this.save.emit(this.data);
+  }
+
+  hideValidationMessage() {
+    this.showValidationMessage = false;
   }
 
   onCancel() {

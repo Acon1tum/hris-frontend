@@ -625,4 +625,41 @@ export class PerformanceManagementComponent implements OnInit {
   onCheckedFilterChange() {
     this.triggerChecklistFadeIn();
   }
+
+  // Communication Settings
+  notifyEmployees: boolean = false;
+  effectiveFrom: string = '';
+
+  // KPI Table State
+  showAddKpiModal: boolean = false;
+  newKpi = {
+    name: '',
+    description: '',
+    targetValue: '',
+    unit: '',
+    frequency: '',
+    weight: ''
+  };
+  kpiTableData: Array<any> = [
+    { name: 'New Leads per Month', description: 'Number of new qualified leads', targetValue: '30', unit: 'Leads', frequency: 'Monthly', weight: '30%' },
+    { name: 'Conversion Rate', description: 'Percentage of leads converted', targetValue: '20%', unit: '%', frequency: 'Monthly', weight: '40%' },
+    { name: 'Avg. Deal Value', description: 'Average value of closed deals', targetValue: '$5,000', unit: 'USD', frequency: 'Quarterly', weight: '20%' },
+    { name: 'CRM Usage Compliance', description: '% of leads entered into CRM', targetValue: '95%', unit: '%', frequency: 'Monthly', weight: '10%' }
+  ];
+
+  openAddKpiModal() {
+    this.showAddKpiModal = true;
+    this.newKpi = { name: '', description: '', targetValue: '', unit: '', frequency: '', weight: '' };
+  }
+
+  closeAddKpiModal() {
+    this.showAddKpiModal = false;
+  }
+
+  addKpiToTable() {
+    if (this.newKpi.name && this.newKpi.description && this.newKpi.targetValue && this.newKpi.unit && this.newKpi.frequency && this.newKpi.weight) {
+      this.kpiTableData.push({ ...this.newKpi });
+      this.closeAddKpiModal();
+    }
+  }
 } 

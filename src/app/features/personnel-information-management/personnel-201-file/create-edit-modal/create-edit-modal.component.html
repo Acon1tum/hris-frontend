@@ -10,6 +10,9 @@
       </div>
     </div>
     <form (ngSubmit)="onSave()" #modalForm="ngForm" autocomplete="off" class="flex flex-col flex-1 overflow-hidden">
+      <div *ngIf="showValidationMessage" class="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-2">
+        <span class="text-lg">&#9888;</span> Please complete all required fields.
+      </div>
       <div class="overflow-y-auto flex-1 px-6 pb-6">
       <!-- Profile Picture Upload -->
       <section class="profile-picture-section flex flex-col items-center mb-8">
@@ -55,7 +58,8 @@
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div class="profile-field">
               <p class="field-label">First Name</p>
-              <input type="text" [(ngModel)]="data.firstName" name="firstName" required class="form-control" placeholder="First Name" />
+              <input type="text" [(ngModel)]="data.firstName" name="firstName" required class="form-control" placeholder="First Name" [ngClass]="{'border-red-400': formSubmitted && !data.firstName}" />
+              <span *ngIf="formSubmitted && !data.firstName" class="text-xs text-red-500 mt-1">First Name is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Middle Name</p>
@@ -63,7 +67,8 @@
             </div>
             <div class="profile-field">
               <p class="field-label">Last Name</p>
-              <input type="text" [(ngModel)]="data.lastName" name="lastName" required class="form-control" placeholder="Last Name" />
+              <input type="text" [(ngModel)]="data.lastName" name="lastName" required class="form-control" placeholder="Last Name" [ngClass]="{'border-red-400': formSubmitted && !data.lastName}" />
+              <span *ngIf="formSubmitted && !data.lastName" class="text-xs text-red-500 mt-1">Last Name is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Suffix</p>
@@ -71,20 +76,22 @@
             </div>
             <div class="profile-field">
               <p class="field-label">Birthdate</p>
-              <input type="date" [(ngModel)]="data.birthdate" name="birthdate" class="form-control" />
+              <input type="date" [(ngModel)]="data.birthdate" name="birthdate" required class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.birthdate}" />
+              <span *ngIf="formSubmitted && !data.birthdate" class="text-xs text-red-500 mt-1">Birthdate is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Gender</p>
-              <select [(ngModel)]="data.gender" name="gender" class="form-control">
+              <select [(ngModel)]="data.gender" name="gender" required class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.gender}">
                 <option value="" disabled selected>Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
               </select>
+              <span *ngIf="formSubmitted && !data.gender" class="text-xs text-red-500 mt-1">Gender is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Civil Status</p>
-              <select [(ngModel)]="data.civilStatus" name="civilStatus" class="form-control">
+              <select [(ngModel)]="data.civilStatus" name="civilStatus" required class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.civilStatus}">
                 <option value="" disabled selected>Select Status</option>
                 <option value="Single">Single</option>
                 <option value="Married">Married</option>
@@ -92,10 +99,12 @@
                 <option value="Separated">Separated</option>
                 <option value="Divorced">Divorced</option>
               </select>
+              <span *ngIf="formSubmitted && !data.civilStatus" class="text-xs text-red-500 mt-1">Civil Status is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Citizenship</p>
-              <input type="text" [(ngModel)]="data.citizenship" name="citizenship" class="form-control" placeholder="Citizenship" />
+              <input type="text" [(ngModel)]="data.citizenship" name="citizenship" required class="form-control" placeholder="Citizenship" [ngClass]="{'border-red-400': formSubmitted && !data.citizenship}" />
+              <span *ngIf="formSubmitted && !data.citizenship" class="text-xs text-red-500 mt-1">Citizenship is required.</span>
             </div>
           </div>
         </div>
@@ -109,7 +118,8 @@
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div class="profile-field">
               <p class="field-label">Email</p>
-              <input type="email" [(ngModel)]="data.email" name="email" required class="form-control" placeholder="Enter email address" />
+              <input type="email" [(ngModel)]="data.email" name="email" required class="form-control" placeholder="Enter email address" [ngClass]="{'border-red-400': formSubmitted && !data.email}" />
+              <span *ngIf="formSubmitted && !data.email" class="text-xs text-red-500 mt-1">Email is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Number</p>
@@ -122,11 +132,14 @@
                 required
                 class="form-control no-spinner"
                 placeholder="Enter phone number"
+                [ngClass]="{'border-red-400': formSubmitted && !data.number}"
               />
+              <span *ngIf="formSubmitted && !data.number" class="text-xs text-red-500 mt-1">Number is required.</span>
             </div>
             <div class="profile-field md:col-span-3">
               <p class="field-label">Address</p>
-              <textarea [(ngModel)]="data.address" name="address" required rows="2" class="form-control" placeholder="Enter address"></textarea>
+              <textarea [(ngModel)]="data.address" name="address" required rows="2" class="form-control" placeholder="Enter address" [ngClass]="{'border-red-400': formSubmitted && !data.address}"></textarea>
+              <span *ngIf="formSubmitted && !data.address" class="text-xs text-red-500 mt-1">Address is required.</span>
             </div>
           </div>
         </div>
@@ -140,7 +153,7 @@
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div class="profile-field">
               <p class="field-label">Employment Type</p>
-              <select [(ngModel)]="data.employmentType" name="employmentType" class="form-control">
+              <select [(ngModel)]="data.employmentType" name="employmentType" required class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.employmentType}">
                 <option value="" disabled selected>Select Type</option>
                 <option value="Regular">Regular</option>
                 <option value="Probationary">Probationary</option>
@@ -149,14 +162,16 @@
                 <option value="Seasonal">Seasonal</option>
                 <option value="Casual">Casual</option>
               </select>
+              <span *ngIf="formSubmitted && !data.employmentType" class="text-xs text-red-500 mt-1">Employment Type is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Designation</p>
-              <input type="text" [(ngModel)]="data.designation" name="designation" class="form-control" placeholder="Designation" />
+              <input type="text" [(ngModel)]="data.designation" name="designation" required class="form-control" placeholder="Designation" [ngClass]="{'border-red-400': formSubmitted && !data.designation}" />
+              <span *ngIf="formSubmitted && !data.designation" class="text-xs text-red-500 mt-1">Designation is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Department</p>
-              <select [(ngModel)]="data.department" name="department" required (change)="onDepartmentChange()" class="form-control">
+              <select [(ngModel)]="data.department" name="department" required (change)="onDepartmentChange()" class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.department}">
                 <option value="" disabled selected>Select Department</option>
                 <option value="IT">IT</option>
                 <option value="Human Resources">Human Resources</option>
@@ -165,28 +180,33 @@
                 <option value="Operations">Operations</option>
                 <option value="Graphics">Graphics</option>
               </select>
+              <span *ngIf="formSubmitted && !data.department" class="text-xs text-red-500 mt-1">Department is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Position</p>
-              <input type="text" [(ngModel)]="data.position" name="position" required readonly class="form-control" placeholder="Position" />
+              <input type="text" [(ngModel)]="data.position" name="position" required readonly class="form-control" placeholder="Position" [ngClass]="{'border-red-400': formSubmitted && !data.position}" />
+              <span *ngIf="formSubmitted && !data.position" class="text-xs text-red-500 mt-1">Position is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Appointment Date</p>
-              <input type="date" [(ngModel)]="data.appointmentDate" name="appointmentDate" class="form-control" />
+              <input type="date" [(ngModel)]="data.appointmentDate" name="appointmentDate" required class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.appointmentDate}" />
+              <span *ngIf="formSubmitted && !data.appointmentDate" class="text-xs text-red-500 mt-1">Appointment Date is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Start Date</p>
-              <input type="date" [(ngModel)]="data.startDate" name="startDate" class="form-control" />
+              <input type="date" [(ngModel)]="data.startDate" name="startDate" required class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.startDate}" />
+              <span *ngIf="formSubmitted && !data.startDate" class="text-xs text-red-500 mt-1">Start Date is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Employment Status</p>
-              <select [(ngModel)]="data.employmentStatus" name="employmentStatus" class="form-control">
+              <select [(ngModel)]="data.employmentStatus" name="employmentStatus" required class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.employmentStatus}">
                 <option value="" disabled selected>Select Status</option>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
                 <option value="On Leave">On Leave</option>
                 <option value="Terminated">Terminated</option>
               </select>
+              <span *ngIf="formSubmitted && !data.employmentStatus" class="text-xs text-red-500 mt-1">Employment Status is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Job Level</p>
@@ -224,19 +244,23 @@
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div class="profile-field">
               <p class="field-label">GSIS</p>
-              <input type="text" [(ngModel)]="data.gsis" name="gsis" class="form-control" placeholder="GSIS" />
+              <input type="text" [(ngModel)]="data.gsis" name="gsis" required class="form-control" placeholder="GSIS" [ngClass]="{'border-red-400': formSubmitted && !data.gsis}" />
+              <span *ngIf="formSubmitted && !data.gsis" class="text-xs text-red-500 mt-1">GSIS is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Pag-IBIG</p>
-              <input type="text" [(ngModel)]="data.pagibig" name="pagibig" class="form-control" placeholder="Pag-IBIG" />
+              <input type="text" [(ngModel)]="data.pagibig" name="pagibig" required class="form-control" placeholder="Pag-IBIG" [ngClass]="{'border-red-400': formSubmitted && !data.pagibig}" />
+              <span *ngIf="formSubmitted && !data.pagibig" class="text-xs text-red-500 mt-1">Pag-IBIG is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">PhilHealth</p>
-              <input type="text" [(ngModel)]="data.philhealth" name="philhealth" class="form-control" placeholder="PhilHealth" />
+              <input type="text" [(ngModel)]="data.philhealth" name="philhealth" required class="form-control" placeholder="PhilHealth" [ngClass]="{'border-red-400': formSubmitted && !data.philhealth}" />
+              <span *ngIf="formSubmitted && !data.philhealth" class="text-xs text-red-500 mt-1">PhilHealth is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">SSS</p>
-              <input type="text" [(ngModel)]="data.sss" name="sss" class="form-control" placeholder="SSS" />
+              <input type="text" [(ngModel)]="data.sss" name="sss" required class="form-control" placeholder="SSS" [ngClass]="{'border-red-400': formSubmitted && !data.sss}" />
+              <span *ngIf="formSubmitted && !data.sss" class="text-xs text-red-500 mt-1">SSS is required.</span>
             </div>
           </div>
         </div>
@@ -290,6 +314,7 @@
               (dragleave)="onDragLeave($event)"
               (drop)="onFileDrop($event)"
               [class.drag-over]="isDragOver"
+              [ngClass]="{'border-red-400': formSubmitted && !data?.fileName}"
             >
               <span class="upload-icon">📂</span>
               <span class="upload-text">Click to upload or drag a file here</span>
@@ -320,7 +345,7 @@
 
       <div class="sticky-footer flex justify-end gap-3 px-6 py-4">
         <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
-        <button type="submit" [disabled]="!modalForm.form.valid" class="btn btn-primary">Save</button>
+        <button type="submit" class="btn btn-primary">Save</button>
       </div>
     </form>
   </div>

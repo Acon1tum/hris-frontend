@@ -44,7 +44,7 @@
     </h3>
     <!-- Modal for Custom Responsibility -->
     <div *ngIf="showCustomKpiModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs flex flex-col gap-4 relative">
+      <div class="bg-white rounded-2xl shadow-lg p-6 w-full max-w-xs flex flex-col gap-4 relative">
         <h4 class="text-lg font-bold mb-2">Add Custom Responsibility</h4>
         <label class="flex flex-col gap-1">
           <span class="text-sm font-medium">Title</span>
@@ -86,7 +86,7 @@
       </div>
       <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" [ngClass]="{'fade-in': fadeInChecklist}">
         <li *ngFor="let kpi of filteredCustomKPIs; let i = index" class="flex items-center gap-3 p-3 bg-white rounded-lg border border-[#cedbe8]">
-          <input type="checkbox" [id]="'kpi-check-' + i" class="form-checkbox h-5 w-5 text-[#0c7ff2] border-[#cedbe8] rounded" [checked]="kpi.checked" (change)="toggleKpiChecked(i)" />
+          <input type="checkbox" [id]="'kpi-check-' + i" class="form-checkbox h-5 w-5 text-[#0c7ff2] border-[#cedbe8] rounded cursor-not-allowed opacity-60" [checked]="kpi.checked" disabled />
           <label [for]="'kpi-check-' + i" class="flex flex-col cursor-pointer">
             <span class="text-[#0d141c] text-base font-medium leading-normal">{{ kpi.title }}</span>
             <span class="text-[#49739c] text-sm">{{ kpi.value }}</span>
@@ -204,8 +204,8 @@
     </div>
     <h3 class="text-[#0d141c] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">KPI Table</h3>
     <div class="px-4 py-3 @container">
-      <div class="flex overflow-hidden rounded-2xl border border-[#cedbe8] bg-white shadow-sm">
-        <table class="flex-1 min-w-full rounded-2xl overflow-hidden">
+      <div class="flex overflow-hidden rounded-lg border border-[#cedbe8] bg-white shadow-sm">
+        <table class="flex-1 min-w-full rounded-lg overflow-hidden">
           <thead>
             <tr class="bg-[#f8fafc] sticky top-0 z-10">
               <th class="px-6 py-4 text-left text-[#0d141c] text-base font-bold leading-normal">KPI Name</th>
@@ -217,43 +217,90 @@
             </tr>
           </thead>
           <tbody>
-            <tr class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
-              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">New Leads per Month</td>
-              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">Number of new qualified leads</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">30</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Leads</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Monthly</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">30%</td>
-            </tr>
-            <tr class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
-              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">Conversion Rate</td>
-              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">Percentage of leads converted</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">20%</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">%</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Monthly</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">40%</td>
-            </tr>
-            <tr class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
-              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">Avg. Deal Value</td>
-              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">Average value of closed deals</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">$5,000</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">USD</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Quarterly</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">20%</td>
-            </tr>
-            <tr class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
-              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">CRM Usage Compliance</td>
-              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">% of leads entered into CRM</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">95%</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">%</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">Monthly</td>
-              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">10%</td>
+            <tr *ngFor="let kpi of kpiTableData" class="even:bg-[#f1f5f9] hover:bg-[#e0e7ef] transition-colors border-b border-[#e5e7eb]">
+              <td class="px-6 py-3 text-[#0d141c] text-sm font-medium leading-normal">{{ kpi.name }}</td>
+              <td class="px-6 py-3 text-[#49739c] text-sm leading-normal">{{ kpi.description }}</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">{{ kpi.targetValue }}</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">{{ kpi.unit }}</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">{{ kpi.frequency }}</td>
+              <td class="px-6 py-3 text-[#0d141c] text-sm leading-normal">{{ kpi.weight }}</td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="mt-6 flex justify-end">
-        <button class="px-5 py-2 rounded-lg bg-[#0c7ff2] text-white text-sm font-semibold shadow hover:bg-[#095ecb] transition-colors">+ Add KPI</button>
+        <button class="px-5 py-2 rounded-lg bg-[#0c7ff2] text-white text-sm font-semibold shadow hover:bg-[#095ecb] transition-colors" (click)="openAddKpiModal()">+ Add KPI</button>
+      </div>
+    </div>
+    <!-- Add KPI Modal -->
+    <div *ngIf="showAddKpiModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 animate-fade-in">
+      <div class="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg flex flex-col gap-6 min-w-[320px]">
+        <button type="button" aria-label="Close" (click)="closeAddKpiModal()" class="absolute top-4 right-4 text-[#49739c] hover:text-[#0c7ff2] text-2xl font-bold focus:outline-none">&times;</button>
+        <h4 class="text-2xl font-bold text-[#0d141c] mb-2 text-center">Add KPI</h4>
+        <hr class="border-[#e5e7eb] mb-2" />
+        <form (ngSubmit)="addKpiToTable()" autocomplete="off">
+          <div class="flex flex-col gap-4">
+            <label class="flex flex-col gap-1">
+              <span class="text-sm font-medium">KPI Name</span>
+              <input type="text" class="form-input border border-[#cedbe8] rounded-lg px-3 py-2 text-[#0d141c] focus:border-[#0c7ff2] focus:ring-2 focus:ring-[#0c7ff2]/20 transition-all" [(ngModel)]="newKpi.name" name="kpiName" placeholder="Enter KPI name" required />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span class="text-sm font-medium">Description</span>
+              <input type="text" class="form-input border border-[#cedbe8] rounded-lg px-3 py-2 text-[#0d141c] focus:border-[#0c7ff2] focus:ring-2 focus:ring-[#0c7ff2]/20 transition-all" [(ngModel)]="newKpi.description" name="kpiDescription" placeholder="Enter description" required />
+            </label>
+            <div class="flex flex-col md:flex-row md:flex-wrap gap-4">
+              <label class="flex flex-col gap-1 flex-1 min-w-0">
+                <span class="text-sm font-medium">Target Value</span>
+                <input type="text" class="form-input border border-[#cedbe8] rounded-lg px-3 py-2 text-[#0d141c] focus:border-[#0c7ff2] focus:ring-2 focus:ring-[#0c7ff2]/20 transition-all w-full min-w-0 max-w-full" [(ngModel)]="newKpi.targetValue" name="kpiTargetValue" placeholder="Target value" required />
+              </label>
+              <label class="flex flex-col gap-1 flex-1 min-w-0">
+                <span class="text-sm font-medium">Unit</span>
+                <input type="text" class="form-input border border-[#cedbe8] rounded-lg px-3 py-2 text-[#0d141c] focus:border-[#0c7ff2] focus:ring-2 focus:ring-[#0c7ff2]/20 transition-all w-full min-w-0 max-w-full" [(ngModel)]="newKpi.unit" name="kpiUnit" placeholder="Unit" required />
+              </label>
+            </div>
+            <div class="flex flex-col md:flex-row md:flex-wrap gap-4">
+              <label class="flex flex-col gap-1 flex-1 min-w-0">
+                <span class="text-sm font-medium">Frequency</span>
+                <input type="text" class="form-input border border-[#cedbe8] rounded-lg px-3 py-2 text-[#0d141c] focus:border-[#0c7ff2] focus:ring-2 focus:ring-[#0c7ff2]/20 transition-all w-full min-w-0 max-w-full" [(ngModel)]="newKpi.frequency" name="kpiFrequency" placeholder="Frequency" required />
+              </label>
+              <label class="flex flex-col gap-1 flex-1 min-w-0">
+                <span class="text-sm font-medium">Weight (%)</span>
+                <input type="text" class="form-input border border-[#cedbe8] rounded-lg px-3 py-2 text-[#0d141c] focus:border-[#0c7ff2] focus:ring-2 focus:ring-[#0c7ff2]/20 transition-all w-full min-w-0 max-w-full" [(ngModel)]="newKpi.weight" name="kpiWeight" placeholder="Weight (%)" required />
+              </label>
+            </div>
+          </div>
+          <div class="flex gap-2 justify-end mt-6">
+            <button type="button" class="px-4 py-2 rounded-lg border border-[#cedbe8] bg-white text-[#0d141c] text-sm font-medium hover:bg-[#f1f5f9] transition-colors" (click)="closeAddKpiModal()">Cancel</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-[#0c7ff2] text-white text-sm font-semibold shadow hover:bg-[#095ecb] transition-colors" [disabled]="!newKpi.name || !newKpi.description || !newKpi.targetValue || !newKpi.unit || !newKpi.frequency || !newKpi.weight">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Communication Settings and Actions -->
+    <div class="mt-10 bg-[#f8fafc] rounded-xl p-6 flex flex-col gap-6">
+      <div class="flex flex-col gap-4">
+        <span class="text-[#0d141c] text-base font-medium mb-2">Communication Settings</span>
+        <div class="flex flex-col gap-4">
+          <label class="flex items-center gap-3 text-[#0d141c] text-sm font-normal">
+            Notify Employees?
+            <span class="relative inline-block w-10 align-middle select-none">
+              <input type="checkbox" id="notifyEmployees" class="sr-only" [(ngModel)]="notifyEmployees" />
+              <span class="block w-10 h-6 bg-[#e5e7eb] rounded-full shadow-inner"></span>
+              <span class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform" [ngStyle]="{'transform': notifyEmployees ? 'translateX(16px)' : 'none', 'box-shadow': notifyEmployees ? '0 0 0 2px #0c7ff2' : 'none', 'background': notifyEmployees ? '#0c7ff2' : '#fff'}"></span>
+            </span>
+          </label>
+          <label class="flex items-center gap-3 text-[#0d141c] text-sm font-normal">
+            Effective From
+            <input type="date" class="form-input border border-[#e5e7eb] rounded px-2 py-1 text-[#0d141c] font-normal bg-white focus:border-[#0c7ff2] focus:ring-1 focus:ring-[#0c7ff2]/20 transition-all" [(ngModel)]="effectiveFrom" />
+          </label>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2 mt-2">
+        <div class="flex gap-2">
+          <button class="px-4 py-2 rounded border border-[#cedbe8] bg-transparent text-[#0d141c] text-sm font-medium hover:bg-[#e5e7eb] transition-colors">Save as Draft</button>
+          <button class="px-4 py-2 rounded border border-[#22c55e] bg-transparent text-[#22c55e] text-sm font-medium hover:bg-[#22c55e] hover:text-white transition-colors">Publish KPIs to Role</button>
+          <button class="px-4 py-2 rounded border border-[#cedbe8] bg-transparent text-[#0d141c] text-sm font-medium hover:bg-[#e5e7eb] transition-colors">Export KPI Template</button>
+        </div>
       </div>
     </div>
   </div>

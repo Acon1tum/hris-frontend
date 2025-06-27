@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, HostListener, AfterViewInit, ElementRef, Renderer2, ViewChildren, QueryList } from '@angular/core';
+import { Component, EventEmitter, Input, Output, HostListener, AfterViewInit, ElementRef, Renderer2, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -84,6 +84,7 @@ export class CreateEditModalComponent implements AfterViewInit {
   @Output() cancel = new EventEmitter<void>();
 
   @ViewChildren('fadeSection', { read: ElementRef }) fadeSections!: QueryList<ElementRef>;
+  @ViewChild('modalForm') modalForm: any;
   private lastScrollTop = 0;
 
   constructor(private renderer: Renderer2) {}
@@ -100,6 +101,9 @@ export class CreateEditModalComponent implements AfterViewInit {
   isDragOver = false;
   showFloatingProfile = false;
   closing = false;
+
+  public formSubmitted: boolean = false;
+  public showValidationMessage: boolean = false;
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
@@ -129,11 +133,12 @@ export class CreateEditModalComponent implements AfterViewInit {
   }
 
   onFileChange(event: any): void {
-    const file = event.target.files[0];
+    const file = event.target.files && event.target.files[0];
     if (file) {
       this.data.file = file;
       this.data.fileName = file.name;
     }
+    // Do nothing if no file is selected (cancelled)
   }
 
   removeFile(): void {
@@ -159,6 +164,16 @@ export class CreateEditModalComponent implements AfterViewInit {
   }
 
   onSave() {
+    this.formSubmitted = true;
+    // Check for required file and form validity
+    const isFileValid = !!this.data.fileName;
+    if (this.modalForm && (!this.modalForm.form.valid || !isFileValid)) {
+      this.showValidationMessage = true;
+      setTimeout(() => {
+        this.showValidationMessage = false;
+      }, 1000);
+      return;
+    }
     this.save.emit(this.data);
   }
 

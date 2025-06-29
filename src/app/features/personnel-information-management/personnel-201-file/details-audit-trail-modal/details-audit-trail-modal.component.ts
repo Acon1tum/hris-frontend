@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Personnel201File } from '../personnel-201-file.component';
+import { Personnel201File } from '../personnel-201.service';
 
 @Component({
   selector: 'app-details-audit-trail-modal',

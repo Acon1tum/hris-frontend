@@ -48,12 +48,8 @@
               <div>{{ file?.lastName }}</div>
             </div>
             <div class="profile-field">
-              <p class="field-label">Suffix</p>
-              <div>{{ file?.suffix }}</div>
-            </div>
-            <div class="profile-field">
-              <p class="field-label">Birthdate</p>
-              <div>{{ file?.birthdate }}</div>
+              <p class="field-label">Date of Birth</p>
+              <div>{{ file?.date_of_birth }}</div>
             </div>
             <div class="profile-field">
               <p class="field-label">Gender</p>
@@ -61,11 +57,7 @@
             </div>
             <div class="profile-field">
               <p class="field-label">Civil Status</p>
-              <div>{{ file?.civilStatus }}</div>
-            </div>
-            <div class="profile-field">
-              <p class="field-label">Citizenship</p>
-              <div>{{ file?.citizenship }}</div>
+              <div>{{ file?.civil_status }}</div>
             </div>
           </div>
         </div>
@@ -82,8 +74,8 @@
               <div>{{ file?.email }}</div>
             </div>
             <div class="profile-field">
-              <p class="field-label">Number</p>
-              <div>{{ file?.number }}</div>
+              <p class="field-label">Contact Number</p>
+              <div>{{ file?.contact_number }}</div>
             </div>
             <div class="profile-field md:col-span-3">
               <p class="field-label">Address</p>
@@ -101,7 +93,7 @@
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div class="profile-field">
               <p class="field-label">Employment Type</p>
-              <div>{{ file?.employmentType }}</div>
+              <div>{{ file?.employment_type }}</div>
             </div>
             <div class="profile-field">
               <p class="field-label">Designation</p>
@@ -116,24 +108,16 @@
               <div>{{ file?.position }}</div>
             </div>
             <div class="profile-field">
-              <p class="field-label">Appointment Date</p>
-              <div>{{ file?.appointmentDate }}</div>
-            </div>
-            <div class="profile-field">
-              <p class="field-label">Start Date</p>
-              <div>{{ file?.startDate }}</div>
+              <p class="field-label">Date Hired</p>
+              <div>{{ file?.date_hired }}</div>
             </div>
             <div class="profile-field">
               <p class="field-label">Employment Status</p>
-              <div>{{ file?.employmentStatus }}</div>
+              <div>{{ file?.user?.status }}</div>
             </div>
             <div class="profile-field">
-              <p class="field-label">Job Level</p>
-              <div>{{ file?.jobLevel }}</div>
-            </div>
-            <div class="profile-field">
-              <p class="field-label">Job Grade</p>
-              <div>{{ file?.jobGrade }}</div>
+              <p class="field-label">Salary</p>
+              <div>{{ file?.salary | currency:'PHP':'symbol':'1.2-2' }}</div>
             </div>
           </div>
         </div>
@@ -147,19 +131,23 @@
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div class="profile-field">
               <p class="field-label">GSIS</p>
-              <div>{{ file?.gsis }}</div>
+              <div>{{ file?.gsis_number || 'N/A' }}</div>
             </div>
             <div class="profile-field">
               <p class="field-label">Pag-IBIG</p>
-              <div>{{ file?.pagibig }}</div>
+              <div>{{ file?.pagibig_number || 'N/A' }}</div>
             </div>
             <div class="profile-field">
               <p class="field-label">PhilHealth</p>
-              <div>{{ file?.philhealth }}</div>
+              <div>{{ file?.philhealth_number || 'N/A' }}</div>
             </div>
             <div class="profile-field">
               <p class="field-label">SSS</p>
-              <div>{{ file?.sss }}</div>
+              <div>{{ file?.sss_number || 'N/A' }}</div>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">TIN</p>
+              <div>{{ file?.tin_number || 'N/A' }}</div>
             </div>
           </div>
         </div>
@@ -167,25 +155,21 @@
       <div class="divider"></div>
       <div class="profile-card">
         <div class="card-header">
-          <h2 class="section-title">Dependents & Emergency Contact</h2>
+          <h2 class="section-title">Additional Information</h2>
         </div>
         <div class="card-content">
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-            <div class="profile-field md:col-span-3">
-              <p class="field-label">Dependents</p>
-              <div>{{ file?.dependents }}</div>
+            <div class="profile-field">
+              <p class="field-label">Created Date</p>
+              <div>{{ file?.dateCreated }}</div>
             </div>
             <div class="profile-field">
-              <p class="field-label">Emergency Contact Name</p>
-              <div>{{ file?.emergencyContactName }}</div>
+              <p class="field-label">Last Modified</p>
+              <div>{{ file?.lastModified }}</div>
             </div>
             <div class="profile-field">
-              <p class="field-label">Emergency Contact Number</p>
-              <div>{{ file?.emergencyContactNumber }}</div>
-            </div>
-            <div class="profile-field">
-              <p class="field-label">Emergency Contact Relationship</p>
-              <div>{{ file?.emergencyContactRelationship }}</div>
+              <p class="field-label">Created By</p>
+              <div>{{ file?.createdBy }}</div>
             </div>
           </div>
         </div>

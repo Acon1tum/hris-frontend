@@ -2,55 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreateEditModalComponent, Personnel201ModalData } from './create-edit-modal/create-edit-modal.component';
-import { Personnel201Service } from './personnel-201.service';
+import { Personnel201Service, Personnel201File, PersonnelCreateRequest, PersonnelUpdateRequest } from './personnel-201.service';
 import { DetailsAuditTrailModalComponent } from './details-audit-trail-modal/details-audit-trail-modal.component';
+import { AuthService } from '../../../services/auth.service';
 
 export interface AuditTrailEntry {
   action: 'create' | 'edit' | 'delete';
   timestamp: string;
   user: string;
   details: string;
-}
-
-export interface Personnel201File {
-  id: number;
-  employeeName: string;
-  firstName?: string;
-  middleName?: string;
-  lastName?: string;
-  suffix?: string;
-  email?: string;
-  number?: string;
-  address?: string;
-  department: string;
-  position: string;
-  dateCreated: string;
-  lastModified: string;
-  createdBy: string;
-  modifiedBy: string;
-  auditTrail: AuditTrailEntry[];
-  fileName?: string;
-  profilePictureUrl?: string;
-  profilePictureFile?: File | null;
-  birthdate?: string;
-  gender?: string;
-  civilStatus?: string;
-  citizenship?: string;
-  employmentType?: string;
-  designation?: string;
-  appointmentDate?: string;
-  startDate?: string;
-  employmentStatus?: string;
-  jobLevel?: string;
-  jobGrade?: string;
-  gsis?: string;
-  pagibig?: string;
-  philhealth?: string;
-  sss?: string;
-  dependents?: string;
-  emergencyContactName?: string;
-  emergencyContactNumber?: string;
-  emergencyContactRelationship?: string;
 }
 
 @Component({
@@ -66,139 +26,241 @@ export class Personnel201FileComponent implements OnInit {
   showDetailsModal = false;
   showEditModal = false;
   editMode: 'create' | 'edit' = 'create';
-  editFileData: Personnel201ModalData = {
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    suffix: '',
-    email: '',
-    number: '',
-    address: '',
-    department: '',
-    position: '',
-    file: null,
-    fileName: '',
-    profilePictureUrl: '',
-    profilePictureFile: null,
-    birthdate: '',
-    gender: '',
-    civilStatus: '',
-    citizenship: '',
-    employmentType: '',
-    designation: '',
-    appointmentDate: '',
-    startDate: '',
-    employmentStatus: '',
-    jobLevel: '',
-    jobGrade: '',
-    gsis: '',
-    pagibig: '',
-    philhealth: '',
-    sss: '',
-    dependents: '',
-    emergencyContactName: '',
-    emergencyContactNumber: '',
-    emergencyContactRelationship: ''
-  };
+  editFileData: Personnel201ModalData = this.getEmptyModalData();
   searchTerm: string = '';
+  loading = false;
+  error: string | null = null;
 
-  constructor(private personnelService: Personnel201Service) {}
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  totalRecords = 0;
+  totalPages = 0;
+
+  // Make Math available in template
+  Math = Math;
+
+  constructor(
+    private personnelService: Personnel201Service,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
-    this.personnelService.getPersonnelFiles().subscribe((files: Personnel201File[]) => {
-      this.personnelFiles = files;
+    // Debug: Check authentication status
+    console.log('🔍 Component ngOnInit - Checking auth status...');
+    console.log('🔍 Is authenticated:', this.authService.isAuthenticated());
+    console.log('🔍 Current user:', this.authService.getCurrentUser());
+    console.log('🔍 Token exists:', !!this.authService.getToken());
+    
+    this.loadPersonnelFiles();
+  }
+
+  private getEmptyModalData(): Personnel201ModalData {
+    return {
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      suffix: '',
+      email: '',
+      number: '',
+      address: '',
+      department: '',
+      position: '',
+      file: null,
+      fileName: '',
+      profilePictureUrl: '',
+      profilePictureFile: null,
+      birthdate: '',
+      gender: '',
+      civilStatus: '',
+      citizenship: '',
+      employmentType: '',
+      designation: '',
+      appointmentDate: '',
+      startDate: '',
+      employmentStatus: '',
+      jobLevel: '',
+      jobGrade: '',
+      gsis: '',
+      pagibig: '',
+      philhealth: '',
+      sss: '',
+      dependents: '',
+      emergencyContactName: '',
+      emergencyContactNumber: '',
+      emergencyContactRelationship: ''
+    };
+  }
+
+  loadPersonnelFiles() {
+    this.loading = true;
+    this.error = null;
+
+    // Debug: Log before making API call
+    console.log('🚀 Making API call to load personnel files...');
+
+    this.personnelService.getPersonnelFiles(
+      this.currentPage, 
+      this.pageSize, 
+      this.searchTerm || undefined
+    ).subscribe({
+      next: (response) => {
+        this.personnelFiles = response.data;
+        this.totalRecords = response.pagination.total;
+        this.totalPages = response.pagination.pages;
+        this.loading = false;
+      },
+      error: (error) => {
+        this.error = error.message;
+        this.loading = false;
+        console.error('Error loading personnel files:', error);
+      }
     });
   }
 
-  get filteredPersonnelFiles(): Personnel201File[] {
-    const term = this.searchTerm.trim().toLowerCase();
-    if (!term) return this.personnelFiles;
-    return this.personnelFiles.filter(file =>
-      file.employeeName.toLowerCase().includes(term) ||
-      file.department.toLowerCase().includes(term)
-    );
+  onSearch() {
+    this.currentPage = 1; // Reset to first page when searching
+    this.loadPersonnelFiles();
   }
 
-  openEditModal(mode: 'create' | 'edit', data?: any) {
+  onPageChange(page: number) {
+    this.currentPage = page;
+    this.loadPersonnelFiles();
+  }
+
+  get filteredPersonnelFiles(): Personnel201File[] {
+    // Since we're now doing server-side filtering, just return the loaded files
+    return this.personnelFiles;
+  }
+
+  openEditModal(mode: 'create' | 'edit', data?: Personnel201File) {
     this.editMode = mode;
     if (mode === 'edit' && data) {
       this.editFileData = {
         firstName: data.firstName || '',
         middleName: data.middleName || '',
         lastName: data.lastName || '',
-        suffix: data.suffix || '',
-        email: data.email || '',
-        number: data.number || '',
-        address: data.address || '',
-        department: data.department || '',
-        position: data.position || '',
-        file: null,
-        fileName: data.fileName || '',
-        profilePictureUrl: data.profilePictureUrl || '',
-        profilePictureFile: null,
-        birthdate: data.birthdate || '',
-        gender: data.gender || '',
-        civilStatus: data.civilStatus || '',
-        citizenship: data.citizenship || '',
-        employmentType: data.employmentType || '',
-        designation: data.designation || '',
-        appointmentDate: data.appointmentDate || '',
-        startDate: data.startDate || '',
-        employmentStatus: data.employmentStatus || '',
-        jobLevel: data.jobLevel || '',
-        jobGrade: data.jobGrade || '',
-        gsis: data.gsis || '',
-        pagibig: data.pagibig || '',
-        philhealth: data.philhealth || '',
-        sss: data.sss || '',
-        dependents: data.dependents || '',
-        emergencyContactName: data.emergencyContactName || '',
-        emergencyContactNumber: data.emergencyContactNumber || '',
-        emergencyContactRelationship: data.emergencyContactRelationship || ''
-      };
-      (this.editFileData as any).id = data.id;
-    } else {
-      this.editFileData = {
-        firstName: '',
-        middleName: '',
-        lastName: '',
         suffix: '',
-        email: '',
-        number: '',
-        address: '',
-        department: '',
-        position: '',
+        email: data.email || '',
+        number: data.contact_number || '',
+        address: data.address || '',
+        department: data.departmentName || '',
+        position: data.designation || '',
         file: null,
         fileName: '',
-        profilePictureUrl: '',
+        profilePictureUrl: data.profilePictureUrl || '',
         profilePictureFile: null,
-        birthdate: '',
-        gender: '',
-        civilStatus: '',
+        birthdate: data.date_of_birth || '',
+        gender: data.gender || '',
+        civilStatus: data.civil_status || '',
         citizenship: '',
-        employmentType: '',
-        designation: '',
-        appointmentDate: '',
-        startDate: '',
-        employmentStatus: '',
+        employmentType: data.employment_type || '',
+        designation: data.designation || '',
+        appointmentDate: data.date_hired || '',
+        startDate: data.date_hired || '',
+        employmentStatus: data.user?.status || '',
         jobLevel: '',
         jobGrade: '',
-        gsis: '',
-        pagibig: '',
-        philhealth: '',
-        sss: '',
+        gsis: data.gsis_number || '',
+        pagibig: data.pagibig_number || '',
+        philhealth: data.philhealth_number || '',
+        sss: data.sss_number || '',
         dependents: '',
         emergencyContactName: '',
         emergencyContactNumber: '',
         emergencyContactRelationship: ''
       };
+      (this.editFileData as any).id = data.id;
+    } else {
+      this.editFileData = this.getEmptyModalData();
     }
     this.showEditModal = true;
   }
 
   handleModalSave(modalData: Personnel201ModalData) {
-    this.saveFile(modalData);
+    if (this.editMode === 'create') {
+      this.createPersonnel(modalData);
+    } else {
+      this.updatePersonnel(modalData);
+    }
     this.showEditModal = false;
+  }
+
+  private createPersonnel(modalData: Personnel201ModalData) {
+    this.loading = true;
+    this.error = null;
+
+    const createRequest: PersonnelCreateRequest = {
+      username: modalData.email || `${modalData.firstName?.toLowerCase()}.${modalData.lastName?.toLowerCase()}`,
+      email: modalData.email || '',
+      password: 'TempPassword123!', // Should be handled more securely
+      first_name: modalData.firstName || '',
+      last_name: modalData.lastName || '',
+      middle_name: modalData.middleName || undefined,
+      date_of_birth: modalData.birthdate || undefined,
+      gender: modalData.gender || undefined,
+      civil_status: modalData.civilStatus || undefined,
+      contact_number: modalData.number || undefined,
+      address: modalData.address || undefined,
+      designation: modalData.designation || undefined,
+      employment_type: modalData.employmentType || 'Regular',
+      date_hired: modalData.startDate || new Date().toISOString().slice(0, 10),
+      salary: 0, // Should be configurable
+      gsis_number: modalData.gsis || undefined,
+      pagibig_number: modalData.pagibig || undefined,
+      philhealth_number: modalData.philhealth || undefined,
+      sss_number: modalData.sss || undefined
+    };
+
+    this.personnelService.createPersonnel(createRequest).subscribe({
+      next: () => {
+        this.loadPersonnelFiles();
+        this.loading = false;
+      },
+      error: (error) => {
+        this.error = error.message;
+        this.loading = false;
+        console.error('Error creating personnel:', error);
+      }
+    });
+  }
+
+  private updatePersonnel(modalData: Personnel201ModalData) {
+    const id = (this.editFileData as any).id;
+    if (!id) return;
+
+    this.loading = true;
+    this.error = null;
+
+    const updateRequest: PersonnelUpdateRequest = {
+      first_name: modalData.firstName || undefined,
+      last_name: modalData.lastName || undefined,
+      middle_name: modalData.middleName || undefined,
+      date_of_birth: modalData.birthdate || undefined,
+      gender: modalData.gender || undefined,
+      civil_status: modalData.civilStatus || undefined,
+      contact_number: modalData.number || undefined,
+      address: modalData.address || undefined,
+      designation: modalData.designation || undefined,
+      employment_type: modalData.employmentType || undefined,
+      date_hired: modalData.startDate || undefined,
+      gsis_number: modalData.gsis || undefined,
+      pagibig_number: modalData.pagibig || undefined,
+      philhealth_number: modalData.philhealth || undefined,
+      sss_number: modalData.sss || undefined
+    };
+
+    this.personnelService.updatePersonnel(id, updateRequest).subscribe({
+      next: () => {
+        this.loadPersonnelFiles();
+        this.loading = false;
+      },
+      error: (error) => {
+        this.error = error.message;
+        this.loading = false;
+        console.error('Error updating personnel:', error);
+      }
+    });
   }
 
   handleModalCancel() {
@@ -212,113 +274,20 @@ export class Personnel201FileComponent implements OnInit {
 
   deleteFile(file: Personnel201File) {
     if (confirm(`Delete 201 file for ${file.employeeName}?`)) {
-      this.personnelFiles = this.personnelFiles.filter(f => f.id !== file.id);
-      // Log audit trail (in real app, log user info)
-      file.auditTrail.push({
-        action: 'delete',
-        timestamp: new Date().toISOString(),
-        user: 'admin',
-        details: 'Deleted file'
-      });
-    }
-  }
+      this.loading = true;
+      this.error = null;
 
-  saveFile(modalData: Personnel201ModalData) {
-    const employeeName = [modalData.lastName, modalData.suffix, modalData.firstName, modalData.middleName]
-      .filter(Boolean)
-      .join(' ').replace(/\s+/g, ' ').trim();
-    if (this.editMode === 'create') {
-      const newFile: Personnel201File = {
-        id: Date.now(),
-        employeeName,
-        firstName: modalData.firstName,
-        middleName: modalData.middleName,
-        lastName: modalData.lastName,
-        suffix: modalData.suffix,
-        email: modalData.email,
-        number: modalData.number,
-        address: modalData.address,
-        department: modalData.department,
-        position: modalData.position,
-        dateCreated: new Date().toISOString().slice(0, 10),
-        lastModified: new Date().toISOString().slice(0, 10),
-        createdBy: 'admin',
-        modifiedBy: 'admin',
-        auditTrail: [
-          { action: 'create', timestamp: new Date().toISOString(), user: 'admin', details: 'Created file' }
-        ],
-        fileName: modalData.file ? modalData.file.name : undefined,
-        profilePictureUrl: modalData.profilePictureUrl || '',
-        profilePictureFile: modalData.profilePictureFile || null,
-        birthdate: modalData.birthdate || '',
-        gender: modalData.gender || '',
-        civilStatus: modalData.civilStatus || '',
-        citizenship: modalData.citizenship || '',
-        employmentType: modalData.employmentType || '',
-        designation: modalData.designation || '',
-        appointmentDate: modalData.appointmentDate || '',
-        startDate: modalData.startDate || '',
-        employmentStatus: modalData.employmentStatus || '',
-        jobLevel: modalData.jobLevel || '',
-        jobGrade: modalData.jobGrade || '',
-        gsis: modalData.gsis || '',
-        pagibig: modalData.pagibig || '',
-        philhealth: modalData.philhealth || '',
-        sss: modalData.sss || '',
-        dependents: modalData.dependents || '',
-        emergencyContactName: modalData.emergencyContactName || '',
-        emergencyContactNumber: modalData.emergencyContactNumber || '',
-        emergencyContactRelationship: modalData.emergencyContactRelationship || ''
-      };
-      this.personnelFiles.push(newFile);
-    } else if (this.editMode === 'edit' && this.editFileData && (this.editFileData as any).id) {
-      const idx = this.personnelFiles.findIndex(f => f.id === (this.editFileData as any).id);
-      if (idx !== -1) {
-        const oldFile = this.personnelFiles[idx];
-        this.personnelFiles[idx] = {
-          ...oldFile,
-          employeeName,
-          firstName: modalData.firstName,
-          middleName: modalData.middleName,
-          lastName: modalData.lastName,
-          suffix: modalData.suffix,
-          email: modalData.email,
-          number: modalData.number,
-          address: modalData.address,
-          department: modalData.department,
-          position: modalData.position,
-          lastModified: new Date().toISOString().slice(0, 10),
-          modifiedBy: 'admin',
-          fileName: modalData.file ? modalData.file.name : oldFile.fileName,
-          profilePictureUrl: modalData.profilePictureUrl || oldFile.profilePictureUrl || '',
-          profilePictureFile: modalData.profilePictureFile || oldFile.profilePictureFile || null,
-          birthdate: modalData.birthdate || oldFile.birthdate || '',
-          gender: modalData.gender || oldFile.gender || '',
-          civilStatus: modalData.civilStatus || oldFile.civilStatus || '',
-          citizenship: modalData.citizenship || oldFile.citizenship || '',
-          employmentType: modalData.employmentType || oldFile.employmentType || '',
-          designation: modalData.designation || oldFile.designation || '',
-          appointmentDate: modalData.appointmentDate || oldFile.appointmentDate || '',
-          startDate: modalData.startDate || oldFile.startDate || '',
-          employmentStatus: modalData.employmentStatus || oldFile.employmentStatus || '',
-          jobLevel: modalData.jobLevel || oldFile.jobLevel || '',
-          jobGrade: modalData.jobGrade || oldFile.jobGrade || '',
-          gsis: modalData.gsis || oldFile.gsis || '',
-          pagibig: modalData.pagibig || oldFile.pagibig || '',
-          philhealth: modalData.philhealth || oldFile.philhealth || '',
-          sss: modalData.sss || oldFile.sss || '',
-          dependents: modalData.dependents || oldFile.dependents || '',
-          emergencyContactName: modalData.emergencyContactName || oldFile.emergencyContactName || '',
-          emergencyContactNumber: modalData.emergencyContactNumber || oldFile.emergencyContactNumber || '',
-          emergencyContactRelationship: modalData.emergencyContactRelationship || oldFile.emergencyContactRelationship || ''
-        };
-        this.personnelFiles[idx].auditTrail.push({
-          action: 'edit',
-          timestamp: new Date().toISOString(),
-          user: 'admin',
-          details: 'Edited file'
-        });
-      }
+      this.personnelService.deletePersonnel(file.id).subscribe({
+        next: () => {
+          this.loadPersonnelFiles();
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = error.message;
+          this.loading = false;
+          console.error('Error deleting personnel:', error);
+        }
+      });
     }
   }
 
@@ -331,7 +300,44 @@ export class Personnel201FileComponent implements OnInit {
     this.openEditModal('create');
   }
 
-  editFile(file: any) {
+  editFile(file: Personnel201File) {
     this.openEditModal('edit', file);
+  }
+
+  // Pagination helpers
+  getPaginationArray(): number[] {
+    const pages: number[] = [];
+    const startPage = Math.max(1, this.currentPage - 2);
+    const endPage = Math.min(this.totalPages, this.currentPage + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  }
+
+  goToFirstPage() {
+    if (this.currentPage > 1) {
+      this.onPageChange(1);
+    }
+  }
+
+  goToLastPage() {
+    if (this.currentPage < this.totalPages) {
+      this.onPageChange(this.totalPages);
+    }
+  }
+
+  goToPreviousPage() {
+    if (this.currentPage > 1) {
+      this.onPageChange(this.currentPage - 1);
+    }
+  }
+
+  goToNextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.onPageChange(this.currentPage + 1);
+    }
   }
 } 

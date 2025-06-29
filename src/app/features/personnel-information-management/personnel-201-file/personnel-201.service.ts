@@ -1,98 +1,234 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Personnel201File } from './personnel-201-file.component';
+import { Observable, throwError } from 'rxjs';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { catchError, map } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
+
+export interface Personnel201File {
+  id: string;
+  employeeName: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  suffix?: string;
+  email?: string;
+  contact_number?: string;
+  address?: string;
+  department: string;
+  departmentName?: string;
+  position: string;
+  designation?: string;
+  dateCreated: string;
+  lastModified: string;
+  createdBy: string;
+  modifiedBy: string;
+  auditTrail: AuditTrailEntry[];
+  fileName?: string;
+  profilePictureUrl?: string;
+  profilePictureFile?: File | null;
+  date_of_birth?: string;
+  gender?: string;
+  civil_status?: string;
+  citizenship?: string;
+  employment_type?: string;
+  date_hired?: string;
+  employment_status?: string;
+  salary?: number;
+  gsis_number?: string;
+  pagibig_number?: string;
+  philhealth_number?: string;
+  sss_number?: string;
+  tin_number?: string;
+  dependents?: string;
+  emergencyContactName?: string;
+  emergencyContactNumber?: string;
+  emergencyContactRelationship?: string;
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+    status: string;
+  };
+}
+
+export interface AuditTrailEntry {
+  action: 'create' | 'edit' | 'delete';
+  timestamp: string;
+  user: string;
+  details: string;
+}
+
+export interface PersonnelCreateRequest {
+  username: string;
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
+  date_of_birth?: string;
+  gender?: string;
+  civil_status?: string;
+  contact_number?: string;
+  address?: string;
+  department_id?: string;
+  designation?: string;
+  employment_type: string;
+  date_hired: string;
+  salary: number;
+  gsis_number?: string;
+  pagibig_number?: string;
+  philhealth_number?: string;
+  sss_number?: string;
+  tin_number?: string;
+}
+
+export interface PersonnelUpdateRequest {
+  first_name?: string;
+  last_name?: string;
+  middle_name?: string;
+  date_of_birth?: string;
+  gender?: string;
+  civil_status?: string;
+  contact_number?: string;
+  address?: string;
+  department_id?: string;
+  designation?: string;
+  employment_type?: string;
+  date_hired?: string;
+  salary?: number;
+  gsis_number?: string;
+  pagibig_number?: string;
+  philhealth_number?: string;
+  sss_number?: string;
+  tin_number?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class Personnel201Service {
-  getPersonnelFiles(): Observable<Personnel201File[]> {
-    const files: Personnel201File[] = [
-      {
-        id: 1,
-        employeeName: 'Juan Dela Cruz',
-        firstName: 'Juan',
-        middleName: 'Santos',
-        lastName: 'Dela Cruz',
-        suffix: 'Jr.',
-        email: 'JuanCruz@gmail.com',
-        number: '0917-123-4567',
-        address: '123 Mabini St., Manila, Philippines',
-        department: 'Human Resources',
-        position: 'HR Officer',
-        dateCreated: '2024-06-01',
-        lastModified: '2024-06-01',
-        createdBy: 'admin',
-        modifiedBy: 'admin',
-        auditTrail: [
-          { action: 'create', timestamp: '2024-06-01 09:00', user: 'admin', details: 'Created file' }
-        ],
-        birthdate: '1990-01-01',
-        gender: 'Male',
-        civilStatus: 'Single',
-        citizenship: 'Filipino',
-        employmentType: 'Regular',
-        designation: 'HR Officer',
-        appointmentDate: '2024-06-01',
-        startDate: '2024-06-01',
-        employmentStatus: 'Active',
-        jobLevel: 'Level 1',
-        jobGrade: 'Grade A',
-        gsis: '123456789',
-        pagibig: '987654321',
-        philhealth: '1122334455',
-        sss: '5566778899',
-        dependents: 'Maria Dela Cruz',
-        emergencyContactName: 'Pedro Dela Cruz',
-        emergencyContactNumber: '0918-111-2222',
-        emergencyContactRelationship: 'Brother',
-        fileName: 'resume.pdf',
-        profilePictureUrl: '',
-        profilePictureFile: null
-      },
-      {
-        id: 2,
-        employeeName: 'Maria Santos',
-        firstName: 'Maria',
-        middleName: 'Reyes',
-        lastName: 'Santos',
-        suffix: '',
-        email: 'maria.santos@example.com',
-        number: '0918-765-4321',
-        address: '456 Rizal Ave., Quezon City, Philippines',
-        department: 'Finance',
-        position: 'Finance Analyst',
-        dateCreated: '2024-06-10',
-        lastModified: '2024-06-12',
-        createdBy: 'admin',
-        modifiedBy: 'admin',
-        auditTrail: [
-          { action: 'create', timestamp: '2024-06-10 10:30', user: 'admin', details: 'Created file' }
-        ],
-        birthdate: '1988-05-15',
-        gender: 'Female',
-        civilStatus: 'Married',
-        citizenship: 'Filipino',
-        employmentType: 'Regular',
-        designation: 'Finance Analyst',
-        appointmentDate: '2024-06-10',
-        startDate: '2024-06-10',
-        employmentStatus: 'Active',
-        jobLevel: 'Level 2',
-        jobGrade: 'Grade B',
-        gsis: '987654321',
-        pagibig: '123456789',
-        philhealth: '9988776655',
-        sss: '4433221100',
-        dependents: 'Juan Santos Jr.',
-        emergencyContactName: 'Ana Santos',
-        emergencyContactNumber: '0917-222-3333',
-        emergencyContactRelationship: 'Spouse',
-        fileName: 'maria_resume.pdf',
-        profilePictureUrl: '',
-        profilePictureFile: null
-      }
-    ];
-    return of(files);
+  private readonly apiUrl = `${environment.apiUrl}/personnel`;
+
+  constructor(private http: HttpClient) {}
+
+  getPersonnelFiles(page: number = 1, limit: number = 10, search?: string, department?: string): Observable<{
+    data: Personnel201File[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    if (department) {
+      params = params.set('department', department);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}`, { params }).pipe(
+      map(response => ({
+        data: response.data.map((personnel: any) => this.transformPersonnelData(personnel)),
+        pagination: response.pagination
+      })),
+      catchError(this.handleError)
+    );
   }
+
+  getPersonnelById(id: string): Observable<Personnel201File> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      map(response => this.transformPersonnelData(response.data)),
+      catchError(this.handleError)
+    );
+  }
+
+  createPersonnel(personnelData: PersonnelCreateRequest): Observable<Personnel201File> {
+    return this.http.post<any>(`${this.apiUrl}`, personnelData).pipe(
+      map(response => this.transformPersonnelData(response.data)),
+      catchError(this.handleError)
+    );
+  }
+
+  updatePersonnel(id: string, personnelData: PersonnelUpdateRequest): Observable<Personnel201File> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, personnelData).pipe(
+      map(response => this.transformPersonnelData(response.data)),
+      catchError(this.handleError)
+    );
+  }
+
+  deletePersonnel(id: string): Observable<void> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
+      map(() => void 0),
+      catchError(this.handleError)
+    );
+  }
+
+  getPersonnelStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/stats`).pipe(
+      map(response => response.data),
+      catchError(this.handleError)
+    );
+  }
+
+  // Transform backend data to frontend format
+  private transformPersonnelData(data: any): Personnel201File {
+    const fullName = [data.first_name, data.middle_name, data.last_name]
+      .filter(Boolean)
+      .join(' ');
+
+    return {
+      id: data.id,
+      employeeName: fullName,
+      firstName: data.first_name,
+      middleName: data.middle_name,
+      lastName: data.last_name,
+      email: data.user?.email,
+      contact_number: data.contact_number,
+      address: data.address,
+      department: data.department?.department_name || 'N/A',
+      departmentName: data.department?.department_name,
+      position: data.designation || 'N/A',
+      designation: data.designation,
+      dateCreated: data.created_at ? new Date(data.created_at).toISOString().slice(0, 10) : '',
+      lastModified: data.updated_at ? new Date(data.updated_at).toISOString().slice(0, 10) : '',
+      createdBy: 'System', // You can enhance this based on your audit requirements
+      modifiedBy: 'System',
+      auditTrail: [], // You can populate this from audit logs if available
+      date_of_birth: data.date_of_birth ? new Date(data.date_of_birth).toISOString().slice(0, 10) : '',
+      gender: data.gender,
+      civil_status: data.civil_status,
+      employment_type: data.employment_type,
+      date_hired: data.date_hired ? new Date(data.date_hired).toISOString().slice(0, 10) : '',
+      salary: data.salary,
+      gsis_number: data.gsis_number,
+      pagibig_number: data.pagibig_number,
+      philhealth_number: data.philhealth_number,
+      sss_number: data.sss_number,
+      tin_number: data.tin_number,
+      user: data.user,
+      profilePictureUrl: '',
+      profilePictureFile: null
+    };
+  }
+
+  private handleError = (error: HttpErrorResponse) => {
+    let errorMessage = 'An unknown error occurred';
+    
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Server-side error
+      errorMessage = error.error?.message || `Error Code: ${error.status}\nMessage: ${error.message}`;
+    }
+    
+    console.error('Personnel Service Error:', errorMessage);
+    return throwError(() => new Error(errorMessage));
+  };
 } 

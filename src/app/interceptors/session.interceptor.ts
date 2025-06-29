@@ -13,24 +13,15 @@ export class SessionInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Add auth header if token exists
-    const token = this.authService.getToken();
-    let authReq = req;
+    // Don't add auth header here - let AuthInterceptor handle it
+    // Just handle session management
     
-    if (token && !req.url.includes('/auth/login')) {
-      authReq = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-    }
-
     // Reset inactivity timer on API calls (user activity)
     if (this.authService.isAuthenticated()) {
       this.inactivityService.resetTimer();
     }
 
-    return next.handle(authReq).pipe(
+    return next.handle(req).pipe(
       tap({
         error: (error) => {
           if (error.status === 401 && this.authService.isAuthenticated()) {

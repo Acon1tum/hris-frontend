@@ -6,33 +6,63 @@
           <button
             class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#f0f2f5] text-[#111418] text-sm font-medium leading-normal"
             (click)="openCreateModal()"
+            [disabled]="loading"
           >
             <span class="truncate">Create New</span>
           </button>
         </div>
+        
+        <!-- Search Section -->
         <div class="px-4 py-3">
-          <label class="flex flex-col min-w-40 h-12 w-full">
-            <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
-              <div
-                class="text-[#60758a] flex border-none bg-[#f0f2f5] items-center justify-center pl-4 rounded-l-lg border-r-0"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                  <path
-                    d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
-                  ></path>
-                </svg>
+          <div class="flex gap-2">
+            <label class="flex flex-col min-w-40 h-12 flex-1">
+              <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+                <div
+                  class="text-[#60758a] flex border-none bg-[#f0f2f5] items-center justify-center pl-4 rounded-l-lg border-r-0"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                    <path
+                      d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
+                    ></path>
+                  </svg>
+                </div>
+                <input
+                  placeholder="Search by name or department"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111418] focus:outline-0 focus:ring-0 border-none bg-[#f0f2f5] focus:border-none h-full placeholder:text-[#60758a] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
+                  [(ngModel)]="searchTerm"
+                  (keyup.enter)="onSearch()"
+                  [disabled]="loading"
+                />
               </div>
-              <input
-                placeholder="Search by name or department"
-                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111418] focus:outline-0 focus:ring-0 border-none bg-[#f0f2f5] focus:border-none h-full placeholder:text-[#60758a] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
-                [(ngModel)]="searchTerm"
-              />
-            </div>
-          </label>
+            </label>
+            <button
+              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-[#1993e5] text-white text-sm font-medium leading-normal"
+              (click)="onSearch()"
+              [disabled]="loading"
+            >
+              <span class="truncate">{{ loading ? 'Searching...' : 'Search' }}</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Employee Table (copied from admin-dashboard.component.html, adapted for personnel 201 files) -->
-        <div class="rounded-xl border border-[#dce1e5] bg-white overflow-hidden mx-4">
+        <!-- Error Message -->
+        <div *ngIf="error" class="mx-4 mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            {{ error }}
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="loading" class="flex justify-center items-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1993e5]"></div>
+          <span class="ml-2 text-[#637988]">Loading personnel files...</span>
+        </div>
+
+        <!-- Employee Table -->
+        <div class="rounded-xl border border-[#dce1e5] bg-white overflow-hidden mx-4" *ngIf="!loading">
           <table class="flex-1">
             <thead>
               <tr class="bg-blue-100 text-black">
@@ -45,6 +75,11 @@
               </tr>
             </thead>
             <tbody>
+              <tr *ngIf="personnelFiles.length === 0" class="border-t border-t-[#dce1e5]">
+                <td colspan="6" class="text-center py-8 text-[#637988]">
+                  No personnel files found
+                </td>
+              </tr>
               <tr *ngFor="let file of filteredPersonnelFiles; let i = index" 
                   class="border-t border-t-[#dce1e5] hover:bg-blue-50 transition-all duration-300 scroll-animate"
                   [style.transition-delay]="i * 50 + 'ms'">
@@ -78,13 +113,13 @@
                 </td>
                 <td class="table-column-120 h-[72px] px-4 py-2 w-[400px]">
                   <div class="flex items-center gap-2">
-                    <button class="p-2 text-[#1993e5] hover:text-[#1476b8] transition-colors" (click)="viewFile(file)">
+                    <button class="p-2 text-[#1993e5] hover:text-[#1476b8] transition-colors" (click)="viewFile(file)" [disabled]="loading">
                       <span class="material-symbols-outlined">visibility</span>
                     </button>
-                    <button class="p-2 text-[#1993e5] hover:text-[#1476b8] transition-colors" (click)="editFile(file)">
+                    <button class="p-2 text-[#1993e5] hover:text-[#1476b8] transition-colors" (click)="editFile(file)" [disabled]="loading">
                       <span class="material-symbols-outlined">edit</span>
                     </button>
-                    <button class="p-2 text-[#e73508] hover:text-[#c42d06] transition-colors" (click)="deleteFile(file)">
+                    <button class="p-2 text-[#e73508] hover:text-[#c42d06] transition-colors" (click)="deleteFile(file)" [disabled]="loading">
                       <span class="material-symbols-outlined">delete</span>
                     </button>
                   </div>
@@ -92,6 +127,62 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="!loading && totalPages > 1" class="flex justify-between items-center px-4 py-4">
+          <div class="text-sm text-[#637988]">
+            Showing {{ ((currentPage - 1) * pageSize) + 1 }} to {{ Math.min(currentPage * pageSize, totalRecords) }} of {{ totalRecords }} entries
+          </div>
+          <div class="flex items-center space-x-2">
+            <!-- First Page -->
+            <button
+              (click)="goToFirstPage()"
+              [disabled]="currentPage === 1 || loading"
+              class="px-3 py-2 text-sm font-medium text-[#637988] bg-white border border-[#dce1e5] rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              First
+            </button>
+            
+            <!-- Previous Page -->
+            <button
+              (click)="goToPreviousPage()"
+              [disabled]="currentPage === 1 || loading"
+              class="px-3 py-2 text-sm font-medium text-[#637988] bg-white border border-[#dce1e5] rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+
+            <!-- Page Numbers -->
+            <button
+              *ngFor="let page of getPaginationArray()"
+              (click)="onPageChange(page)"
+              [disabled]="loading"
+              [class]="page === currentPage ? 
+                'px-3 py-2 text-sm font-medium text-white bg-[#1993e5] border border-[#1993e5] rounded-lg' : 
+                'px-3 py-2 text-sm font-medium text-[#637988] bg-white border border-[#dce1e5] rounded-lg hover:bg-gray-50'"
+            >
+              {{ page }}
+            </button>
+
+            <!-- Next Page -->
+            <button
+              (click)="goToNextPage()"
+              [disabled]="currentPage === totalPages || loading"
+              class="px-3 py-2 text-sm font-medium text-[#637988] bg-white border border-[#dce1e5] rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+
+            <!-- Last Page -->
+            <button
+              (click)="goToLastPage()"
+              [disabled]="currentPage === totalPages || loading"
+              class="px-3 py-2 text-sm font-medium text-[#637988] bg-white border border-[#dce1e5] rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Last
+            </button>
+          </div>
         </div>
       </div>
   </div>

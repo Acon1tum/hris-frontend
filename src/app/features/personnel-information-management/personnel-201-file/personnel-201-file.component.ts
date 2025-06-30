@@ -130,12 +130,12 @@ export class Personnel201FileComponent implements OnInit {
     console.log('🏢 Loading departments...');
 
     this.personnelService.getDepartments().subscribe({
-      next: (departments) => {
+      next: (departments: {id: string, department_name: string}[]) => {
         this.departments = departments;
         this.departmentsLoading = false;
         console.log('✅ Departments loaded:', departments);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('❌ Error loading departments:', error);
         this.departmentsLoading = false;
         // Don't set main error here as it's not critical for viewing personnel

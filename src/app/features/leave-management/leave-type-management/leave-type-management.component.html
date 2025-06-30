@@ -1,13 +1,36 @@
-<div class="leave-type-container">
-  <div class="page-header">
+<div class="leave-type-management-container">
+  <div class="header-section">
     <div class="header-content">
-      <h1>{{ title }}</h1>
-      <p class="subtitle">Configure and manage different types of leave policies, accrual rules, and eligibility requirements</p>
+      <div class="title-description">
+        <h1 class="page-title">Leave Types</h1>
+        <p class="page-description">Configure and manage different types of leave policies, accrual rules, and eligibility requirements.</p>
+      </div>
     </div>
-    <button class="btn btn-primary add-button" (click)="onAddNewLeaveType()">
-      <span class="material-symbols-outlined">add</span>
-      <span>New Leave Type</span>
-    </button>
+  </div>
+
+  <div class="table-header">
+    <h3 class="table-title">Leave Types</h3>
+    <div class="header-controls">
+      <div class="search-container">
+        <div class="search-icon">
+          <svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg">
+            <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+          </svg>
+        </div>
+        <input 
+          class="search-input" 
+          placeholder="Search leave types..." 
+          [value]="searchTerm"
+          (input)="onSearch($event)"
+        />
+      </div>
+      <button class="btn-add" (click)="onAddLeaveType()">
+        <svg fill="currentColor" height="16" viewBox="0 0 256 256" width="16" xmlns="http://www.w3.org/2000/svg">
+          <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+        </svg>
+        <span class="btn-text">New Leave Type</span>
+      </button>
+    </div>
   </div>
 
   <div class="table-container">
@@ -15,31 +38,32 @@
       <table class="leave-types-table">
         <thead>
           <tr>
-            <th class="col-leave-type">Leave Type</th>
-            <th class="col-description">Description</th>
-            <th class="col-accrual">Accrual Rules</th>
-            <th class="col-usage">Usage Limits</th>
-            <th class="col-expiration">Expiration</th>
-            <th class="col-documents">Documents Required</th>
-            <th class="col-eligibility">Eligibility</th>
+            <th class="col-leave-type">Name</th>
+            <th class="col-description">Reason</th>
             <th class="col-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let leaveType of leaveTypes" class="table-row">
+          <tr 
+            *ngFor="let leaveType of paginatedLeaveTypes; trackBy: trackByLeaveTypeId"
+            class="table-row"
+          >
             <td class="col-leave-type font-medium">{{ leaveType.name }}</td>
             <td class="col-description">{{ leaveType.description }}</td>
-            <td class="col-accrual">{{ leaveType.accrualRules }}</td>
-            <td class="col-usage">{{ leaveType.usageLimits }}</td>
-            <td class="col-expiration">{{ leaveType.expiration }}</td>
-            <td class="col-documents">{{ leaveType.documentsRequired }}</td>
-            <td class="col-eligibility">{{ leaveType.eligibility }}</td>
             <td class="col-actions">
               <div class="action-buttons">
-                <button class="btn-icon edit-btn" (click)="onEditLeaveType(leaveType)" title="Edit">
+                <button 
+                  class="btn-icon view-btn"
+                  (click)="onEditLeaveType(leaveType)"
+                  title="Edit"
+                >
                   <span class="material-symbols-outlined">edit</span>
                 </button>
-                <button class="btn-icon delete-btn" (click)="onDeleteLeaveType(leaveType)" title="Delete">
+                <button 
+                  class="btn-icon delete-btn"
+                  (click)="onDeleteLeaveType(leaveType)"
+                  title="Delete"
+                >
                   <span class="material-symbols-outlined">delete</span>
                 </button>
               </div>
@@ -47,6 +71,64 @@
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div class="pagination-section">
+    <p class="pagination-info">
+      Showing 
+      <span class="font-medium">{{ displayStart }}</span> 
+      to 
+      <span class="font-medium">{{ displayEnd }}</span> 
+      of 
+      <span class="font-medium">{{ displayTotal }}</span> 
+      results
+    </p>
+    <div class="pagination-controls">
+      <button 
+        class="pagination-button"
+        (click)="onPreviousPage()"
+        [disabled]="!canGoToPrevious"
+      >
+        <svg fill="currentColor" height="18" viewBox="0 0 256 256" width="18" xmlns="http://www.w3.org/2000/svg">
+          <path d="M160,208a8,8,0,0,1-5.66-2.34l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,120l74.35,74.34A8,8,0,0,1,160,208Z"></path>
+        </svg>
+      </button>
+      <button 
+        class="pagination-button"
+        (click)="onNextPage()"
+        [disabled]="!canGoToNext"
+      >
+        <svg fill="currentColor" height="18" viewBox="0 0 256 256" width="18" xmlns="http://www.w3.org/2000/svg">
+          <path d="M96,208a8,8,0,0,1-5.66-13.66L164.69,120,90.34,45.66a8,8,0,0,1,11.32-11.32l80,80a8,8,0,0,1,0,11.32l-80,80A8,8,0,0,1,96,208Z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Add Leave Type Modal -->
+  <div *ngIf="showAddModal" class="modal-backdrop">
+    <div class="modal">
+      <h2>Add Leave Type</h2>
+      <form (ngSubmit)="submitAddLeaveType()" novalidate>
+        <div class="form-group" [class.invalid]="addValidation.type">
+          <label for="addType">Leave Type</label>
+          <select id="addType" name="addType" [(ngModel)]="addForm.type" required>
+            <option value="" disabled selected>Select leave type</option>
+            <option *ngFor="let type of leaveTypeOptions" [value]="type">{{ type }}</option>
+          </select>
+          <div class="error-message" *ngIf="addValidation.type">{{ addValidation.type }}</div>
+        </div>
+        <div class="form-group" [class.invalid]="addValidation.reason">
+          <label for="addReason">Reason</label>
+          <textarea id="addReason" name="addReason" [(ngModel)]="addForm.reason" rows="3" required></textarea>
+          <div class="error-message" *ngIf="addValidation.reason">{{ addValidation.reason }}</div>
+        </div>
+        <div class="form-actions">
+          <button type="button" (click)="showAddModal = false">Cancel</button>
+          <button type="submit">Add</button>
+        </div>
+      </form>
     </div>
   </div>
 </div> 

@@ -212,6 +212,12 @@ export const MENU_CONFIG: MenuItem[] = [
         icon: 'event',
         path: '/leave-management/leave-balance',
         permissions: PermissionGroups.LEAVE_BALANCE_BASIC
+      },
+      {
+        name: 'Leave Employee',
+        icon: 'event',
+        path: '/leave-management/leave-employee',
+        permissions: PermissionGroups.LEAVE_BALANCE_BASIC
       }
     ]
   },

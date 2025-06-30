@@ -218,6 +218,12 @@ export const routes: Routes = [
     data: { permissions: [Permission.leave_balance_read] }
   },
   {
+    path: 'leave-management/leave-employee',
+    loadComponent: () => import('./features/leave-management/leave-employee/leave-employee.component').then(m => m.LeaveEmployeeComponent),
+    canActivate: [PermissionGuard],
+    data: { permissions: [Permission.leave_balance_read] }
+  },
+  {
     path: 'report-generation',
     loadComponent: () => import('./features/report-generation/index.component').then(m => m.ReportGenerationComponent),
     canActivate: [PermissionGuard],

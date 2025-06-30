@@ -5,6 +5,13 @@ import { TemplateManagementComponent } from './template-management/template-mana
 import { AuditTrailComponent } from './audit-trail/audit-trail.component';
 import { ScheduledReportsComponent } from './scheduled-reports/scheduled-reports.component';
 import { SensitiveReportsComponent } from './sensitive-reports/sensitive-reports.component';
+import { AuditTrailService, AuditTrail } from './audit-trail.service';
+
+// Export libraries
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ReportFeature {
   name: string;
@@ -73,23 +80,6 @@ interface GlobalLayout {
     fontFamily: string;
     colorScheme: string[];
   };
-}
-
-interface AuditTrail {
-  id: string;
-  reportName: string;
-  reportType: ReportType;
-  generatedBy: string;
-  generatedAt: Date;
-  department: string;
-  action: 'generated' | 'exported' | 'printed' | 'deleted' | 'modified';
-  fileSize?: string;
-  downloadCount: number;
-  status: 'success' | 'failed' | 'pending';
-  ipAddress: string;
-  userAgent: string;
-  filters?: string[];
-  templateUsed?: string;
 }
 
 interface ScheduledReport {
@@ -208,6 +198,22 @@ interface AccessRequest {
   reviewedAt?: Date;
   reviewNotes?: string;
   expiresAt?: Date;
+}
+
+interface SavedFilter {
+  id: string;
+  name: string;
+  description: string;
+  reportType: string;
+  dateStart: string;
+  dateEnd: string;
+  department: string;
+  incomplete: boolean;
+  createdBy: string;
+  createdAt: Date;
+  lastUsed?: Date;
+  useCount: number;
+  isDefault?: boolean;
 }
 
 enum ReportType {
@@ -368,89 +374,8 @@ export class ReportGenerationComponent implements OnInit {
   selectedTemplate: ReportTemplate | null = null;
   selectedLayout: GlobalLayout | null = null;
 
-  // Audit Trail Data
-  auditTrails: AuditTrail[] = [
-    {
-      id: '1',
-      reportName: 'Monthly Employee Summary',
-      reportType: ReportType.EMPLOYEE,
-      generatedBy: 'john.doe@company.com',
-      generatedAt: new Date(),
-      department: 'Human Resources',
-      action: 'generated',
-      fileSize: '2.5 MB',
-      downloadCount: 3,
-      status: 'success',
-      ipAddress: '192.168.1.100',
-      userAgent: 'Chrome/120.0.0.0',
-      filters: ['Department: HR', 'Status: Active'],
-      templateUsed: 'Monthly Employee Summary'
-    },
-    {
-      id: '2',
-      reportName: 'Payroll Analysis Q4',
-      reportType: ReportType.PAYROLL,
-      generatedBy: 'sarah.smith@company.com',
-      generatedAt: new Date(Date.now() - 86400000), // 1 day ago
-      department: 'Finance',
-      action: 'exported',
-      fileSize: '1.8 MB',
-      downloadCount: 5,
-      status: 'success',
-      ipAddress: '192.168.1.101',
-      userAgent: 'Firefox/119.0.0.0',
-      filters: ['Pay Period: Q4 2024'],
-      templateUsed: 'Payroll Analysis Template'
-    },
-    {
-      id: '3',
-      reportName: 'Attendance Report',
-      reportType: ReportType.ATTENDANCE,
-      generatedBy: 'mike.johnson@company.com',
-      generatedAt: new Date(Date.now() - 172800000), // 2 days ago
-      department: 'Operations',
-      action: 'printed',
-      fileSize: '950 KB',
-      downloadCount: 1,
-      status: 'success',
-      ipAddress: '192.168.1.102',
-      userAgent: 'Safari/17.0.0.0',
-      filters: ['Date Range: Last Month'],
-      templateUsed: 'Standard Attendance'
-    },
-    {
-      id: '4',
-      reportName: 'Performance Review',
-      reportType: ReportType.PERFORMANCE,
-      generatedBy: 'lisa.wang@company.com',
-      generatedAt: new Date(Date.now() - 259200000), // 3 days ago
-      department: 'Human Resources',
-      action: 'modified',
-      fileSize: '3.2 MB',
-      downloadCount: 2,
-      status: 'success',
-      ipAddress: '192.168.1.103',
-      userAgent: 'Edge/120.0.0.0',
-      filters: ['Review Period: Q4', 'Department: All'],
-      templateUsed: 'Department Performance Review'
-    },
-    {
-      id: '5',
-      reportName: 'Leave Utilization Report',
-      reportType: ReportType.LEAVE,
-      generatedBy: 'admin@company.com',
-      generatedAt: new Date(Date.now() - 345600000), // 4 days ago
-      department: 'All',
-      action: 'deleted',
-      fileSize: '1.1 MB',
-      downloadCount: 0,
-      status: 'success',
-      ipAddress: '192.168.1.104',
-      userAgent: 'Chrome/120.0.0.0',
-      filters: ['Leave Type: All', 'Year: 2024'],
-      templateUsed: 'Leave Report Template'
-    }
-  ];
+  // Audit Trail Data - Now empty, will be populated from actual actions
+  auditTrails: AuditTrail[] = [];
 
   // Audit Trail Filters
   auditFilters = {
@@ -841,7 +766,153 @@ export class ReportGenerationComponent implements OnInit {
 
   showModulesOverview = false;
 
-  constructor() {
+  // List of report types
+  reportTypes = [
+    { value: 'employee', label: 'Employee' },
+    { value: 'payroll', label: 'Payroll' },
+    { value: 'attendance', label: 'Attendance' },
+    { value: 'leave', label: 'Leave' },
+    { value: 'performance', label: 'Performance' },
+    { value: 'custom', label: 'Custom' }
+  ];
+
+  // Modern Apply Filters & Date Range state
+  filters = {
+    reportType: 'employee',
+    dateStart: '',
+    dateEnd: '',
+    department: '',
+    incomplete: false
+  };
+  filterErrors: string[] = [];
+  loadingExport = false;
+  showSuccessMessage = false;
+  successMessage = '';
+  showReportReadyNotification = false;
+  reportReadyMessage = '';
+  loadingReport = false;
+
+  // Comprehensive dummy data for each report type
+  employeeData = [
+    { id: 1, name: 'John Doe', department: 'HR', date: '2024-06-01', value: 100, reportType: 'employee', position: 'HR Manager', status: 'Active', salary: 75000 },
+    { id: 2, name: 'Jane Smith', department: 'IT', date: '2024-06-02', value: 200, reportType: 'employee', position: 'Senior Developer', status: 'Active', salary: 85000 },
+    { id: 3, name: 'Alice Brown', department: 'Finance', date: '2024-06-03', value: 150, reportType: 'employee', position: 'Financial Analyst', status: 'Active', salary: 65000 },
+    { id: 4, name: 'Bob Lee', department: 'Operations', date: '2024-06-04', value: 180, reportType: 'employee', position: 'Operations Manager', status: 'Active', salary: 70000 },
+    { id: 5, name: 'Carol White', department: 'HR', date: '2024-06-05', value: 120, reportType: 'employee', position: 'HR Specialist', status: 'Active', salary: 55000 },
+    { id: 6, name: 'David Black', department: 'IT', date: '2024-06-06', value: 90, reportType: 'employee', position: 'Junior Developer', status: 'Active', salary: 60000 },
+  ];
+
+  payrollData = [
+    { id: 7, name: 'Eve Green', department: 'Finance', date: '2024-06-07', value: 60, reportType: 'payroll', basicPay: 5000, allowances: 1000, deductions: 500, netPay: 5500 },
+    { id: 8, name: 'Frank Blue', department: 'Operations', date: '2024-06-08', value: 70, reportType: 'payroll', basicPay: 6000, allowances: 1200, deductions: 600, netPay: 6600 },
+    { id: 9, name: 'Grace Red', department: 'HR', date: '2024-06-09', value: 95, reportType: 'payroll', basicPay: 5500, allowances: 1100, deductions: 550, netPay: 6050 },
+    { id: 10, name: 'Hank Yellow', department: 'IT', date: '2024-06-10', value: 88, reportType: 'payroll', basicPay: 7000, allowances: 1400, deductions: 700, netPay: 7700 },
+    { id: 11, name: 'Ivy Orange', department: 'Finance', date: '2024-06-11', value: 77, reportType: 'payroll', basicPay: 6500, allowances: 1300, deductions: 650, netPay: 7150 },
+    { id: 12, name: 'Jack Purple', department: 'Operations', date: '2024-06-12', value: 66, reportType: 'payroll', basicPay: 5800, allowances: 1160, deductions: 580, netPay: 6380 },
+  ];
+
+  attendanceData = [
+    { id: 13, name: 'Kate Wilson', department: 'HR', date: '2024-06-13', value: 120, reportType: 'attendance', timeIn: '08:00', timeOut: '17:00', hoursWorked: 8, status: 'Present' },
+    { id: 14, name: 'Liam Davis', department: 'IT', date: '2024-06-14', value: 90, reportType: 'attendance', timeIn: '08:15', timeOut: '17:15', hoursWorked: 8, status: 'Present' },
+    { id: 15, name: 'Mia Johnson', department: 'Finance', date: '2024-06-15', value: 150, reportType: 'attendance', timeIn: '08:30', timeOut: '17:30', hoursWorked: 8, status: 'Present' },
+    { id: 16, name: 'Noah Brown', department: 'Operations', date: '2024-06-16', value: 180, reportType: 'attendance', timeIn: '08:45', timeOut: '17:45', hoursWorked: 8, status: 'Present' },
+    { id: 17, name: 'Olivia Garcia', department: 'HR', date: '2024-06-17', value: 110, reportType: 'attendance', timeIn: '09:00', timeOut: '18:00', hoursWorked: 8, status: 'Late' },
+    { id: 18, name: 'Paul Martinez', department: 'IT', date: '2024-06-18', value: 85, reportType: 'attendance', timeIn: '08:00', timeOut: '16:00', hoursWorked: 7, status: 'Early Out' },
+  ];
+
+  leaveData = [
+    { id: 19, name: 'Quinn Rodriguez', department: 'Finance', date: '2024-06-19', value: 60, reportType: 'leave', leaveType: 'Vacation', startDate: '2024-06-19', endDate: '2024-06-21', days: 3, status: 'Approved' },
+    { id: 20, name: 'Ruby Taylor', department: 'Operations', date: '2024-06-20', value: 70, reportType: 'leave', leaveType: 'Sick Leave', startDate: '2024-06-20', endDate: '2024-06-20', days: 1, status: 'Approved' },
+    { id: 21, name: 'Sam Anderson', department: 'HR', date: '2024-06-21', value: 95, reportType: 'leave', leaveType: 'Personal Leave', startDate: '2024-06-21', endDate: '2024-06-21', days: 1, status: 'Pending' },
+    { id: 22, name: 'Tina Thomas', department: 'IT', date: '2024-06-22', value: 88, reportType: 'leave', leaveType: 'Maternity Leave', startDate: '2024-06-22', endDate: '2024-09-22', days: 90, status: 'Approved' },
+    { id: 23, name: 'Uma Jackson', department: 'Finance', date: '2024-06-23', value: 77, reportType: 'leave', leaveType: 'Vacation', startDate: '2024-06-23', endDate: '2024-06-25', days: 3, status: 'Approved' },
+    { id: 24, name: 'Victor White', department: 'Operations', date: '2024-06-24', value: 66, reportType: 'leave', leaveType: 'Sick Leave', startDate: '2024-06-24', endDate: '2024-06-24', days: 1, status: 'Approved' },
+  ];
+
+  performanceData = [
+    { id: 25, name: 'Wendy Harris', department: 'HR', date: '2024-06-25', value: 95, reportType: 'performance', rating: 4.5, goals: 8, achievements: 7, status: 'Excellent' },
+    { id: 26, name: 'Xander Clark', department: 'IT', date: '2024-06-26', value: 88, reportType: 'performance', rating: 4.2, goals: 7, achievements: 6, status: 'Good' },
+    { id: 27, name: 'Yara Lewis', department: 'Finance', date: '2024-06-27', value: 92, reportType: 'performance', rating: 4.8, goals: 9, achievements: 8, status: 'Excellent' },
+    { id: 28, name: 'Zoe Walker', department: 'Operations', date: '2024-06-28', value: 85, reportType: 'performance', rating: 4.0, goals: 6, achievements: 5, status: 'Good' },
+    { id: 29, name: 'Adam Hall', department: 'HR', date: '2024-06-29', value: 78, reportType: 'performance', rating: 3.8, goals: 5, achievements: 4, status: 'Satisfactory' },
+    { id: 30, name: 'Bella Young', department: 'IT', date: '2024-06-30', value: 82, reportType: 'performance', rating: 4.1, goals: 7, achievements: 6, status: 'Good' },
+  ];
+
+  customData = [
+    { id: 31, name: 'Charlie King', department: 'Finance', date: '2024-07-01', value: 77, reportType: 'custom', category: 'Training', subcategory: 'Technical Skills', metric: 'Completion Rate' },
+    { id: 32, name: 'Diana Wright', department: 'Operations', date: '2024-07-02', value: 66, reportType: 'custom', category: 'Projects', subcategory: 'Implementation', metric: 'Success Rate' },
+    { id: 33, name: 'Ethan Lopez', department: 'HR', date: '2024-07-03', value: 89, reportType: 'custom', category: 'Compliance', subcategory: 'Audit', metric: 'Compliance Score' },
+    { id: 34, name: 'Fiona Hill', department: 'IT', date: '2024-07-04', value: 94, reportType: 'custom', category: 'Innovation', subcategory: 'R&D', metric: 'Innovation Index' },
+    { id: 35, name: 'George Scott', department: 'Finance', date: '2024-07-05', value: 71, reportType: 'custom', category: 'Efficiency', subcategory: 'Process', metric: 'Efficiency Rate' },
+    { id: 36, name: 'Hannah Green', department: 'Operations', date: '2024-07-06', value: 83, reportType: 'custom', category: 'Quality', subcategory: 'Standards', metric: 'Quality Score' },
+  ];
+
+  // Combined all results
+  allResults = [
+    ...this.employeeData,
+    ...this.payrollData,
+    ...this.attendanceData,
+    ...this.leaveData,
+    ...this.performanceData,
+    ...this.customData
+  ];
+
+  filteredResults: any[] = [];
+
+  // Saved Filters functionality
+  savedFilters: SavedFilter[] = [
+    {
+      id: '1',
+      name: 'Monthly Employee Report',
+      description: 'Standard monthly employee report for HR',
+      reportType: 'employee',
+      dateStart: '2024-06-01',
+      dateEnd: '2024-06-30',
+      department: 'HR',
+      incomplete: false,
+      createdBy: 'admin@company.com',
+      createdAt: new Date(Date.now() - 86400000),
+      lastUsed: new Date(Date.now() - 3600000),
+      useCount: 5,
+      isDefault: true
+    },
+    {
+      id: '2',
+      name: 'Weekly Payroll Summary',
+      description: 'Weekly payroll report for finance team',
+      reportType: 'payroll',
+      dateStart: '2024-06-24',
+      dateEnd: '2024-06-30',
+      department: 'Finance',
+      incomplete: false,
+      createdBy: 'admin@company.com',
+      createdAt: new Date(Date.now() - 172800000),
+      lastUsed: new Date(Date.now() - 7200000),
+      useCount: 3
+    },
+    {
+      id: '3',
+      name: 'Daily Attendance Report',
+      description: 'Daily attendance monitoring',
+      reportType: 'attendance',
+      dateStart: '2024-06-30',
+      dateEnd: '2024-06-30',
+      department: '',
+      incomplete: false,
+      createdBy: 'admin@company.com',
+      createdAt: new Date(Date.now() - 3600000),
+      lastUsed: new Date(Date.now() - 1800000),
+      useCount: 1
+    }
+  ];
+
+  showSaveFilterModal = false;
+  showLoadFilterModal = false;
+  selectedSavedFilter: SavedFilter | null = null;
+  newFilterName = '';
+  newFilterDescription = '';
+
+  constructor(private auditTrailService: AuditTrailService) {
     // Initialize card states
     this.reportFeatures.forEach(feature => {
       this.cardStates[feature.type] = 'normal';
@@ -1291,5 +1362,565 @@ export class ReportGenerationComponent implements OnInit {
   // Add method to toggle views
   toggleView(view: 'main' | 'templates' | 'audit-trail' | 'scheduled-reports' | 'sensitive-reports' | ReportType) {
     this.currentView = view;
+  }
+
+  onApplyFilters() {
+    this.filterErrors = [];
+    if (!this.filters.dateStart) this.filterErrors.push('Start date is required.');
+    if (!this.filters.dateEnd) this.filterErrors.push('End date is required.');
+    if (
+      this.filters.dateStart &&
+      this.filters.dateEnd &&
+      this.filters.dateEnd < this.filters.dateStart
+    ) {
+      this.filterErrors.push('End date cannot be before start date.');
+    }
+    if (this.filterErrors.length) {
+      this.filteredResults = [];
+      return;
+    }
+
+    // Show loading state
+    this.loadingReport = true;
+    this.filteredResults = [];
+
+    // Simulate processing time and filter data
+    setTimeout(() => {
+      // Filter the simulated data set
+      this.filteredResults = this.allResults.filter(item => {
+        const inType = item.reportType === this.filters.reportType;
+        const inDateRange = item.date >= this.filters.dateStart && item.date <= this.filters.dateEnd;
+        const inDepartment = !this.filters.department || item.department === this.filters.department;
+        return inType && inDateRange && inDepartment;
+      });
+
+      // Hide loading and show notification when report is ready
+      this.loadingReport = false;
+      
+      if (this.filteredResults.length > 0) {
+        this.showReportReady();
+        // Add to audit trail when report is generated
+        this.createAuditTrailEntry('generated');
+      }
+    }, 800); // Simulate 800ms processing time
+  }
+
+  onResetFilters() {
+    this.filters = {
+      reportType: 'employee',
+      dateStart: '',
+      dateEnd: '',
+      department: '',
+      incomplete: false
+    };
+    this.filterErrors = [];
+    this.filteredResults = [];
+  }
+
+  get totalValue() {
+    return this.filteredResults.reduce((sum, item) => sum + (item.value || 0), 0);
+  }
+
+  // Helper method to get table headers based on report type
+  getTableHeaders(): string[] {
+    const baseHeaders = ['ID', 'Name', 'Department', 'Date'];
+    
+    switch (this.filters.reportType) {
+      case 'employee':
+        return [...baseHeaders, 'Position', 'Status', 'Salary', 'Value'];
+      case 'payroll':
+        return [...baseHeaders, 'Basic Pay', 'Allowances', 'Deductions', 'Net Pay', 'Value'];
+      case 'attendance':
+        return [...baseHeaders, 'Time In', 'Time Out', 'Hours Worked', 'Status', 'Value'];
+      case 'leave':
+        return [...baseHeaders, 'Leave Type', 'Start Date', 'End Date', 'Days', 'Status', 'Value'];
+      case 'performance':
+        return [...baseHeaders, 'Rating', 'Goals', 'Achievements', 'Status', 'Value'];
+      case 'custom':
+        return [...baseHeaders, 'Category', 'Subcategory', 'Metric', 'Value'];
+      default:
+        return [...baseHeaders, 'Value'];
+    }
+  }
+
+  // Helper method to get table data based on report type
+  getTableData(): any[][] {
+    return this.filteredResults.map(item => {
+      const baseData = [item.id, item.name, item.department, item.date];
+      
+      switch (this.filters.reportType) {
+        case 'employee':
+          return [...baseData, item.position, item.status, `$${item.salary?.toLocaleString()}`, item.value];
+        case 'payroll':
+          return [...baseData, `$${item.basicPay?.toLocaleString()}`, `$${item.allowances?.toLocaleString()}`, `$${item.deductions?.toLocaleString()}`, `$${item.netPay?.toLocaleString()}`, item.value];
+        case 'attendance':
+          return [...baseData, item.timeIn, item.timeOut, `${item.hoursWorked}h`, item.status, item.value];
+        case 'leave':
+          return [...baseData, item.leaveType, item.startDate, item.endDate, item.days, item.status, item.value];
+        case 'performance':
+          return [...baseData, `${item.rating}/5`, item.goals, item.achievements, item.status, item.value];
+        case 'custom':
+          return [...baseData, item.category, item.subcategory, item.metric, item.value];
+        default:
+          return [...baseData, item.value];
+      }
+    });
+  }
+
+  // Helper method to get report title
+  getReportTitle(): string {
+    const reportType = this.filters.reportType.charAt(0).toUpperCase() + this.filters.reportType.slice(1);
+    const startDate = this.filters.dateStart;
+    const endDate = this.filters.dateEnd;
+    const department = this.filters.department ? ` - ${this.filters.department}` : '';
+    
+    return `${reportType} Report (${startDate} to ${endDate})${department}`;
+  }
+
+  // Helper method to show success notification
+  showSuccess(message: string) {
+    this.successMessage = message;
+    this.showSuccessMessage = true;
+    setTimeout(() => {
+      this.showSuccessMessage = false;
+      this.successMessage = '';
+    }, 3000);
+  }
+
+  // Helper method to create audit trail entry
+  createAuditTrailEntry(action: string, format?: string) {
+    console.log('Creating audit trail entry for action:', action, 'format:', format);
+    console.log('Current filters:', this.filters);
+    console.log('Filtered results count:', this.filteredResults.length);
+    
+    const reportType = this.filters.reportType.charAt(0).toUpperCase() + this.filters.reportType.slice(1);
+    const department = this.filters.department || 'All';
+    const dateRange = `${this.filters.dateStart} to ${this.filters.dateEnd}`;
+    
+    // Convert string to ReportType enum using the correct mapping
+    const reportTypeMap: { [key: string]: ReportType } = {
+      'employee': ReportType.EMPLOYEE,
+      'payroll': ReportType.PAYROLL,
+      'attendance': ReportType.ATTENDANCE,
+      'leave': ReportType.LEAVE,
+      'performance': ReportType.PERFORMANCE,
+      'custom': ReportType.CUSTOM
+    };
+    
+    // Prepare report data
+    const headers = this.getTableHeaders();
+    const data = this.getTableData();
+    
+    const auditEntry: AuditTrail = {
+      id: Date.now().toString(),
+      reportName: `${reportType} Report (${dateRange})`,
+      reportType: reportTypeMap[this.filters.reportType] || ReportType.CUSTOM,
+      generatedBy: 'current.user@company.com', // In real app, get from auth service
+      generatedAt: new Date(),
+      department: department,
+      action: action,
+      fileSize: this.getFileSize(format),
+      downloadCount: 0,
+      status: 'success',
+      ipAddress: '192.168.1.100', // In real app, get actual IP
+      userAgent: navigator.userAgent,
+      filters: [
+        `Report Type: ${reportType}`,
+        `Date Range: ${dateRange}`,
+        `Department: ${department}`,
+        `Records: ${this.filteredResults.length}`
+      ],
+      templateUsed: `${reportType} Report Template`,
+      // Add export format and report data
+      exportFormat: format as 'csv' | 'excel' | 'pdf' | 'print',
+      reportData: {
+        headers: headers,
+        rows: data,
+        totalRecords: this.filteredResults.length,
+        totalValue: this.totalValue
+      },
+      reportMetadata: {
+        dateRange: dateRange,
+        department: department,
+        reportType: reportType,
+        appliedFilters: [
+          `Report Type: ${reportType}`,
+          `Date Range: ${dateRange}`,
+          `Department: ${department}`,
+          `Incomplete Data: ${this.filters.incomplete ? 'Yes' : 'No'}`
+        ]
+      }
+    };
+
+    console.log('Audit entry created:', auditEntry);
+
+    // Use service to add audit trail entry
+    this.auditTrailService.addAuditTrailEntry(auditEntry);
+    console.log('Audit trail entry sent to service');
+  }
+
+  // Helper method to get file size based on format
+  getFileSize(format?: string): string {
+    const baseSize = this.filteredResults.length * 0.5; // Simulate file size based on records
+    
+    switch (format) {
+      case 'csv':
+        return `${(baseSize * 0.8).toFixed(1)} KB`;
+      case 'excel':
+        return `${(baseSize * 1.2).toFixed(1)} MB`;
+      case 'pdf':
+        return `${(baseSize * 1.5).toFixed(1)} MB`;
+      default:
+        return `${baseSize.toFixed(1)} KB`;
+    }
+  }
+
+  exportCSV() {
+    this.loadingExport = true;
+    
+    try {
+      const headers = this.getTableHeaders();
+      const data = this.getTableData();
+      
+      // Add headers to data
+      const csvData = [headers, ...data];
+      
+      // Convert to CSV string
+      const csvContent = csvData.map(row => 
+        row.map(cell => `"${cell}"`).join(',')
+      ).join('\n');
+      
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const fileName = `${this.getReportTitle().replace(/[^a-z0-9]/gi, '_').toLowerCase()}.csv`;
+      saveAs(blob, fileName);
+      
+      // Add to audit trail
+      this.createAuditTrailEntry('exported', 'csv');
+      
+      this.showSuccess('CSV file exported successfully!');
+      console.log('CSV exported successfully!');
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      alert('Error exporting CSV. Please try again.');
+    } finally {
+      this.loadingExport = false;
+    }
+  }
+
+  exportExcel() {
+    this.loadingExport = true;
+    
+    try {
+      const headers = this.getTableHeaders();
+      const data = this.getTableData();
+      
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
+      
+      // Set column widths
+      const columnWidths = headers.map(() => ({ wch: 15 }));
+      worksheet['!cols'] = columnWidths;
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Report Data');
+      
+      // Generate and download file
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const fileName = `${this.getReportTitle().replace(/[^a-z0-9]/gi, '_').toLowerCase()}.xlsx`;
+      saveAs(blob, fileName);
+      
+      // Add to audit trail
+      this.createAuditTrailEntry('exported', 'excel');
+      
+      this.showSuccess('Excel file exported successfully!');
+      console.log('Excel exported successfully!');
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      alert('Error exporting Excel. Please try again.');
+    } finally {
+      this.loadingExport = false;
+    }
+  }
+
+  exportPDF() {
+    this.loadingExport = true;
+    
+    try {
+      const headers = this.getTableHeaders();
+      const data = this.getTableData();
+      const reportTitle = this.getReportTitle();
+      
+      // Create PDF document
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(reportTitle, 14, 20);
+      
+      // Add generation info
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+      doc.text(`Total Records: ${this.filteredResults.length}`, 14, 35);
+      doc.text(`Total Value: ${this.totalValue}`, 14, 40);
+      
+      // Add table
+      autoTable(doc, {
+        head: [headers],
+        body: data,
+        startY: 50,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+        },
+        headStyles: {
+          fillColor: [59, 130, 246],
+          textColor: 255,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252],
+        },
+        margin: { top: 50 },
+      });
+      
+      // Save PDF
+      const fileName = `${this.getReportTitle().replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+      doc.save(fileName);
+      
+      // Add to audit trail
+      this.createAuditTrailEntry('exported', 'pdf');
+      
+      this.showSuccess('PDF file exported successfully!');
+      console.log('PDF exported successfully!');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Error exporting PDF. Please try again.');
+    } finally {
+      this.loadingExport = false;
+    }
+  }
+
+  printTable() {
+    this.loadingExport = true;
+    
+    try {
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Please allow popups to print the report.');
+        this.loadingExport = false;
+        return;
+      }
+      
+      const headers = this.getTableHeaders();
+      const data = this.getTableData();
+      const reportTitle = this.getReportTitle();
+      
+      // Create HTML content
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${reportTitle}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #1f2937; margin-bottom: 10px; }
+            .info { color: #6b7280; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+            th { background-color: #f3f4f6; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9fafb; }
+            .total { font-weight: bold; background-color: #f3f4f6; }
+            @media print {
+              body { margin: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${reportTitle}</h1>
+          <div class="info">
+            <p><strong>Generated on:</strong> ${new Date().toLocaleString()}</p>
+            <p><strong>Total Records:</strong> ${this.filteredResults.length}</p>
+            <p><strong>Total Value:</strong> ${this.totalValue}</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                ${headers.map(header => `<th>${header}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+            <tfoot>
+              <tr class="total">
+                <td colspan="${headers.length - 1}">Total Value:</td>
+                <td>${this.totalValue}</td>
+              </tr>
+            </tfoot>
+          </table>
+          <div class="no-print" style="margin-top: 20px;">
+            <button onclick="window.print()">Print Report</button>
+            <button onclick="window.close()">Close</button>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Wait for content to load then print
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+      
+      // Add to audit trail
+      this.createAuditTrailEntry('printed');
+      
+      this.showSuccess('Print window opened successfully!');
+      console.log('Print window opened successfully!');
+    } catch (error) {
+      console.error('Error printing:', error);
+      alert('Error printing. Please try again.');
+    } finally {
+      this.loadingExport = false;
+    }
+  }
+
+  // Helper method to show report ready notification
+  showReportReady() {
+    const reportType = this.filters.reportType.charAt(0).toUpperCase() + this.filters.reportType.slice(1);
+    const recordCount = this.filteredResults.length;
+    const department = this.filters.department ? ` for ${this.filters.department}` : '';
+    
+    this.reportReadyMessage = `${reportType} Report Ready! Found ${recordCount} records${department}`;
+    this.showReportReadyNotification = true;
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      this.showReportReadyNotification = false;
+      this.reportReadyMessage = '';
+    }, 5000);
+  }
+
+  // Saved Filters Methods
+  openSaveFilterModal() {
+    this.newFilterName = '';
+    this.newFilterDescription = '';
+    this.showSaveFilterModal = true;
+  }
+
+  closeSaveFilterModal() {
+    this.showSaveFilterModal = false;
+    this.newFilterName = '';
+    this.newFilterDescription = '';
+  }
+
+  saveCurrentFilter() {
+    if (!this.newFilterName.trim()) {
+      alert('Please enter a name for the filter');
+      return;
+    }
+
+    const newFilter: SavedFilter = {
+      id: Date.now().toString(),
+      name: this.newFilterName.trim(),
+      description: this.newFilterDescription.trim(),
+      reportType: this.filters.reportType,
+      dateStart: this.filters.dateStart,
+      dateEnd: this.filters.dateEnd,
+      department: this.filters.department,
+      incomplete: this.filters.incomplete,
+      createdBy: 'current.user@company.com', // In real app, get from auth service
+      createdAt: new Date(),
+      useCount: 0
+    };
+
+    this.savedFilters.unshift(newFilter);
+    this.closeSaveFilterModal();
+    this.showSuccess('Filter saved successfully!');
+  }
+
+  openLoadFilterModal() {
+    this.showLoadFilterModal = true;
+  }
+
+  closeLoadFilterModal() {
+    this.showLoadFilterModal = false;
+    this.selectedSavedFilter = null;
+  }
+
+  loadSavedFilter(filter: SavedFilter) {
+    this.filters = {
+      reportType: filter.reportType,
+      dateStart: filter.dateStart,
+      dateEnd: filter.dateEnd,
+      department: filter.department,
+      incomplete: filter.incomplete
+    };
+
+    // Update use count and last used
+    filter.useCount++;
+    filter.lastUsed = new Date();
+
+    this.closeLoadFilterModal();
+    this.onApplyFilters(); // Automatically apply the loaded filter
+    this.showSuccess(`Filter "${filter.name}" loaded successfully!`);
+  }
+
+  deleteSavedFilter(filterId: string) {
+    if (confirm('Are you sure you want to delete this saved filter?')) {
+      this.savedFilters = this.savedFilters.filter(f => f.id !== filterId);
+      this.showSuccess('Filter deleted successfully!');
+    }
+  }
+
+  setDefaultFilter(filterId: string) {
+    this.savedFilters = this.savedFilters.map(f => ({
+      ...f,
+      isDefault: f.id === filterId
+    }));
+    this.showSuccess('Default filter updated!');
+  }
+
+  getFilterIcon(reportType: string): string {
+    switch (reportType) {
+      case 'employee': return 'fas fa-users';
+      case 'payroll': return 'fas fa-money-check-alt';
+      case 'attendance': return 'fas fa-clock';
+      case 'leave': return 'fas fa-calendar-alt';
+      case 'performance': return 'fas fa-chart-line';
+      case 'custom': return 'fas fa-cogs';
+      default: return 'fas fa-filter';
+    }
+  }
+
+  getFilterColor(reportType: string): string {
+    switch (reportType) {
+      case 'employee': return '#3b82f6';
+      case 'payroll': return '#10b981';
+      case 'attendance': return '#f59e0b';
+      case 'leave': return '#8b5cf6';
+      case 'performance': return '#ef4444';
+      case 'custom': return '#6b7280';
+      default: return '#6b7280';
+    }
+  }
+
+  formatFilterDate(date: Date): string {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 }

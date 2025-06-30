@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, firstValueFrom } from 'rxjs';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
@@ -176,6 +176,50 @@ export class Personnel201Service {
     );
   }
 
+  getDepartments(): Observable<{id: string, department_name: string}[]> {
+    return this.http.get<any>(`${environment.apiUrl}/system/departments`).pipe(
+      map(response => response.data || []),
+      catchError(this.handleError)
+    );
+  }
+
+  // Helper method to map department name to ID
+  async getDepartmentIdByName(departmentName: string): Promise<string | undefined> {
+    try {
+      console.log('🔍 getDepartmentIdByName called with:', departmentName);
+      
+      const departments = await firstValueFrom(this.getDepartments());
+      console.log('📋 All available departments:', departments);
+      
+      if (!departments || departments.length === 0) {
+        console.warn('⚠️ No departments available!');
+        return undefined;
+      }
+
+      const department = departments.find(dept => {
+        const match = dept.department_name.toLowerCase().trim() === departmentName.toLowerCase().trim();
+        console.log(`🔎 Comparing "${dept.department_name}" with "${departmentName}" = ${match}`);
+        return match;
+      });
+      
+      console.log('🏢 Department mapping result:', {
+        searchFor: departmentName,
+        found: department,
+        mappedId: department?.id
+      });
+      
+      if (!department) {
+        console.error('❌ Department not found! Available departments:', 
+          departments.map(d => d.department_name).join(', '));
+      }
+      
+      return department?.id;
+    } catch (error) {
+      console.error('❌ Error getting department ID:', error);
+      return undefined;
+    }
+  }
+
   // Transform backend data to frontend format
   private transformPersonnelData(data: any): Personnel201File {
     const fullName = [data.first_name, data.middle_name, data.last_name]
@@ -212,8 +256,8 @@ export class Personnel201Service {
       sss_number: data.sss_number,
       tin_number: data.tin_number,
       user: data.user,
-      profilePictureUrl: '',
-      profilePictureFile: null
+        profilePictureUrl: '',
+        profilePictureFile: null
     };
   }
 

@@ -15,7 +15,7 @@ export class SessionInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Don't add auth header here - let AuthInterceptor handle it
     // Just handle session management
-    
+
     // Reset inactivity timer on API calls (user activity)
     if (this.authService.isAuthenticated()) {
       this.inactivityService.resetTimer();

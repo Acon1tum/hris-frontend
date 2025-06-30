@@ -1,7 +1,8 @@
+// Personnel 201 File Component with Dynamic Departments
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CreateEditModalComponent, Personnel201ModalData } from './create-edit-modal/create-edit-modal.component';
+import { CreateEditModalComponent, Personnel201ModalData, Department } from './create-edit-modal/create-edit-modal.component';
 import { Personnel201Service, Personnel201File, PersonnelCreateRequest, PersonnelUpdateRequest } from './personnel-201.service';
 import { DetailsAuditTrailModalComponent } from './details-audit-trail-modal/details-audit-trail-modal.component';
 import { AuthService } from '../../../services/auth.service';
@@ -31,6 +32,10 @@ export class Personnel201FileComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
+  // Departments
+  public departments: Department[] = [];
+  public departmentsLoading: boolean = false;
+
   // Pagination
   currentPage = 1;
   pageSize = 10;
@@ -53,6 +58,7 @@ export class Personnel201FileComponent implements OnInit {
     console.log('🔍 Token exists:', !!this.authService.getToken());
     
     this.loadPersonnelFiles();
+    this.loadDepartments();
   }
 
   private getEmptyModalData(): Personnel201ModalData {
@@ -88,7 +94,8 @@ export class Personnel201FileComponent implements OnInit {
       dependents: '',
       emergencyContactName: '',
       emergencyContactNumber: '',
-      emergencyContactRelationship: ''
+      emergencyContactRelationship: '',
+      tin_number: ''
     };
   }
 
@@ -114,6 +121,24 @@ export class Personnel201FileComponent implements OnInit {
         this.error = error.message;
         this.loading = false;
         console.error('Error loading personnel files:', error);
+      }
+    });
+  }
+
+  loadDepartments() {
+    this.departmentsLoading = true;
+    console.log('🏢 Loading departments...');
+
+    this.personnelService.getDepartments().subscribe({
+      next: (departments) => {
+        this.departments = departments;
+        this.departmentsLoading = false;
+        console.log('✅ Departments loaded:', departments);
+      },
+      error: (error) => {
+        console.error('❌ Error loading departments:', error);
+        this.departmentsLoading = false;
+        // Don't set main error here as it's not critical for viewing personnel
       }
     });
   }
@@ -168,7 +193,8 @@ export class Personnel201FileComponent implements OnInit {
         dependents: '',
         emergencyContactName: '',
         emergencyContactNumber: '',
-        emergencyContactRelationship: ''
+        emergencyContactRelationship: '',
+        tin_number: data.tin_number || ''
       };
       (this.editFileData as any).id = data.id;
     } else {
@@ -186,81 +212,136 @@ export class Personnel201FileComponent implements OnInit {
     this.showEditModal = false;
   }
 
-  private createPersonnel(modalData: Personnel201ModalData) {
+  private async createPersonnel(modalData: Personnel201ModalData) {
     this.loading = true;
     this.error = null;
 
-    const createRequest: PersonnelCreateRequest = {
-      username: modalData.email || `${modalData.firstName?.toLowerCase()}.${modalData.lastName?.toLowerCase()}`,
-      email: modalData.email || '',
-      password: 'TempPassword123!', // Should be handled more securely
-      first_name: modalData.firstName || '',
-      last_name: modalData.lastName || '',
-      middle_name: modalData.middleName || undefined,
-      date_of_birth: modalData.birthdate || undefined,
-      gender: modalData.gender || undefined,
-      civil_status: modalData.civilStatus || undefined,
-      contact_number: modalData.number || undefined,
-      address: modalData.address || undefined,
-      designation: modalData.designation || undefined,
-      employment_type: modalData.employmentType || 'Regular',
-      date_hired: modalData.startDate || new Date().toISOString().slice(0, 10),
-      salary: 0, // Should be configurable
-      gsis_number: modalData.gsis || undefined,
-      pagibig_number: modalData.pagibig || undefined,
-      philhealth_number: modalData.philhealth || undefined,
-      sss_number: modalData.sss || undefined
-    };
+    try {
+      // Generate unique username to avoid conflicts
+      const baseUsername = modalData.email?.split('@')[0] || 
+                          `${modalData.firstName?.toLowerCase()}.${modalData.lastName?.toLowerCase()}`;
+      const timestamp = Date.now().toString().slice(-4); // Last 4 digits of timestamp
+      const username = `${baseUsername}.${timestamp}`;
 
-    this.personnelService.createPersonnel(createRequest).subscribe({
-      next: () => {
-        this.loadPersonnelFiles();
-        this.loading = false;
-      },
-      error: (error) => {
-        this.error = error.message;
-        this.loading = false;
-        console.error('Error creating personnel:', error);
+      // Map department name to department_id
+      let department_id: string | undefined = undefined;
+      if (modalData.department) {
+        department_id = await this.personnelService.getDepartmentIdByName(modalData.department);
+        if (!department_id) {
+          console.warn('Department mapping not found for:', modalData.department);
+          // Continue without department_id for now
+        } else {
+          console.log('✅ Department mapped successfully:', modalData.department, '→', department_id);
+        }
       }
-    });
+
+      // Set a reasonable default salary or make it configurable
+      const defaultSalary = 25000; // Default starting salary
+
+      const createRequest: PersonnelCreateRequest = {
+        username: username,
+        email: modalData.email || '',
+        password: 'TempPassword123!', // TODO: Implement proper password generation
+        first_name: modalData.firstName || '',
+        last_name: modalData.lastName || '',
+        middle_name: modalData.middleName || undefined,
+        date_of_birth: modalData.birthdate || undefined,
+        gender: modalData.gender || undefined,
+        civil_status: modalData.civilStatus || undefined,
+        contact_number: modalData.number || undefined,
+        address: modalData.address || undefined,
+        department_id: department_id, // Fixed: Now properly mapping department
+        designation: modalData.designation || modalData.position || undefined,
+        employment_type: modalData.employmentType || 'Regular',
+        date_hired: modalData.startDate || modalData.appointmentDate || new Date().toISOString().slice(0, 10),
+        salary: defaultSalary, // Fixed: Using reasonable default instead of 0
+        gsis_number: modalData.gsis || undefined,
+        pagibig_number: modalData.pagibig || undefined,
+        philhealth_number: modalData.philhealth || undefined,
+        sss_number: modalData.sss || undefined,
+        tin_number: modalData.tin_number || undefined // Fixed: Added missing TIN number
+      };
+
+      console.log('🚀 Creating personnel with data:', createRequest);
+
+      this.personnelService.createPersonnel(createRequest).subscribe({
+        next: () => {
+          console.log('✅ Personnel created successfully');
+          this.loadPersonnelFiles();
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = error.message;
+          this.loading = false;
+          console.error('❌ Error creating personnel:', error);
+        }
+      });
+    } catch (error) {
+      this.error = 'Failed to create personnel. Please try again.';
+      this.loading = false;
+      console.error('❌ Error in createPersonnel:', error);
+    }
   }
 
-  private updatePersonnel(modalData: Personnel201ModalData) {
+  private async updatePersonnel(modalData: Personnel201ModalData) {
     const id = (this.editFileData as any).id;
     if (!id) return;
 
     this.loading = true;
     this.error = null;
 
-    const updateRequest: PersonnelUpdateRequest = {
-      first_name: modalData.firstName || undefined,
-      last_name: modalData.lastName || undefined,
-      middle_name: modalData.middleName || undefined,
-      date_of_birth: modalData.birthdate || undefined,
-      gender: modalData.gender || undefined,
-      civil_status: modalData.civilStatus || undefined,
-      contact_number: modalData.number || undefined,
-      address: modalData.address || undefined,
-      designation: modalData.designation || undefined,
-      employment_type: modalData.employmentType || undefined,
-      date_hired: modalData.startDate || undefined,
-      gsis_number: modalData.gsis || undefined,
-      pagibig_number: modalData.pagibig || undefined,
-      philhealth_number: modalData.philhealth || undefined,
-      sss_number: modalData.sss || undefined
-    };
-
-    this.personnelService.updatePersonnel(id, updateRequest).subscribe({
-      next: () => {
-        this.loadPersonnelFiles();
-        this.loading = false;
-      },
-      error: (error) => {
-        this.error = error.message;
-        this.loading = false;
-        console.error('Error updating personnel:', error);
+    try {
+      // Map department name to department_id (same logic as create)
+      let department_id: string | undefined = undefined;
+      if (modalData.department) {
+        department_id = await this.personnelService.getDepartmentIdByName(modalData.department);
+        if (!department_id) {
+          console.warn('Department mapping not found for:', modalData.department);
+          // Continue without department_id for now
+        } else {
+          console.log('✅ Department mapped successfully for update:', modalData.department, '→', department_id);
+        }
       }
-    });
+
+      const updateRequest: PersonnelUpdateRequest = {
+        first_name: modalData.firstName || undefined,
+        last_name: modalData.lastName || undefined,
+        middle_name: modalData.middleName || undefined,
+        date_of_birth: modalData.birthdate || undefined,
+        gender: modalData.gender || undefined,
+        civil_status: modalData.civilStatus || undefined,
+        contact_number: modalData.number || undefined,
+        address: modalData.address || undefined,
+        department_id: department_id, // Fixed: Now properly mapping department
+        designation: modalData.designation || modalData.position || undefined,
+        employment_type: modalData.employmentType || undefined,
+        date_hired: modalData.startDate || modalData.appointmentDate || undefined,
+        gsis_number: modalData.gsis || undefined,
+        pagibig_number: modalData.pagibig || undefined,
+        philhealth_number: modalData.philhealth || undefined,
+        sss_number: modalData.sss || undefined,
+        tin_number: modalData.tin_number || undefined // Fixed: Added missing TIN number
+      };
+
+      console.log('🚀 Updating personnel with data:', updateRequest);
+
+      this.personnelService.updatePersonnel(id, updateRequest).subscribe({
+        next: () => {
+          console.log('✅ Personnel updated successfully');
+          this.loadPersonnelFiles();
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = error.message;
+          this.loading = false;
+          console.error('❌ Error updating personnel:', error);
+        }
+      });
+    } catch (error) {
+      this.error = 'Failed to update personnel. Please try again.';
+      this.loading = false;
+      console.error('❌ Error in updatePersonnel:', error);
+    }
   }
 
   handleModalCancel() {
@@ -340,4 +421,6 @@ export class Personnel201FileComponent implements OnInit {
       this.onPageChange(this.currentPage + 1);
     }
   }
+
+
 } 

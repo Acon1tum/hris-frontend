@@ -127,13 +127,11 @@
             <div class="profile-field">
               <p class="field-label">Number</p>
               <input
-                type="number"
-                inputmode="numeric"
-                pattern="[0-9]*"
+                type="tel"
                 [(ngModel)]="data.number"
                 name="number"
                 required
-                class="form-control no-spinner"
+                class="form-control"
                 placeholder="Enter phone number"
                 [ngClass]="{'border-red-400': formSubmitted && !data.number}"
               />
@@ -174,20 +172,20 @@
             </div>
             <div class="profile-field">
               <p class="field-label">Department</p>
-              <select [(ngModel)]="data.department" name="department" required (change)="onDepartmentChange()" class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.department}">
-                <option value="" disabled selected>Select Department</option>
-                <option value="IT">IT</option>
-                <option value="Human Resources">Human Resources</option>
-                <option value="Finance">Finance</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Operations">Operations</option>
-                <option value="Graphics">Graphics</option>
+              <select [(ngModel)]="data.department" name="department" required class="form-control" [ngClass]="{'border-red-400': formSubmitted && !data.department}" [disabled]="loading">
+                <option value="" disabled selected>
+                  {{ loading ? 'Loading departments...' : 'Select Department' }}
+                </option>
+                <option *ngFor="let dept of departments" [value]="dept.department_name">
+                  {{ dept.department_name }}
+                </option>
               </select>
               <span *ngIf="formSubmitted && !data.department" class="text-xs text-red-500 mt-1">Department is required.</span>
+              <span *ngIf="!loading && departments.length === 0" class="text-xs text-amber-600 mt-1">No departments available. Please contact administrator.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Position</p>
-              <input type="text" [(ngModel)]="data.position" name="position" required readonly class="form-control" placeholder="Position" [ngClass]="{'border-red-400': formSubmitted && !data.position}" />
+              <input type="text" [(ngModel)]="data.position" name="position" required class="form-control" placeholder="Enter position/job title" [ngClass]="{'border-red-400': formSubmitted && !data.position}" />
               <span *ngIf="formSubmitted && !data.position" class="text-xs text-red-500 mt-1">Position is required.</span>
             </div>
             <div class="profile-field">
@@ -242,28 +240,29 @@
       <div class="profile-card">
         <div class="card-header">
           <h2 class="section-title">Government IDs</h2>
+          <p class="text-sm text-gray-600">Optional - Fill in available information</p>
         </div>
         <div class="card-content">
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div class="profile-field">
-              <p class="field-label">GSIS</p>
-              <input type="text" [(ngModel)]="data.gsis" name="gsis" required class="form-control" placeholder="GSIS" [ngClass]="{'border-red-400': formSubmitted && !data.gsis}" />
-              <span *ngIf="formSubmitted && !data.gsis" class="text-xs text-red-500 mt-1">GSIS is required.</span>
+              <p class="field-label">GSIS <span class="text-xs text-gray-500">(Optional)</span></p>
+              <input type="text" [(ngModel)]="data.gsis" name="gsis" class="form-control" placeholder="GSIS Number" />
             </div>
             <div class="profile-field">
-              <p class="field-label">Pag-IBIG</p>
-              <input type="text" [(ngModel)]="data.pagibig" name="pagibig" required class="form-control" placeholder="Pag-IBIG" [ngClass]="{'border-red-400': formSubmitted && !data.pagibig}" />
-              <span *ngIf="formSubmitted && !data.pagibig" class="text-xs text-red-500 mt-1">Pag-IBIG is required.</span>
+              <p class="field-label">Pag-IBIG <span class="text-xs text-gray-500">(Optional)</span></p>
+              <input type="text" [(ngModel)]="data.pagibig" name="pagibig" class="form-control" placeholder="Pag-IBIG Number" />
             </div>
             <div class="profile-field">
-              <p class="field-label">PhilHealth</p>
-              <input type="text" [(ngModel)]="data.philhealth" name="philhealth" required class="form-control" placeholder="PhilHealth" [ngClass]="{'border-red-400': formSubmitted && !data.philhealth}" />
-              <span *ngIf="formSubmitted && !data.philhealth" class="text-xs text-red-500 mt-1">PhilHealth is required.</span>
+              <p class="field-label">PhilHealth <span class="text-xs text-gray-500">(Optional)</span></p>
+              <input type="text" [(ngModel)]="data.philhealth" name="philhealth" class="form-control" placeholder="PhilHealth Number" />
             </div>
             <div class="profile-field">
-              <p class="field-label">SSS</p>
-              <input type="text" [(ngModel)]="data.sss" name="sss" required class="form-control" placeholder="SSS" [ngClass]="{'border-red-400': formSubmitted && !data.sss}" />
-              <span *ngIf="formSubmitted && !data.sss" class="text-xs text-red-500 mt-1">SSS is required.</span>
+              <p class="field-label">SSS <span class="text-xs text-gray-500">(Optional)</span></p>
+              <input type="text" [(ngModel)]="data.sss" name="sss" class="form-control" placeholder="SSS Number" />
+            </div>
+            <div class="profile-field">
+              <p class="field-label">TIN <span class="text-xs text-gray-500">(Optional)</span></p>
+              <input type="text" [(ngModel)]="data.tin_number" name="tin_number" class="form-control" placeholder="TIN Number" />
             </div>
           </div>
         </div>
@@ -286,12 +285,10 @@
             <div class="profile-field">
               <p class="field-label">Emergency Contact Number</p>
               <input
-                type="number"
-                inputmode="numeric"
-                pattern="[0-9]*"
+                type="tel"
                 [(ngModel)]="data.emergencyContactNumber"
                 name="emergencyContactNumber"
-                class="form-control no-spinner"
+                class="form-control"
                 placeholder="Contact Number"
               />
             </div>
@@ -317,7 +314,7 @@
               (dragleave)="onDragLeave($event)"
               (drop)="onFileDrop($event)"
               [class.drag-over]="isDragOver"
-              [ngClass]="{'border-red-400': formSubmitted && !data?.fileName}"
+              [ngClass]="{'border-red-400': false}"
             >
               <span class="upload-icon">📂</span>
               <span class="upload-text">Click to upload or drag a file here</span>

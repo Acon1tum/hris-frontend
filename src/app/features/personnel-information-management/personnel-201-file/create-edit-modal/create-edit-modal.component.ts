@@ -28,6 +28,7 @@ export interface Personnel201ModalData {
   pagibig?: string;
   philhealth?: string;
   sss?: string;
+  tin_number?: string;
   dependents?: string;
   emergencyContactName?: string;
   emergencyContactNumber?: string;
@@ -35,6 +36,13 @@ export interface Personnel201ModalData {
   fileName?: string;
   profilePictureUrl?: string;
   profilePictureFile?: File | null;
+}
+
+export interface Department {
+  id: string;
+  department_name: string;
+  description?: string;
+  department_head?: string;
 }
 
 @Component({
@@ -72,6 +80,7 @@ export class CreateEditModalComponent implements AfterViewInit {
     pagibig: '',
     philhealth: '',
     sss: '',
+    tin_number: '',
     dependents: '',
     emergencyContactName: '',
     emergencyContactNumber: '',
@@ -80,6 +89,8 @@ export class CreateEditModalComponent implements AfterViewInit {
     profilePictureUrl: '',
     profilePictureFile: null
   };
+  @Input() departments: Department[] = [];
+  @Input() loading: boolean = false;
   @Output() save = new EventEmitter<Personnel201ModalData>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -88,15 +99,6 @@ export class CreateEditModalComponent implements AfterViewInit {
   private lastScrollTop = 0;
 
   constructor(private renderer: Renderer2) {}
-
-  departmentPositionMap: { [key: string]: string } = {
-    'IT': 'IT Support Specialist',
-    'Human Resources': 'HR Specialist',
-    'Finance': 'Financial Analyst',
-    'Marketing': 'Marketing Manager',
-    'Operations': 'Operations Coordinator',
-    'Graphics': 'Graphic Designer'
-  };
 
   isDragOver = false;
   showFloatingProfile = false;
@@ -164,13 +166,20 @@ export class CreateEditModalComponent implements AfterViewInit {
   }
 
   onSave() {
+    console.log(`💾 Modal onSave called in ${this.mode} mode`);
+    console.log('📝 Form data to save:', this.data);
+    console.log('🔍 Form valid:', this.modalForm?.form?.valid);
+    console.log('❌ Form errors:', this.modalForm?.form?.errors);
+    
     this.formSubmitted = true;
-    // Check for required file and form validity
-    const isFileValid = !!this.data.fileName;
-    if (this.modalForm && (!this.modalForm.form.valid || !isFileValid)) {
+    // Check form validity (file is now optional)
+    if (this.modalForm && !this.modalForm.form.valid) {
+      console.warn('⚠️ Form validation failed, showing validation message');
       this.showValidationMessage = true;
       return;
     }
+    
+    console.log('✅ Form is valid, emitting save event');
     this.save.emit(this.data);
   }
 
@@ -184,10 +193,6 @@ export class CreateEditModalComponent implements AfterViewInit {
       this.cancel.emit();
       this.closing = false;
     }, 400); // match animation duration
-  }
-
-  onDepartmentChange() {
-    this.data.position = this.departmentPositionMap[this.data.department] || '';
   }
 
   ngAfterViewInit() {

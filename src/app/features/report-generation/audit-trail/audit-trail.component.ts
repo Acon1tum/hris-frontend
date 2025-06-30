@@ -1,31 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { AuditTrailService, AuditTrail } from '../audit-trail.service';
+import { Subscription } from 'rxjs';
 
 enum ReportType {
-  EMPLOYEE = 'EMPLOYEE',
-  PAYROLL = 'PAYROLL',
-  ATTENDANCE = 'ATTENDANCE',
-  LEAVE = 'LEAVE',
-  PERFORMANCE = 'PERFORMANCE'
-}
-
-interface AuditTrail {
-  id: string;
-  reportName: string;
-  reportType: ReportType;
-  generatedBy: string;
-  generatedAt: Date;
-  department: string;
-  action: string;
-  fileSize: string;
-  downloadCount: number;
-  status: string;
-  ipAddress: string;
-  userAgent: string;
-  filters: string[];
-  templateUsed: string;
+  EMPLOYEE = 'employee',
+  PAYROLL = 'payroll',
+  ATTENDANCE = 'attendance',
+  LEAVE = 'leave',
+  PERFORMANCE = 'performance',
+  CUSTOM = 'custom'
 }
 
 @Component({
@@ -46,89 +32,9 @@ interface AuditTrail {
     ])
   ]
 })
-export class AuditTrailComponent implements OnInit {
-  auditTrails: AuditTrail[] = [
-    {
-      id: '1',
-      reportName: 'Monthly Employee Summary',
-      reportType: ReportType.EMPLOYEE,
-      generatedBy: 'john.doe@company.com',
-      generatedAt: new Date(),
-      department: 'Human Resources',
-      action: 'generated',
-      fileSize: '2.5 MB',
-      downloadCount: 3,
-      status: 'success',
-      ipAddress: '192.168.1.100',
-      userAgent: 'Chrome/120.0.0.0',
-      filters: ['Department: HR', 'Status: Active'],
-      templateUsed: 'Monthly Employee Summary'
-    },
-    {
-      id: '2',
-      reportName: 'Payroll Analysis Q4',
-      reportType: ReportType.PAYROLL,
-      generatedBy: 'sarah.smith@company.com',
-      generatedAt: new Date(Date.now() - 86400000), // 1 day ago
-      department: 'Finance',
-      action: 'exported',
-      fileSize: '1.8 MB',
-      downloadCount: 5,
-      status: 'success',
-      ipAddress: '192.168.1.101',
-      userAgent: 'Firefox/119.0.0.0',
-      filters: ['Pay Period: Q4 2024'],
-      templateUsed: 'Payroll Analysis Template'
-    },
-    {
-      id: '3',
-      reportName: 'Attendance Report',
-      reportType: ReportType.ATTENDANCE,
-      generatedBy: 'mike.johnson@company.com',
-      generatedAt: new Date(Date.now() - 172800000), // 2 days ago
-      department: 'Operations',
-      action: 'printed',
-      fileSize: '950 KB',
-      downloadCount: 1,
-      status: 'success',
-      ipAddress: '192.168.1.102',
-      userAgent: 'Safari/17.0.0.0',
-      filters: ['Date Range: Last Month'],
-      templateUsed: 'Standard Attendance'
-    },
-    {
-      id: '4',
-      reportName: 'Performance Review',
-      reportType: ReportType.PERFORMANCE,
-      generatedBy: 'lisa.wang@company.com',
-      generatedAt: new Date(Date.now() - 259200000), // 3 days ago
-      department: 'Human Resources',
-      action: 'modified',
-      fileSize: '3.2 MB',
-      downloadCount: 2,
-      status: 'success',
-      ipAddress: '192.168.1.103',
-      userAgent: 'Edge/120.0.0.0',
-      filters: ['Review Period: Q4', 'Department: All'],
-      templateUsed: 'Department Performance Review'
-    },
-    {
-      id: '5',
-      reportName: 'Leave Utilization Report',
-      reportType: ReportType.LEAVE,
-      generatedBy: 'admin@company.com',
-      generatedAt: new Date(Date.now() - 345600000), // 4 days ago
-      department: 'All',
-      action: 'deleted',
-      fileSize: '1.1 MB',
-      downloadCount: 0,
-      status: 'success',
-      ipAddress: '192.168.1.104',
-      userAgent: 'Chrome/120.0.0.0',
-      filters: ['Leave Type: All', 'Year: 2024'],
-      templateUsed: 'Leave Report Template'
-    }
-  ];
+export class AuditTrailComponent implements OnInit, OnDestroy {
+  auditTrails: AuditTrail[] = [];
+  private subscription: Subscription = new Subscription();
 
   auditFilters = {
     dateRange: '',
@@ -140,10 +46,42 @@ export class AuditTrailComponent implements OnInit {
 
   showViewModal = false;
   selectedAudit: AuditTrail | null = null;
+  showNotification = false;
+  notificationMessage = '';
 
-  constructor() { }
+  constructor(private auditTrailService: AuditTrailService) { }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    console.log('AuditTrailComponent: ngOnInit called');
+    // Subscribe to audit trail updates from service
+    this.subscription.add(
+      this.auditTrailService.auditTrails$.subscribe(trails => {
+        console.log('AuditTrailComponent: Received trails update:', trails.length, 'entries');
+        this.auditTrails = trails;
+        console.log('Audit trails updated in component:', trails.length, 'entries');
+      })
+    );
+    
+    // Log initial state
+    const initialTrails = this.auditTrailService.getAuditTrails();
+    console.log('AuditTrailComponent: Initial trails from service:', initialTrails.length, 'entries');
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+
+  // Method to show notification
+  showNotificationMessage(message: string): void {
+    this.notificationMessage = message;
+    this.showNotification = true;
+    
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+      this.showNotification = false;
+      this.notificationMessage = '';
+    }, 3000);
+  }
 
   exportAuditTrail(): void {
     // TODO: Implement export functionality
@@ -152,7 +90,7 @@ export class AuditTrailComponent implements OnInit {
 
   clearAuditTrail(): void {
     if (confirm('Are you sure you want to clear all audit trail records? This action cannot be undone.')) {
-      this.auditTrails = [];
+      this.auditTrailService.clearAuditTrails();
     }
   }
 
@@ -163,7 +101,7 @@ export class AuditTrailComponent implements OnInit {
 
   deleteAuditTrail(id: string): void {
     if (confirm('Are you sure you want to delete this audit trail record?')) {
-      this.auditTrails = this.auditTrails.filter(trail => trail.id !== id);
+      this.auditTrailService.deleteAuditTrail(id);
     }
   }
 
@@ -217,6 +155,26 @@ export class AuditTrailComponent implements OnInit {
     }
   }
 
+  getFormatIcon(format: string): string {
+    switch (format.toLowerCase()) {
+      case 'csv': return 'fas fa-file-csv';
+      case 'excel': return 'fas fa-file-excel';
+      case 'pdf': return 'fas fa-file-pdf';
+      case 'print': return 'fas fa-print';
+      default: return 'fas fa-file';
+    }
+  }
+
+  getFormatColor(format: string): string {
+    switch (format.toLowerCase()) {
+      case 'csv': return '#16a34a';
+      case 'excel': return '#059669';
+      case 'pdf': return '#dc2626';
+      case 'print': return '#9333ea';
+      default: return '#6b7280';
+    }
+  }
+
   formatDate(date: Date): string {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -238,5 +196,33 @@ export class AuditTrailComponent implements OnInit {
     if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
     if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
     return 'Just now';
+  }
+
+  // Method to add new audit trail entry from parent component (kept for backward compatibility)
+  addAuditTrailEntry(auditEntry: AuditTrail): void {
+    // Convert string reportType to enum if needed
+    if (typeof auditEntry.reportType === 'string') {
+      const reportTypeString = auditEntry.reportType.toLowerCase();
+      // Map string values to enum values
+      const reportTypeMap: { [key: string]: ReportType } = {
+        'employee': ReportType.EMPLOYEE,
+        'payroll': ReportType.PAYROLL,
+        'attendance': ReportType.ATTENDANCE,
+        'leave': ReportType.LEAVE,
+        'performance': ReportType.PERFORMANCE,
+        'custom': ReportType.CUSTOM
+      };
+      
+      if (reportTypeMap[reportTypeString]) {
+        auditEntry.reportType = reportTypeMap[reportTypeString];
+      }
+    }
+    
+    // Use service to add the entry
+    this.auditTrailService.addAuditTrailEntry(auditEntry);
+    
+    // Show notification
+    const actionText = auditEntry.action.charAt(0).toUpperCase() + auditEntry.action.slice(1);
+    this.showNotificationMessage(`${actionText} action logged to audit trail`);
   }
 }

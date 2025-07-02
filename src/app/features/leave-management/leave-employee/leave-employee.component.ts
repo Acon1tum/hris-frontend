@@ -65,6 +65,9 @@ export class LeaveEmployeeComponent {
   showViewModal = false;
   selectedLeave: LeaveApplication | null = null;
   validationErrors: any = {};
+  formSubmitted = false;
+  showSuccessModal = false;
+  isSubmitting = false;
 
   constructor() {
     this.updateMetrics();
@@ -155,10 +158,6 @@ export class LeaveEmployeeComponent {
       this.validationErrors.reason = 'Reason is required.';
       valid = false;
     }
-    if (!this.form.documentName) {
-      this.validationErrors.document = 'Supporting document is required.';
-      valid = false;
-    }
     // Additional: End date must not be before start date
     if (this.form.startDate && this.form.endDate) {
       if (new Date(this.form.endDate) < new Date(this.form.startDate)) {
@@ -170,22 +169,34 @@ export class LeaveEmployeeComponent {
   }
 
   submitLeaveApplication() {
+    this.formSubmitted = true;
     if (!this.validateForm()) {
       return;
     }
-    const newLeave: LeaveApplication = {
-      type: this.form.leaveType,
-      startDate: this.form.startDate,
-      endDate: this.form.endDate,
-      totalDays: this.form.totalDays,
-      status: 'Pending',
-      reason: this.form.reason,
-      documentName: this.form.documentName
-    };
-    this.leaves.unshift(newLeave);
-    this.showApplyForm = false;
-    this.resetForm();
-    this.updateMetrics();
+    this.isSubmitting = true;
+    // Simulate loading/progress (e.g. 1.5s)
+    setTimeout(() => {
+      this.isSubmitting = false;
+      this.showSuccessModal = true;
+      const newLeave: LeaveApplication = {
+        type: this.form.leaveType,
+        startDate: this.form.startDate,
+        endDate: this.form.endDate,
+        totalDays: this.form.totalDays,
+        status: 'Pending',
+        reason: this.form.reason,
+        documentName: this.form.documentName
+      };
+      this.leaves.unshift(newLeave);
+      this.showApplyForm = false;
+      this.resetForm();
+      this.updateMetrics();
+      this.formSubmitted = false;
+      // Auto-close success modal after 1.5s
+      setTimeout(() => {
+        this.showSuccessModal = false;
+      }, 1500);
+    }, 1500);
   }
 
   resetForm() {
@@ -198,6 +209,7 @@ export class LeaveEmployeeComponent {
       document: null,
       documentName: ''
     };
+    this.formSubmitted = false;
   }
 
   getFileType(filename: string | undefined): string {

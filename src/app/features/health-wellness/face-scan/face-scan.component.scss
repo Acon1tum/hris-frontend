@@ -1,0 +1,76 @@
+.face-scan-page-container {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.face-scan-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #22314f;
+  margin-bottom: 2rem;
+}
+.face-scan-placeholder {
+  font-size: 1.2rem;
+  color: #60758a;
+}
+.face-scan-camera-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.face-scan-video {
+  width: 340px;
+  height: 260px;
+  background: #e3f0ff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px 0 rgba(34, 49, 79, 0.07);
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1.2rem;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.face-scan-btn {
+  background: #4F8CFF;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px 0 rgba(79, 140, 255, 0.10);
+}
+.face-scan-btn:hover {
+  background: #0c7ff2;
+}
+.face-scan-result {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #22314f;
+  margin-top: 1rem;
+}
+.face-scan-video-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.face-scan-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 180px;
+  height: 180px;
+  transform: translate(-50%, -50%);
+  border: 3px solid #4F8CFF;
+  border-radius: 24px;
+  box-shadow: 0 0 16px 2px rgba(79, 140, 255, 0.15);
+  pointer-events: none;
+  animation: scanPulse 1.2s infinite alternate;
+}
+@keyframes scanPulse {
+  0% { box-shadow: 0 0 16px 2px rgba(79, 140, 255, 0.15); border-color: #4F8CFF; }
+  100% { box-shadow: 0 0 32px 8px rgba(79, 140, 255, 0.25); border-color: #0c7ff2; }
+} 

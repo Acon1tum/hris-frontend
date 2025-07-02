@@ -1,0 +1,13 @@
+<div class="face-scan-page-container">
+  <h2 class="face-scan-title">Face Scan</h2>
+  <div class="face-scan-camera-area">
+    <div class="face-scan-video-wrapper">
+      <video #videoElement class="face-scan-video" autoplay playsinline></video>
+      <div class="face-scan-overlay"></div>
+    </div>
+    <button class="face-scan-btn" (click)="startFaceScan()">Start Face Scan</button>
+  </div>
+  <div class="face-scan-result">
+    <span *ngIf="scanResult">Scan Result: {{ scanResult }}</span>
+  </div>
+</div> 

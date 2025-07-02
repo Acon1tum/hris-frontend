@@ -1,0 +1,17 @@
+.digital-footprint-page-container {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.digital-footprint-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #22314f;
+  margin-bottom: 2rem;
+}
+.digital-footprint-placeholder {
+  font-size: 1.2rem;
+  color: #60758a;
+} 

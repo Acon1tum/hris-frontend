@@ -24,68 +24,305 @@
       </button>
     </div>
 
-    <div class="overflow-x-auto shadow-md rounded-lg">
-      <table class="min-w-full divide-y divide-[var(--border-color)] table">
-        <thead>
-          <tr>
-            <th scope="col">Employee</th>
-            <th scope="col">Department</th>
-            <th class="text-right" scope="col">Accrued</th>
-            <th class="text-right" scope="col">Used</th>
-            <th class="text-right" scope="col">Remaining</th>
-            <th class="text-right" scope="col">Expiring</th>
-            <th class="text-center" scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-[var(--border-color)]">
-          <tr *ngFor="let employee of filteredEmployees">
-            <td>
-              <div class="flex items-center">
-                <div class="flex-shrink-0 h-10 w-10">
-                  <img [alt]="employee.name" class="h-10 w-10 rounded-full" [src]="employee.avatar" />
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-[var(--text-primary)]">{{ employee.name }}</div>
-                  <div class="text-xs text-[var(--text-secondary)]">{{ employee.id }}</div>
-                </div>
-              </div>
-            </td>
-            <td>{{ employee.department }}</td>
-            <td class="text-right">{{ employee.accrued }}</td>
-            <td class="text-right">{{ employee.used }}</td>
-            <td class="text-right font-semibold text-[var(--primary-color)]">{{ employee.remaining }}</td>
-            <td class="text-right text-red-500">{{ employee.expiring }}</td>
-            <td class="text-center">
-              <button 
-                class="text-[var(--primary-color)] hover:text-[var(--accent-color)] text-sm font-medium"
-                (click)="viewDetails(employee)"
-              >
-                View Details
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Tabs Section -->
+    <div class="mb-4 flex border-b border-[var(--border-color)]">
+      <button
+        class="px-4 py-2 -mb-px font-medium focus:outline-none"
+        [ngClass]="{'border-b-2 border-[var(--primary-color)] text-[var(--primary-color)]': activeTab === 'employee', 'text-[var(--text-secondary)]': activeTab !== 'employee'}"
+        (click)="setTab('employee')"
+      >
+        Employee
+      </button>
+      <button
+        class="px-4 py-2 -mb-px font-medium focus:outline-none"
+        [ngClass]="{'border-b-2 border-[var(--primary-color)] text-[var(--primary-color)]': activeTab === 'employeeType', 'text-[var(--text-secondary)]': activeTab !== 'employeeType'}"
+        (click)="setTab('employeeType')"
+      >
+        Employee Type
+      </button>
     </div>
 
-    <div class="mt-6 flex justify-between items-center">
-      <p class="text-sm text-[var(--text-secondary)]">{{ currentResults }}</p>
-      <div class="flex items-center gap-2">
-        <button 
-          class="px-3 py-1 border border-[var(--border-color)] rounded-md text-sm hover:bg-gray-100 disabled:opacity-50" 
-          [disabled]="isPreviousDisabled"
-          (click)="previousPage()"
-        >
-          Previous
-        </button>
-        <button 
-          class="px-3 py-1 border border-[var(--border-color)] rounded-md text-sm hover:bg-gray-100"
-          [disabled]="isNextDisabled"
-          (click)="nextPage()"
-        >
-          Next
-        </button>
+    <ng-container *ngIf="activeTab === 'employee'; else employeeTypeTab">
+      <div class="overflow-x-auto shadow-md rounded-lg">
+        <table class="min-w-full divide-y divide-[var(--border-color)] table">
+          <thead>
+            <tr>
+              <th scope="col">Employee</th>
+              <th scope="col">Department</th>
+              <th class="text-right" scope="col">Accrued</th>
+              <th class="text-right" scope="col">Used</th>
+              <th class="text-right" scope="col">Remaining</th>
+              <th class="text-right" scope="col">Expiring</th>
+              <th class="text-center" scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-[var(--border-color)]">
+            <tr *ngFor="let employee of filteredEmployees">
+              <td>
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <img [alt]="employee.name" class="h-10 w-10 rounded-full" [src]="employee.avatar" />
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-[var(--text-primary)]">{{ employee.name }}</div>
+                    <div class="text-xs text-[var(--text-secondary)]">{{ employee.id }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ employee.department }}</td>
+              <td class="text-right">{{ employee.accrued }}</td>
+              <td class="text-right">{{ employee.used }}</td>
+              <td class="text-right font-semibold text-[var(--primary-color)]">{{ employee.remaining }}</td>
+              <td class="text-right text-red-500">{{ employee.expiring }}</td>
+              <td class="text-center">
+                <button 
+                  class="text-[var(--primary-color)] hover:text-[var(--accent-color)] text-sm font-medium"
+                  (click)="viewDetails(employee)"
+                >
+                  View Details
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+
+      <div class="mt-6 flex justify-between items-center">
+        <p class="text-sm text-[var(--text-secondary)]">{{ currentResults }}</p>
+        <div class="flex items-center gap-2">
+          <button 
+            class="px-3 py-1 border border-[var(--border-color)] rounded-md text-sm hover:bg-gray-100 disabled:opacity-50" 
+            [disabled]="isPreviousDisabled"
+            (click)="previousPage()"
+          >
+            Previous
+          </button>
+          <button 
+            class="px-3 py-1 border border-[var(--border-color)] rounded-md text-sm hover:bg-gray-100"
+            [disabled]="isNextDisabled"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </ng-container>
+    <ng-template #employeeTypeTab>
+      <div class="overflow-x-auto shadow-md rounded-lg">
+        <table class="employee-type-table min-w-full divide-y divide-[var(--border-color)] table">
+          <thead>
+            <tr>
+              <th scope="col">Employee Type</th>
+              <th class="text-right" scope="col">Accrued</th>
+              <th class="text-right" scope="col">Used</th>
+              <th class="text-right" scope="col">Remaining</th>
+              <th class="text-right" scope="col">Expiring</th>
+              <th class="text-center" scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-[var(--border-color)]">
+            <tr *ngFor="let type of employeeTypes">
+              <td>
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <img [alt]="type.name" class="h-10 w-10 rounded-full" [src]="type.avatar" />
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-primary-color">{{ type.name }}</div>
+                    <div class="text-xs text-secondary-color">{{ type.id }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="text-right">{{ type.accrued }}</td>
+              <td class="text-right">{{ type.used }}</td>
+              <td class="text-right font-semibold text-primary-color">{{ type.remaining }}</td>
+              <td class="text-right text-red-500">{{ type.expiring }}</td>
+              <td class="text-center">
+                <button 
+                  class="text-primary-color hover:text-green-600 text-sm font-medium"
+                  (click)="viewDetails(type)"
+                >
+                  View Details
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-6 flex justify-between items-center">
+        <p class="text-sm text-[var(--text-secondary)]">Showing 1 to {{ employeeTypes.length }} of {{ employeeTypes.length }} results</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Employee Modal -->
+  <div *ngIf="showEmployeeModal" class="employee-modal">
+    <div class="employee-modal-backdrop" (click)="closeEmployeeModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close-btn" (click)="closeEmployeeModal()" aria-label="Close">&times;</button>
+      <div class="flex items-center gap-4 mb-6">
+        <div class="bg-primary-color rounded-full p-2 flex items-center justify-center shadow-md">
+          <span class="material-symbols-outlined text-white text-3xl">person</span>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold mb-1">{{ selectedEmployee?.name }}</h3>
+          <div class="text-sm text-secondary-color">Employee ID: <span class="font-semibold">{{ selectedEmployee?.id }}</span></div>
+          <div class="text-sm text-secondary-color">Department: <span class="font-semibold">{{ selectedEmployee?.department }}</span></div>
+        </div>
+      </div>
+      <hr class="my-4 border-[var(--border-color)]">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-secondary-color">Accrued</span>
+          <span class="text-lg font-bold text-primary-color">{{ selectedEmployee?.accrued }}</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-secondary-color">Used</span>
+          <span class="text-lg font-bold text-yellow-600">{{ selectedEmployee?.used }}</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-secondary-color">Remaining</span>
+          <span class="text-lg font-bold text-green-600">{{ selectedEmployee?.remaining }}</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-secondary-color">Expiring</span>
+          <span class="text-lg font-bold text-red-500">{{ selectedEmployee?.expiring }}</span>
+        </div>
+      </div>
+      <div class="flex justify-center mt-6">
+        <img [src]="selectedEmployee?.avatar" [alt]="selectedEmployee?.name" class="h-24 w-24 rounded-full border-4 border-primary-color shadow-lg" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Type Modal -->
+  <div *ngIf="showEmployeeTypeModal" class="employee-type-modal">
+    <div class="employee-type-modal-backdrop" (click)="closeEmployeeTypeModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close-btn" (click)="closeEmployeeTypeModal()" aria-label="Close">&times;</button>
+      <div class="flex items-center gap-4 mb-6">
+        <div class="bg-primary-color rounded-full p-2 flex items-center justify-center shadow-md">
+          <span class="material-symbols-outlined text-white text-3xl">badge</span>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold mb-1">{{ selectedEmployeeType?.name }}</h3>
+          <div class="text-sm text-secondary-color">Type ID: <span class="font-semibold">{{ selectedEmployeeType?.id }}</span></div>
+        </div>
+      </div>
+      <hr class="my-4 border-[var(--border-color)]">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-secondary-color">Accrued</span>
+          <span class="text-lg font-bold text-primary-color">{{ selectedEmployeeType?.accrued }}</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-secondary-color">Used</span>
+          <span class="text-lg font-bold text-yellow-600">{{ selectedEmployeeType?.used }}</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-secondary-color">Remaining</span>
+          <span class="text-lg font-bold text-green-600">{{ selectedEmployeeType?.remaining }}</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-secondary-color">Expiring</span>
+          <span class="text-lg font-bold text-red-500">{{ selectedEmployeeType?.expiring }}</span>
+        </div>
+      </div>
+      <div class="flex justify-center mt-6">
+        <img [src]="selectedEmployeeType?.avatar" [alt]="selectedEmployeeType?.name" class="h-24 w-24 rounded-full border-4 border-primary-color shadow-lg" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Adjust Credits Modal for Employee -->
+  <div *ngIf="showEmployeeAdjustModal" class="employee-modal">
+    <div class="employee-modal-backdrop" (click)="closeEmployeeAdjustModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close-btn" (click)="closeEmployeeAdjustModal()" aria-label="Close">&times;</button>
+      <h3 class="text-xl font-bold mb-4">Adjust Credits (Employee)</h3>
+      <form (ngSubmit)="saveEmployeeAdjustCredits()">
+        <div class="mb-4 flex gap-4">
+          <div class="flex-1">
+            <label class="block mb-2 text-sm font-medium">Department</label>
+            <select class="border border-primary-color rounded px-3 py-2 w-full" [(ngModel)]="selectedDepartment" name="department" (change)="updateFilteredEmployeeList()">
+              <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label class="block mb-2 text-sm font-medium">Employee Type</label>
+            <select class="border border-primary-color rounded px-3 py-2 w-full" [(ngModel)]="selectedEmployeeTypeFilter" name="employeeType" (change)="updateFilteredEmployeeList()">
+              <option *ngFor="let type of employeeTypeList" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-2 text-sm font-medium">Employee</label>
+          <select class="border border-primary-color rounded px-3 py-2 w-full" [(ngModel)]="selectedEmployeeForDropdown" name="employeeSelect" (ngModelChange)="adjustmentCredit = selectedEmployeeForDropdown?.accrued || 0">
+            <option [ngValue]="null">Select employee...</option>
+            <option *ngFor="let emp of filteredEmployeeList" [ngValue]="emp">{{ emp.name }} ({{ emp.id }})</option>
+          </select>
+        </div>
+        <ng-container *ngIf="selectedEmployeeForDropdown">
+          <div class="mb-4 flex gap-4">
+            <div class="flex-1">
+              <label class="block text-xs text-secondary-color">Current Accrued Credit</label>
+              <div class="font-bold text-primary-color text-lg">{{ selectedEmployeeForDropdown.accrued }}</div>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-secondary-color">Used Credit</label>
+              <div class="font-bold text-yellow-600 text-lg">{{ selectedEmployeeForDropdown.used }}</div>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2 text-sm font-medium">Adjustment Credit</label>
+            <div class="flex items-center gap-2">
+              <input type="number" class="border border-primary-color rounded px-3 py-2 w-24 text-center" [(ngModel)]="adjustmentCredit" name="adjustmentCredit" (input)="setAdjustmentCredit(adjustmentCredit)" />
+              <button type="button" class="px-3 py-2 rounded border border-primary-color" (click)="incrementAdjustmentCredit()">&#8593;</button>
+              <button type="button" class="px-3 py-2 rounded border border-primary-color" (click)="decrementAdjustmentCredit()">&#8595;</button>
+            </div>
+          </div>
+        </ng-container>
+        <div class="flex justify-end gap-2 mt-6">
+          <button type="button" class="btn-primary" (click)="closeEmployeeAdjustModal()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="!selectedEmployeeForDropdown">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Adjust Credits Modal for Employee Type -->
+  <div *ngIf="showEmployeeTypeAdjustModal" class="employee-type-modal">
+    <div class="employee-type-modal-backdrop" (click)="closeEmployeeTypeAdjustModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close-btn" (click)="closeEmployeeTypeAdjustModal()" aria-label="Close">&times;</button>
+      <h3 class="text-xl font-bold mb-4">Adjust Credits (Employee Type)</h3>
+      <form (ngSubmit)="saveEmployeeTypeAdjustCredits()">
+        <div class="mb-4">
+          <label class="block mb-2 text-sm font-medium">Employee Type</label>
+          <select class="border border-primary-color rounded px-3 py-2 w-full" [(ngModel)]="selectedEmployeeTypeForDropdown" name="employeeTypeSelect" (ngModelChange)="adjustmentCreditType = selectedEmployeeTypeForDropdown?.accrued || 0">
+            <option [ngValue]="null">Select employee type...</option>
+            <option *ngFor="let type of employeeTypes" [ngValue]="type">{{ type.name }} ({{ type.id }})</option>
+          </select>
+        </div>
+        <ng-container *ngIf="selectedEmployeeTypeForDropdown">
+          <div class="mb-4">
+            <label class="block text-xs text-secondary-color">Total Credit</label>
+            <div class="font-bold text-primary-color text-lg">{{ selectedEmployeeTypeForDropdown.accrued }}</div>
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2 text-sm font-medium">Adjustment Credit</label>
+            <div class="flex items-center gap-2">
+              <input type="number" class="border border-primary-color rounded px-3 py-2 w-24 text-center" [(ngModel)]="adjustmentCreditType" name="adjustmentCreditType" (input)="setAdjustmentCreditType(adjustmentCreditType)" />
+              <button type="button" class="px-3 py-2 rounded border border-primary-color" (click)="incrementAdjustmentCreditType()">&#8593;</button>
+              <button type="button" class="px-3 py-2 rounded border border-primary-color" (click)="decrementAdjustmentCreditType()">&#8595;</button>
+            </div>
+          </div>
+        </ng-container>
+        <div class="flex justify-end gap-2 mt-6">
+          <button type="button" class="btn-primary" (click)="closeEmployeeTypeAdjustModal()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="!selectedEmployeeTypeForDropdown">Save</button>
+        </div>
+      </form>
     </div>
   </div>
 </div> 

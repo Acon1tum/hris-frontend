@@ -21,6 +21,10 @@
   align-items: center;
   margin-bottom: 2rem;
 }
+.face-scan-video-wrapper {
+  position: relative;
+  display: inline-block;
+}
 .face-scan-video {
   width: 340px;
   height: 260px;
@@ -31,7 +35,31 @@
   margin-bottom: 1.2rem;
   object-fit: cover;
   transform: scaleX(-1);
+  display: block;
 }
+.face-scan-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 340px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 16px;
+  backdrop-filter: blur(2px);
+  /* Square clear center, blur background */
+  -webkit-mask-image: 
+    linear-gradient(to top, black 0, black calc(50% - 90px), transparent calc(50% - 90px), transparent calc(50% + 90px), black calc(50% + 90px), black 100%),
+    linear-gradient(to left, black 0, black calc(50% - 90px), transparent calc(50% - 90px), transparent calc(50% + 90px), black calc(50% + 90px), black 100%);
+  -webkit-mask-composite: source-over;
+  mask-image: 
+    linear-gradient(to top, black 0, black calc(50% - 90px), transparent calc(50% - 90px), transparent calc(50% + 90px), black calc(50% + 90px), black 100%),
+    linear-gradient(to left, black 0, black calc(50% - 90px), transparent calc(50% - 90px), transparent calc(50% + 90px), black calc(50% + 90px), black 100%);
+  mask-composite: add;
+
+  
+}
+
 .face-scan-btn {
   background: #4F8CFF;
   color: #fff;
@@ -53,9 +81,18 @@
   color: #22314f;
   margin-top: 1rem;
 }
-.face-scan-video-wrapper {
-  position: relative;
-  display: inline-block;
+.face-scan-anim-line {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  background: linear-gradient(90deg, #4F8CFF 0%, #e3f0ff 50%, #4F8CFF 100%);
+  border-radius: 3px;
+  box-shadow: 0 0 16px 4px #4F8CFF, 0 0 32px 8px #e3f0ff;
+  animation: scanLineMove 1.2s cubic-bezier(0.4,0,0.2,1) infinite;
+  top: 0;
+  opacity: 0.95;
+  filter: blur(0.5px) brightness(1.2);
 }
 .face-scan-overlay {
   position: absolute;
@@ -65,12 +102,21 @@
   height: 180px;
   transform: translate(-50%, -50%);
   border: 3px solid #4F8CFF;
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: 0 0 16px 2px rgba(79, 140, 255, 0.15);
   pointer-events: none;
   animation: scanPulse 1.2s infinite alternate;
+  z-index: 3;
+  overflow: hidden;
 }
 @keyframes scanPulse {
   0% { box-shadow: 0 0 16px 2px rgba(79, 140, 255, 0.15); border-color: #4F8CFF; }
   100% { box-shadow: 0 0 32px 8px rgba(79, 140, 255, 0.25); border-color: #0c7ff2; }
+}
+@keyframes scanLineMove {
+  0% { top: 10px; opacity: 0.7; filter: blur(1.5px) brightness(1.1); }
+  30% { opacity: 1; filter: blur(0.5px) brightness(1.3); }
+  50% { top: calc(100% - 16px); opacity: 1; filter: blur(0.5px) brightness(1.4); }
+  70% { opacity: 1; filter: blur(0.5px) brightness(1.3); }
+  100% { top: 10px; opacity: 0.7; filter: blur(1.5px) brightness(1.1); }
 } 

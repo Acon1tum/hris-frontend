@@ -3,9 +3,13 @@
   <div class="face-scan-camera-area">
     <div class="face-scan-video-wrapper">
       <video #videoElement class="face-scan-video" autoplay playsinline></video>
-      <div class="face-scan-overlay"></div>
+      <div class="face-scan-blur"></div>
+      <div class="face-scan-overlay">
+        <div *ngIf="isScanning" class="face-scan-anim-line"></div>
+      </div>
     </div>
-    <button class="face-scan-btn" (click)="startFaceScan()">Start Face Scan</button>
+    <button *ngIf="!cameraOpen" class="face-scan-btn" (click)="openCamera()">Open Camera</button>
+    <button *ngIf="cameraOpen && !isScanning" class="face-scan-btn" (click)="startFaceScan()">Start Face Scan</button>
   </div>
   <div class="face-scan-result">
     <span *ngIf="scanResult">Scan Result: {{ scanResult }}</span>

@@ -2,8 +2,101 @@
 <div class="page-header">
   <div class="page-header-content">
     <div class="page-header-text">
-      <h1 class="page-title">Leave Requests</h1>
-      <p class="page-description">Manage and process leave requests from employees.</p>
+      <h1 class="page-title">Leave Request Analytics Dashboard</h1>
+      <p class="page-description">Gain insights into leave credits, usage, and request statuses across employees, types, and departments. Use the interactive cards below to filter and visualize key HR leave metrics.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Cards Section -->
+<div class="dashboard-cards">
+  <div class="dashboard-card" *ngFor="let card of dashboardCards">
+    <div class="dashboard-card-header">
+      <div class="dashboard-card-title">{{ card.label }}</div>
+      <div class="dashboard-card-value">{{ card.valueFn() }}</div>
+    </div>
+    <div class="dashboard-card-filters">
+      <select [(ngModel)]="cardFilters[card.key].employee" (change)="onCardFilterChange(card.key)">
+        <option *ngFor="let emp of employees" [value]="emp">{{ emp }}</option>
+      </select>
+      <select [(ngModel)]="cardFilters[card.key].employeeType" (change)="onCardFilterChange(card.key)">
+        <option *ngFor="let type of employeeTypes" [value]="type">{{ type }}</option>
+      </select>
+      <select [(ngModel)]="cardFilters[card.key].department" (change)="onCardFilterChange(card.key)">
+        <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+      </select>
+    </div>
+    <!-- Remove the dashboard-card-chart (pie chart) -->
+    <!-- <div class="dashboard-card-chart">
+      <canvas baseChart
+        [data]="{ labels: cardCharts[card.key].labels, datasets: [{ data: cardCharts[card.key].data }] }"
+        [type]="'pie'"
+        [options]="{ responsive: true, plugins: { legend: { display: true, position: 'bottom' } } }">
+      </canvas>
+    </div> --> 
+    <div class="dashboard-card-line-chart">
+      <canvas baseChart
+        [data]="cardLineCharts[card.key]"
+        [type]="'line'"
+        [options]="{ responsive: true, plugins: { legend: { display: false }, tooltip: { enabled: true } }, scales: { y: { beginAtZero: true } } }">
+      </canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Donut Graphs Section -->
+<div class="donut-graphs">
+  <!-- Donut Graph 1 -->
+  <div class="donut-graph-card">
+    <div class="donut-graph-header">Used Credit vs Total Credit</div>
+    <div class="donut-graph-filters">
+      <select [(ngModel)]="donut1SelectedViewBy" (change)="onDonut1FilterChange()">
+        <option *ngFor="let opt of donut1ViewByOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <select [(ngModel)]="donut1SelectedDepartment" (change)="onDonut1FilterChange()">
+        <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+      </select>
+      <select [(ngModel)]="donut1SelectedEmployeeType" (change)="onDonut1FilterChange()">
+        <option *ngFor="let type of employeeTypes" [value]="type">{{ type }}</option>
+      </select>
+    </div>
+    <div class="donut-graph-chart">
+      <canvas baseChart
+        [data]="{ labels: donut1ChartData.labels, datasets: [{ data: donut1ChartData.data }] }"
+        [type]="'doughnut'"
+        [options]="{ responsive: true, plugins: { legend: { display: true, position: 'bottom' } } }">
+      </canvas>
+    </div>
+  </div>
+
+  <!-- Donut Graph 2 -->
+  <div class="donut-graph-card">
+    <div class="donut-graph-header">Used Credit by Leave Type</div>
+    <div class="donut-graph-filters">
+      <select [(ngModel)]="donut2SelectedFilterType" (change)="onDonut2FilterChange()">
+        <option *ngFor="let opt of donut2FilterTypeOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <ng-container *ngIf="donut2SelectedFilterType === 'department'">
+        <select [(ngModel)]="donut2SelectedDepartment" (change)="onDonut2FilterChange()">
+          <option *ngFor="let dept of departments" [value]="dept" [disabled]="dept === 'All Departments'">{{ dept }}</option>
+        </select>
+      </ng-container>
+      <ng-container *ngIf="donut2SelectedFilterType === 'employeeType'">
+        <select [(ngModel)]="donut2SelectedEmployeeType" (change)="onDonut2FilterChange()">
+          <option *ngFor="let type of employeeTypes" [value]="type" [disabled]="type === 'All Types'">{{ type }}</option>
+        </select>
+      </ng-container>
+      <select [(ngModel)]="donut2SelectedLeaveType" (change)="onDonut2FilterChange()">
+        <option value="All Types">All Leave Types</option>
+        <option *ngFor="let type of leaveTypes" [value]="type" [disabled]="type === 'All Types'">{{ type }}</option>
+      </select>
+    </div>
+    <div class="donut-graph-chart">
+      <canvas baseChart
+        [data]="{ labels: donut2ChartData.labels, datasets: [{ data: donut2ChartData.data }] }"
+        [type]="'doughnut'"
+        [options]="{ responsive: true, plugins: { legend: { display: true, position: 'bottom' } } }">
+      </canvas>
     </div>
   </div>
 </div>

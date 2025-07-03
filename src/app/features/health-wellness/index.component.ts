@@ -6,6 +6,7 @@ import { VoiceComponent } from './voice/voice.component';
 import { FaceScanComponent } from './face-scan/face-scan.component';
 import { DigitalFootprintComponent } from './digital-footprint/digital-footprint.component';
 import { trigger, transition, style, animate, group, query } from '@angular/animations';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-health-wellness',
@@ -55,10 +56,17 @@ import { trigger, transition, style, animate, group, query } from '@angular/anim
           ], { optional: true })
         ])
       ])
+    ]),
+    trigger('pageOpen', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(30px)' }),
+        animate('600ms cubic-bezier(0.23, 1, 0.32, 1)', style({ opacity: 1, transform: 'none' }))
+      ])
     ])
   ]
 })
 export class HealthWellnessComponent {
+  constructor(private router: Router) {}
   VoiceComponent = VoiceComponent;
   FaceScanComponent = FaceScanComponent;
   DigitalFootprintComponent = DigitalFootprintComponent;
@@ -303,9 +311,24 @@ export class HealthWellnessComponent {
     return (good ?? 0) + (bad ?? 0);
   }  
 
+  fadeInFlag = true;
   selectedActivity: 'dashboard' | 'voice' | 'face' | 'digital' = 'dashboard';
 
   selectActivity(type: 'dashboard' | 'voice' | 'face' | 'digital') {
-    this.selectedActivity = type;
+    if (this.selectedActivity !== type) {
+      this.fadeInFlag = false;
+      setTimeout(() => {
+        this.selectedActivity = type;
+        this.fadeInFlag = true;
+      }, 10);
+    }
+  }
+
+  goToJoinProgram() {
+    this.router.navigate(['/health-wellness/join-program']);
+  }
+
+  goToWellnessEvents() {
+    this.router.navigate(['/health-wellness/wellness-events']);
   }
 } 

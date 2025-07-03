@@ -401,4 +401,36 @@
   background: #0c7ff2;
   color: #fff;
   border-color: #0c7ff2;
+}
+
+.quick-action-btn {
+  background: #f4f7fa;
+  color: #0c7ff2;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+.quick-action-btn.active, .quick-action-btn:hover {
+  background: #0c7ff2;
+  color: #fff;
+  border-color: #0c7ff2;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 } 

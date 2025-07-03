@@ -4,7 +4,7 @@
     <button class="upload-file-btn" (click)="toggleUploadCard()">Upload File</button>
   </div>
 
-  <div *ngIf="showUploadCard" class="voice-upload-card voice-upload-card-center">
+  <div *ngIf="showUploadCard" class="voice-upload-card voice-upload-card-center" [ngClass]="{'voice-upload-card-animate': showUploadCard && !isClosing, 'voice-upload-card-close-animate': isClosing}">
     <div class="voice-dropzone">
       <div class="voice-dropzone-inner">
         <div class="voice-upload-icon">

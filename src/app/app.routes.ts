@@ -259,5 +259,17 @@ export const routes: Routes = [
     canActivate: [PermissionGuard],
     data: { permissions: [] } // Accessible to all employees
   },
+  {
+    path: 'health-wellness/join-program',
+    loadComponent: () => import('./features/health-wellness/join-program/join-program.component').then(m => m.JoinProgramComponent),
+    canActivate: [PermissionGuard],
+    data: { permissions: [] }
+  },
+  {
+    path: 'health-wellness/wellness-events',
+    loadComponent: () => import('./features/health-wellness/wellness-events/wellness-events.component').then(m => m.WellnessEventsComponent),
+    canActivate: [PermissionGuard],
+    data: { permissions: [] }
+  },
   { path: '**', redirectTo: '/login' }
 ]; 

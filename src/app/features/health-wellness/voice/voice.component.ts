@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 export class VoiceComponent {
   showUploadModal = false;
   showUploadCard = false;
+  isClosing = false;
 
   openModal() {
     console.log('openModal called');
@@ -22,6 +23,14 @@ export class VoiceComponent {
   }
 
   toggleUploadCard() {
-    this.showUploadCard = !this.showUploadCard;
+    if (this.showUploadCard && !this.isClosing) {
+      this.isClosing = true;
+      setTimeout(() => {
+        this.showUploadCard = false;
+        this.isClosing = false;
+      }, 350); // match the animation duration
+    } else if (!this.showUploadCard) {
+      this.showUploadCard = true;
+    }
   }
 } 

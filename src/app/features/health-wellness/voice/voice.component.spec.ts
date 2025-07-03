@@ -20,4 +20,11 @@ describe('VoiceComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should add animation class when upload card is shown', () => {
+    component.showUploadCard = true;
+    fixture.detectChanges();
+    const card = fixture.nativeElement.querySelector('.voice-upload-card');
+    expect(card.classList).toContain('voice-upload-card-animate');
+  });
 }); 

@@ -131,4 +131,44 @@
       </form>
     </div>
   </div>
+
+  <!-- Edit Leave Type Modal -->
+  <div *ngIf="showEditModal" class="modal-backdrop">
+    <div class="modal">
+      <h2>Edit Leave Type</h2>
+      <form (ngSubmit)="submitEditLeaveType()" novalidate>
+        <div class="form-group" [class.invalid]="editValidation.type">
+          <label for="editType">Leave Type</label>
+          <input id="editType" name="editType" type="text" [(ngModel)]="editForm.type" required />
+          <div class="error-message" *ngIf="editValidation.type">{{ editValidation.type }}</div>
+        </div>
+        <div class="form-group" [class.invalid]="editValidation.reason">
+          <label for="editReason">Reason</label>
+          <textarea id="editReason" name="editReason" [(ngModel)]="editForm.reason" rows="3" required></textarea>
+          <div class="error-message" *ngIf="editValidation.reason">{{ editValidation.reason }}</div>
+        </div>
+        <div class="form-actions">
+          <button type="button" (click)="showEditModal = false">Cancel</button>
+          <button type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal" class="modal-backdrop">
+    <div class="modal">
+      <h2>Delete Leave Type</h2>
+      <p>Are you sure you want to delete <b>{{ leaveTypeToDelete?.name }}</b>?</p>
+      <div class="form-actions">
+        <button type="button" (click)="cancelDeleteLeaveType()">Cancel</button>
+        <button type="button" (click)="confirmDeleteLeaveType()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div *ngIf="toast.show" class="toast-notification" [ngClass]="'toast-' + (toast.type || 'info')">
+    <span class="toast-message">{{ toast.message }}</span>
+  </div>
 </div> 

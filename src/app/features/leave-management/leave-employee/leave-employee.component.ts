@@ -70,12 +70,7 @@ export class LeaveEmployeeComponent {
   isSubmitting = false;
 
   // Toast notification state
-  toast = {
-    show: false,
-    title: '',
-    message: '',
-    type: '' // e.g., 'success', 'error', 'info', 'warning'
-  };
+  toast: { show: boolean; title: string; message: string; type: string } | null = null;
   toastTimeout: any = null;
 
   constructor() {
@@ -122,7 +117,7 @@ export class LeaveEmployeeComponent {
       if (confirm('Are you sure you want to cancel this leave application?')) {
         leave.status = 'Cancelled';
         this.updateMetrics();
-        this.showToast('Error', 'Leave application cancelled.', 'error');
+        this.showToast('Success', 'Leave cancellation completed.', 'success');
       }
     }
   }
@@ -239,20 +234,19 @@ export class LeaveEmployeeComponent {
   }
 
   showToast(title: string, message: string, type: string = 'info', duration: number = 2000) {
-    this.toast.show = true;
-    this.toast.title = title;
-    this.toast.message = message;
-    this.toast.type = type;
+    this.toast = { show: true, title, message, type };
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout);
     }
     this.toastTimeout = setTimeout(() => {
-      this.toast.show = false;
+      if (this.toast) this.toast.show = false;
+      this.toast = null;
     }, duration);
   }
 
   closeToast() {
-    this.toast.show = false;
+    if (this.toast) this.toast.show = false;
+    this.toast = null;
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout);
     }

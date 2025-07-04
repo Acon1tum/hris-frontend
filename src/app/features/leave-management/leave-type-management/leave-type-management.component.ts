@@ -62,6 +62,19 @@ export class LeaveTypeManagementComponent {
   addForm = { type: '', reason: '' };
   addValidation: any = {};
 
+  // Edit modal state
+  showEditModal = false;
+  editForm: any = { id: null, type: '', reason: '' };
+  editValidation: any = {};
+
+  // Delete confirmation modal state
+  showDeleteModal = false;
+  leaveTypeToDelete: LeaveType | null = null;
+
+  // Toast notification state (optional)
+  toast = { show: false, message: '', type: '' };
+  toastTimeout: any = null;
+
   onSearch(event: Event) {
     const target = event.target as HTMLInputElement;
     this.searchTerm = target.value;
@@ -75,13 +88,14 @@ export class LeaveTypeManagementComponent {
   }
 
   onEditLeaveType(leaveType: LeaveType) {
-    // Implementation for opening edit modal/form
-    console.log('Edit leave type:', leaveType.name);
+    this.editForm = { id: leaveType.id, type: leaveType.name, reason: leaveType.description };
+    this.editValidation = {};
+    this.showEditModal = true;
   }
 
   onDeleteLeaveType(leaveType: LeaveType) {
-    // Implementation for delete confirmation and action
-    console.log('Delete leave type:', leaveType.name);
+    this.leaveTypeToDelete = leaveType;
+    this.showDeleteModal = true;
   }
 
   validateAddForm(): boolean {
@@ -107,6 +121,57 @@ export class LeaveTypeManagementComponent {
       description: this.addForm.reason
     });
     this.showAddModal = false;
+  }
+
+  validateEditForm(): boolean {
+    this.editValidation = {};
+    let valid = true;
+    if (!this.editForm.type) {
+      this.editValidation.type = 'Leave type is required.';
+      valid = false;
+    }
+    if (!this.editForm.reason.trim()) {
+      this.editValidation.reason = 'Reason is required.';
+      valid = false;
+    }
+    return valid;
+  }
+
+  submitEditLeaveType() {
+    if (!this.validateEditForm()) return;
+    const idx = this.leaveTypes.findIndex(l => l.id === this.editForm.id);
+    if (idx !== -1) {
+      this.leaveTypes[idx].name = this.editForm.type;
+      this.leaveTypes[idx].description = this.editForm.reason;
+      this.showEditModal = false;
+      this.showToast('Leave type updated successfully!', 'success');
+    }
+  }
+
+  confirmDeleteLeaveType() {
+    if (this.leaveTypeToDelete) {
+      this.leaveTypes = this.leaveTypes.filter(l => l.id !== this.leaveTypeToDelete!.id);
+      this.showDeleteModal = false;
+      this.leaveTypeToDelete = null;
+      this.showToast('Leave type deleted successfully!', 'success');
+    }
+  }
+
+  cancelDeleteLeaveType() {
+    this.showDeleteModal = false;
+    this.leaveTypeToDelete = null;
+  }
+
+  showToast(message: string, type: string = 'info', duration: number = 2000) {
+    this.toast.show = true;
+    this.toast.message = message;
+    this.toast.type = type;
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.toast.show = false;
+    }, duration);
   }
 
   get filteredLeaveTypes() {

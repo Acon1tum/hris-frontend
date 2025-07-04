@@ -1,11 +1,13 @@
 <header class="app-header">
   <div class="header-container">
+    <!-- Left: Logo -->
     <div class="header-left">
-      <span class="app-title" *ngIf="isSidebarCollapsed">Quanby HRIS</span>
+      <img src="assets/images/QuanbyLogo.png" alt="Logo" class="header-logo" />
+      <span class="app-title" *ngIf="isSidebarCollapsed || isMobile">Quanby HRIS</span>
     </div>
 
-    <div class="header-right">
-      <!-- Search Bar -->
+    <!-- Center: Search Bar -->
+    <div class="header-center">
       <div class="search-container">
         <div class="search-input-wrapper">
           <span class="material-symbols-outlined search-icon">search</span>
@@ -15,44 +17,10 @@
           </button>
         </div>
       </div>
+    </div>
 
-      <!-- Notifications -->
-      <div class="notification-container">
-        <button class="notification-btn" (click)="toggleNotifications()" aria-label="Notifications" [class.pulse]="notifications.length > 0">
-          <span class="material-symbols-outlined">notifications</span>
-          <span class="notification-badge" *ngIf="notifications.length > 0">{{ notifications.length }}</span>
-        </button>
-        
-        <div class="notification-dropdown" *ngIf="showNotifications">
-          <div class="notification-header">
-            <h3>Notifications</h3>
-            <button class="clear-all" (click)="clearAllNotifications()">
-              <span class="material-symbols-outlined">clear_all</span>
-              Clear All
-            </button>
-          </div>
-          <div class="notification-list">
-            <div class="notification-item" 
-                 *ngFor="let notification of notifications"
-                 (click)="onNotificationClick(notification)">
-              <div class="notification-icon" [class]="'type-' + notification.type">
-                <span class="material-symbols-outlined">
-                  {{ notification.type === 'success' ? 'check_circle' : notification.type === 'warning' ? 'warning' : 'info' }}
-                </span>
-              </div>
-              <div class="notification-content">
-                <p class="notification-message">{{ notification.message }}</p>
-                <span class="notification-time">{{ notification.time }}</span>
-              </div>
-              <button class="notification-close" (click)="removeNotification(notification.id)">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- User Menu -->
+    <!-- Right: User/Profile Icon -->
+    <div class="header-right">
       <div class="user-container" *ngIf="currentUser$ | async as currentUser">
         <button class="user-btn" (click)="toggleUserMenu()" aria-label="User menu">
           <div class="user-avatar">
@@ -60,10 +28,7 @@
             <span class="material-symbols-outlined" *ngIf="!currentUser.avatar">person</span>
             <span class="status-indicator" [class.online]="isOnline" aria-label="Online status"></span>
           </div>
-          <span class="user-name">{{ currentUser.name || 'User' }}</span>
-          <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
         </button>
-        
         <div class="user-dropdown" *ngIf="showUserMenu">
           <div class="user-info">
             <div class="user-avatar-large">

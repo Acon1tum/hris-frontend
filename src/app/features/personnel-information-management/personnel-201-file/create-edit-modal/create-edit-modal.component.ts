@@ -217,4 +217,9 @@ export class CreateEditModalComponent implements AfterViewInit {
       observer.observe(section.nativeElement);
     });
   }
+
+  noop(event: Event) {
+    // Do nothing, just prevent propagation
+    event.stopPropagation();
+  }
 } 

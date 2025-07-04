@@ -1,6 +1,8 @@
 <div class="fixed inset-0 z-50 w-screen h-screen bg-black/40 backdrop-blur-sm overflow-y-auto pl-[300px]"
-     [ngClass]="closing ? 'animate-slide-out-right' : 'animate-slide-in-right'">
-  <div class="my-profile-container wide-modal modal-elevated flex flex-col" style="max-width: 1100px; padding: 20px; width: 100%; min-height: 10vh; border-radius: 1rem; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12); background: #fff; padding-bottom: 0rem; max-height: 85vh; overflow-y: auto;">
+     [ngClass]="closing ? 'animate-slide-out-right' : 'animate-slide-in-right'"
+     (click)="noop($event)">
+  <div class="my-profile-container wide-modal modal-elevated flex flex-col" style="max-width: 1100px; padding: 20px; width: 100%; min-height: 10vh; border-radius: 1rem; box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12); background: #fff; padding-bottom: 0rem; max-height: 85vh; overflow-y: auto;"
+       (click)="$event.stopPropagation()">
     <div class="header-section">
       <div class="header-content">
         <div class="title-description">

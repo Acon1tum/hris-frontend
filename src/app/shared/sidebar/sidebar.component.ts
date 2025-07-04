@@ -21,8 +21,15 @@ export class SidebarComponent implements OnInit {
 
   menuItems: MenuItem[] = [];
   currentUser$ = this.authService.currentUser$;
-  expandedItems: Set<string> = new Set();
+  expandedItem: string | null = null;
   isMobile = window.innerWidth <= 768;
+
+  // Add static app links for the APP section
+  appLinks = [
+    { name: 'Webflow', icon: 'apps' },
+    { name: 'Framer', icon: 'dashboard_customize' },
+    { name: 'Typeform', icon: 'description' }
+  ];
 
   constructor(
     private authService: AuthService,
@@ -98,16 +105,27 @@ export class SidebarComponent implements OnInit {
   toggleMenuItem(itemName: string, event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    
-    if (this.expandedItems.has(itemName)) {
-      this.expandedItems.delete(itemName);
+
+    // If sidebar is collapsed and not mobile, expand it
+    if (this.isCollapsed && !this.isMobile) {
+      this.isCollapsed = false;
+      this.isOpen = true;
+      this.emitStateChange();
+      setTimeout(() => {
+        this.expandedItem = itemName;
+      }, 200); // Adjust delay as needed for animation
+      return;
+    }
+
+    if (this.expandedItem === itemName) {
+      this.expandedItem = null;
     } else {
-      this.expandedItems.add(itemName);
+      this.expandedItem = itemName;
     }
   }
 
   isMenuItemExpanded(itemName: string): boolean {
-    return this.expandedItems.has(itemName);
+    return this.expandedItem === itemName;
   }
 
   onMenuItemClick() {

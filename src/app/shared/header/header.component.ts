@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -19,7 +19,7 @@ interface Notification {
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   @HostBinding('class.sidebar-open') isSidebarOpen = false;
   @Input() isSidebarCollapsed = false;
   
@@ -41,11 +41,17 @@ export class HeaderComponent {
   showNotifications = false;
   searchText = '';
   isOnline = true;
+  isMobile = window.innerWidth <= 768;
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.isMobile = window.innerWidth <= 768;
+  }
 
   toggleUserMenu() {
     this.showUserMenu = !this.showUserMenu;
@@ -87,5 +93,9 @@ export class HeaderComponent {
 
   onSearchInput() {
     // Optionally, implement search logic here
+  }
+
+  ngOnInit(): void {
+    // Initialization logic can go here if needed
   }
 } 

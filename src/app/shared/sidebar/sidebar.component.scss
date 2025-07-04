@@ -26,6 +26,7 @@
   flex-direction: column;
   overflow-y: auto;
   border-right: 1px solid var(--border-color);
+  border-radius: 0 0rem 0rem 0;
   /* border-top: none; */
 
   // Mobile styles
@@ -45,7 +46,6 @@
       width: var(--sidebar-collapsed-width);
       
       .sidebar-header {
-        padding: 1.5rem 0.5rem;
         
         .logo {
           justify-content: center;
@@ -149,27 +149,15 @@
           font-weight: 500;
           cursor: pointer;
 
-          &:hover {
-            background-color: var(--background-color);
-            color: var(--primary-color);
-            transform: translateX(2px);
-          }
-
           &.active {
             background: linear-gradient(135deg, var(--primary-color) 0%, #0b6ed9 100%);
             color: white;
-            box-shadow: 0 2px 4px rgba(12, 127, 242, 0.2);
-
-            &::before {
-              content: '';
-              position: absolute;
-              left: 0;
-              top: 0;
-              bottom: 0;
-              width: 4px;
-              background: white;
-              border-radius: 0 2px 2px 0;
-            }
+            border-radius: 1rem;
+            margin: 0.5rem;
+            box-shadow: 0 2px 8px rgba(12, 127, 242, 0.08);
+            position: relative;
+            z-index: 1;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
           }
 
           &.has-submenu {
@@ -259,12 +247,14 @@
               &:hover {
                 background-color: rgba(12, 127, 242, 0.05);
                 color: var(--primary-color);
-                transform: translateX(2px);
+                transform: translateX(1px);
               }
 
               &.active {
                 background: linear-gradient(135deg, var(--primary-color) 0%, #0b6ed9 100%);
                 color: white;
+                border-radius: 0.5rem;
+                margin: 0.5rem;
                 box-shadow: 0 1px 3px rgba(12, 127, 242, 0.2);
               }
 
@@ -412,4 +402,154 @@
   .nav-link {
     padding: 1rem 1.5rem;
   }
+}
+
+// Sidebar Section Header
+.sidebar-section-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 1.25rem 1.5rem 0.5rem 1.5rem;
+  margin-bottom: 0.25rem;
+  opacity: 0.8;
+  transition: padding 0.3s;
+}
+
+// App List Section
+.app-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .app-item {
+    .app-link {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 1.5rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      transition: background 0.2s, color 0.2s;
+      cursor: pointer;
+
+      &:hover {
+        background: var(--background-color);
+        color: var(--primary-color);
+      }
+
+      .app-icon {
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+        width: 1.5rem;
+        text-align: center;
+      }
+      .app-text {
+        flex: 1;
+      }
+    }
+  }
+}
+
+// Collapsed state adjustments
+.sidebar.collapsed {
+  .sidebar-section-header {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    text-align: center;
+  }
+  .app-link {
+    justify-content: center;
+    padding: 0.5rem !important;
+    .app-icon {
+      margin-right: 0 !important;
+    }
+    .app-text {
+      display: none;
+    }
+  }
+}
+
+// Highlight container for selected tab (main and submenu)
+.nav-link.active, .submenu-link.active {
+  background: #f3f4f6;
+  color: var(--text-primary);
+  border-radius: 1.5rem;
+  box-shadow: none;
+  position: relative;
+  z-index: 1;
+  transition: background 0.2s, color 0.2s;
+}
+
+// Remove sharp left border highlight if present
+.nav-link.active::before, .submenu-link.active::before {
+  display: none;
+}
+
+// Centered sidebar toggle button when collapsed
+.sidebar-toggle-center {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  transform: translateY(-50%);
+  z-index: 1100;
+}
+
+.sidebar.collapsed .sidebar-header .toggle-btn {
+  display: none !important;
+}
+
+// Outside right edge toggle button when collapsed
+.sidebar-toggle-center-outside {
+  position: fixed;
+  top: 50%;
+  left: calc(var(--sidebar-collapsed-width) + 12px);
+  transform: translateY(-50%);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  width: 32px;
+  pointer-events: auto;
+  margin-left: 90px;
+}
+
+.sidebar-toggle-center-outside .toggle-btn {
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid var(--border-color);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--primary-color);
+  transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-toggle-center-outside .toggle-btn:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.nav-arrow-collapsed {
+  font-size: 1.25rem;
+  margin-left: 0.25rem;
+  color: var(--text-secondary);
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 } 

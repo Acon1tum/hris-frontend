@@ -7,7 +7,7 @@
       <img alt="Company Logo" class="logo-icon" src="assets/images/QuanbyLogo.png"/>
       <span class="logo-text" *ngIf="!isCollapsed || isMobile">Quanby HRIS</span>
     </div>  
-    <button class="toggle-btn" (click)="toggleSidebar()">
+    <button class="toggle-btn" (click)="toggleSidebar()" *ngIf="!isCollapsed || isMobile">
       <span class="material-symbols-outlined">
         {{ (isOpen && !isCollapsed) ? 'chevron_left' : 'chevron_right' }}
       </span>
@@ -16,6 +16,8 @@
 
   <!-- Sidebar Navigation -->
   <nav class="sidebar-nav">
+    <!-- NAVIGATION section header -->
+    <div class="sidebar-section-header" *ngIf="!isCollapsed || isMobile">NAVIGATION</div>
     <ul class="nav-list">
       <li class="nav-item" *ngFor="let item of menuItems">
         <!-- Main menu item -->
@@ -26,10 +28,14 @@
            [class.expanded]="isMenuItemExpanded(item.name)"
            (click)="item.children && item.children.length > 0 ? toggleMenuItem(item.name, $event) : onMenuItemClick()">
           <span class="nav-icon material-symbols-outlined">{{ item.icon }}</span>
+          <span class="nav-arrow-collapsed material-symbols-outlined"
+                *ngIf="item.children && item.children.length > 0 && isCollapsed && !isMobile">
+            chevron_right
+          </span>
           <span class="nav-text" *ngIf="!isCollapsed || isMobile">{{ item.name }}</span>
           <span class="nav-badge" *ngIf="(item.badge && !isCollapsed) || isMobile">{{ item.badge }}</span>
           <span class="nav-arrow material-symbols-outlined" 
-                *ngIf="item.children && item.children.length > 0 && (!isCollapsed || isMobile)"
+                *ngIf="item.children && item.children.length > 0 && (!isCollapsed && !isMobile)"
                 [class.rotated]="isMenuItemExpanded(item.name)">
             expand_more
           </span>
@@ -54,6 +60,15 @@
     </ul>
   </nav>
 </aside>
+
+<!-- Sidebar Toggle Button (outside, right edge, only when collapsed and not mobile) -->
+<div class="sidebar-toggle-center-outside" *ngIf="isCollapsed && !isMobile">
+  <button class="toggle-btn" (click)="toggleSidebar()">
+    <span class="material-symbols-outlined">
+      {{ isCollapsed ? 'chevron_right' : 'chevron_left' }}
+    </span>
+  </button>
+</div>
 
 <!-- Sidebar Overlay - only show on mobile -->
 <div class="sidebar-overlay" 

@@ -55,4 +55,14 @@ describe('SidebarComponent', () => {
     component.onMenuItemClick();
     expect(component.sidebarToggle.emit).not.toHaveBeenCalled();
   });
+
+  it('should only allow one dropdown to be open at a time', () => {
+    const event = { preventDefault: () => {}, stopPropagation: () => {} } as Event;
+    component.toggleMenuItem('Menu1', event);
+    expect(component.expandedItem).toBe('Menu1');
+    component.toggleMenuItem('Menu2', event);
+    expect(component.expandedItem).toBe('Menu2');
+    component.toggleMenuItem('Menu2', event); // close
+    expect(component.expandedItem).toBeNull();
+  });
 }); 

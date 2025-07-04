@@ -69,6 +69,15 @@ export class LeaveEmployeeComponent {
   showSuccessModal = false;
   isSubmitting = false;
 
+  // Toast notification state
+  toast = {
+    show: false,
+    title: '',
+    message: '',
+    type: '' // e.g., 'success', 'error', 'info', 'warning'
+  };
+  toastTimeout: any = null;
+
   constructor() {
     this.updateMetrics();
   }
@@ -113,6 +122,7 @@ export class LeaveEmployeeComponent {
       if (confirm('Are you sure you want to cancel this leave application?')) {
         leave.status = 'Cancelled';
         this.updateMetrics();
+        this.showToast('Error', 'Leave application cancelled.', 'error');
       }
     }
   }
@@ -226,5 +236,25 @@ export class LeaveEmployeeComponent {
     if (!filename) return '';
     if (filename.startsWith('data:')) return filename;
     return '/assets/uploads/' + filename;
+  }
+
+  showToast(title: string, message: string, type: string = 'info', duration: number = 2000) {
+    this.toast.show = true;
+    this.toast.title = title;
+    this.toast.message = message;
+    this.toast.type = type;
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.toast.show = false;
+    }, duration);
+  }
+
+  closeToast() {
+    this.toast.show = false;
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
   }
 }

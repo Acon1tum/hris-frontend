@@ -163,6 +163,14 @@ body.modal-open {
     box-shadow: 0 8px 32px rgba(0,0,0,0.13);
     transform: translateY(-3px);
   }
+  
+  // Animation for metrics updates
+  &.metrics-updated {
+    animation: metricsUpdate 0.6s ease-in-out;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+  }
+  
   .metric-icon {
     font-size: 2.5rem;
     color: #2563eb;
@@ -185,6 +193,7 @@ body.modal-open {
         font-size: 1.7rem;
         font-weight: 700;
         color: #111827;
+        transition: color 0.3s ease;
       }
       .trend {
         font-size: 1rem;
@@ -195,6 +204,22 @@ body.modal-open {
         &.negative { color: #dc2626; }
       }
     }
+  }
+}
+
+// Animation keyframes for metrics updates
+@keyframes metricsUpdate {
+  0% {
+    transform: scale(1);
+    border-color: #e5e7eb;
+  }
+  50% {
+    transform: scale(1.02);
+    border-color: #3b82f6;
+  }
+  100% {
+    transform: scale(1);
+    border-color: #e5e7eb;
   }
 }
 
@@ -1549,4 +1574,14 @@ body.modal-open {
       }
     }
   }
+}
+
+.number.metric-sm {
+  font-size: 1.3rem !important;
+}
+.number.metric-xs {
+  font-size: 1.1rem !important;
+}
+.number.metric-xxs {
+  font-size: 0.95rem !important;
 }

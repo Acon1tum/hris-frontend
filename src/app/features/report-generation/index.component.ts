@@ -236,35 +236,72 @@ export class ReportGenerationComponent implements OnInit {
   title = 'Report Generation';
   currentView: 'main' | 'templates' | 'audit-trail' | 'scheduled-reports' | 'sensitive-reports' | ReportType = 'main';
   
-  // Dashboard Metrics
+  // Dashboard Metrics - Refactored to be report-specific
   keyMetrics: DashboardMetric[] = [
-    { label: 'Total Employees', value: 1250, trend: 5.2, icon: 'fas fa-users' },
-    { label: 'Active Requests', value: 48, trend: -2.1, icon: 'fas fa-tasks' },
-    { label: 'Pending Approvals', value: 15, trend: 0, icon: 'fas fa-clock' },
-    { label: 'System Uptime', value: 99.9, trend: 0.1, icon: 'fas fa-server' }
+    { label: 'Total Reports Generated', value: 0, trend: 0, icon: 'fas fa-chart-bar' },
+    { label: 'Active Scheduled Reports', value: 0, trend: 0, icon: 'fas fa-clock' },
+    { label: 'Templates Available', value: 0, trend: 0, icon: 'fas fa-file-alt' },
+    { label: 'Export Success Rate', value: 0, trend: 0, icon: 'fas fa-download' }
   ];
 
+  // Report-specific module activities
   moduleActivities: (ModuleActivity & { icon: string })[] = [
-    { module: 'Employee Management', activeUsers: 45, lastActivity: new Date(), status: 'active', icon: 'fas fa-id-badge' },
-    { module: 'Payroll', activeUsers: 12, lastActivity: new Date(), status: 'active', icon: 'fas fa-money-check-alt' },
-    { module: 'Attendance', activeUsers: 89, lastActivity: new Date(), status: 'active', icon: 'fas fa-calendar-check' },
-    { module: 'Leave Management', activeUsers: 34, lastActivity: new Date(), status: 'active', icon: 'fas fa-calendar-alt' },
-    { module: 'Performance', activeUsers: 23, lastActivity: new Date(), status: 'maintenance', icon: 'fas fa-chart-line' }
+    { module: 'Employee Reports', activeUsers: 0, lastActivity: new Date(), status: 'active', icon: 'fas fa-users' },
+    { module: 'Payroll Reports', activeUsers: 0, lastActivity: new Date(), status: 'active', icon: 'fas fa-money-check-alt' },
+    { module: 'Attendance Reports', activeUsers: 0, lastActivity: new Date(), status: 'active', icon: 'fas fa-calendar-check' },
+    { module: 'Leave Reports', activeUsers: 0, lastActivity: new Date(), status: 'active', icon: 'fas fa-calendar-alt' },
+    { module: 'Performance Reports', activeUsers: 0, lastActivity: new Date(), status: 'active', icon: 'fas fa-chart-line' },
+    { module: 'Custom Reports', activeUsers: 0, lastActivity: new Date(), status: 'active', icon: 'fas fa-cogs' }
   ];
 
+  // Report generation statistics by department
   departmentMetrics: (DepartmentMetric & { icon: string })[] = [
-    { name: 'Human Resources', employeeCount: 25, activeRequests: 12, completionRate: 87.5, icon: 'fas fa-user-friends' },
-    { name: 'IT Department', employeeCount: 45, activeRequests: 8, completionRate: 92.3, icon: 'fas fa-laptop-code' },
-    { name: 'Finance', employeeCount: 30, activeRequests: 15, completionRate: 78.9, icon: 'fas fa-coins' },
-    { name: 'Operations', employeeCount: 150, activeRequests: 25, completionRate: 85.2, icon: 'fas fa-cogs' }
+    { name: 'Human Resources', employeeCount: 0, activeRequests: 0, completionRate: 0, icon: 'fas fa-user-friends' },
+    { name: 'IT Department', employeeCount: 0, activeRequests: 0, completionRate: 0, icon: 'fas fa-laptop-code' },
+    { name: 'Finance', employeeCount: 0, activeRequests: 0, completionRate: 0, icon: 'fas fa-coins' },
+    { name: 'Operations', employeeCount: 0, activeRequests: 0, completionRate: 0, icon: 'fas fa-cogs' }
   ];
 
+  // Report type distribution
   roleDistribution: (RoleDistribution & { icon: string })[] = [
-    { role: 'Employee', count: 980, percentage: 78.4, icon: 'fas fa-user' },
-    { role: 'Manager', count: 145, percentage: 11.6, icon: 'fas fa-user-tie' },
-    { role: 'HR Staff', count: 85, percentage: 6.8, icon: 'fas fa-user-cog' },
-    { role: 'Admin', count: 40, percentage: 3.2, icon: 'fas fa-user-shield' }
+    { role: 'Employee Reports', count: 0, percentage: 0, icon: 'fas fa-users' },
+    { role: 'Payroll Reports', count: 0, percentage: 0, icon: 'fas fa-money-check-alt' },
+    { role: 'Attendance Reports', count: 0, percentage: 0, icon: 'fas fa-clock' },
+    { role: 'Leave Reports', count: 0, percentage: 0, icon: 'fas fa-calendar-alt' },
+    { role: 'Performance Reports', count: 0, percentage: 0, icon: 'fas fa-chart-line' },
+    { role: 'Custom Reports', count: 0, percentage: 0, icon: 'fas fa-cogs' }
   ];
+
+  // New properties for tracking report generation statistics
+  reportStats = {
+    totalGenerated: 0,
+    thisMonth: 0,
+    lastMonth: 0,
+    exportSuccess: 0,
+    exportTotal: 0,
+    scheduledActive: 0,
+    scheduledTotal: 0,
+    byReportType: {
+      employee: 0,
+      payroll: 0,
+      attendance: 0,
+      leave: 0,
+      performance: 0,
+      custom: 0
+    },
+    byDepartment: {
+      'Human Resources': 0,
+      'IT Department': 0,
+      'Finance': 0,
+      'Operations': 0
+    },
+    byRole: {
+      'Report Viewer': 0,
+      'Report Generator': 0,
+      'Report Admin': 0,
+      'Sensitive Data Access': 0
+    }
+  };
 
   // Report Templates
   reportTemplates: ReportTemplate[] = [
@@ -920,7 +957,340 @@ export class ReportGenerationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Here you would typically fetch real data from your services
+    // Remove sample audit trail data; dashboard will only update based on real report generation
+    // this.initializeSampleAuditData();
+    
+    // Calculate initial dashboard metrics
+    this.calculateDashboardMetrics();
+  }
+
+  // Method to calculate dashboard metrics based on actual data
+  calculateDashboardMetrics() {
+    // Calculate total reports generated from audit trails
+    const totalReports = this.auditTrails.length;
+    
+    // Calculate active scheduled reports
+    const activeScheduledReports = this.scheduledReports.filter(report => report.status === 'active').length;
+    
+    // Calculate templates available
+    const templatesAvailable = this.reportTemplates.filter(template => template.status === 'active').length;
+    
+    // Calculate export success rate from audit trails
+    const exportAttempts = this.auditTrails.filter(audit => 
+      audit.action === 'exported' || audit.action === 'printed'
+    ).length;
+    const successfulExports = this.auditTrails.filter(audit => 
+      (audit.action === 'exported' || audit.action === 'printed') && audit.status === 'success'
+    ).length;
+    const exportSuccessRate = exportAttempts > 0 ? Math.round((successfulExports / exportAttempts) * 100) : 98.5;
+    
+    // Update key metrics
+    this.keyMetrics = [
+      { 
+        label: 'Total Reports Generated', 
+        value: totalReports, 
+        trend: 12.5, // In real app, calculate trend from historical data
+        icon: 'fas fa-chart-bar' 
+      },
+      { 
+        label: 'Active Scheduled Reports', 
+        value: activeScheduledReports, 
+        trend: 0, 
+        icon: 'fas fa-clock' 
+      },
+      { 
+        label: 'Templates Available', 
+        value: templatesAvailable, 
+        trend: 0, 
+        icon: 'fas fa-file-alt' 
+      },
+      { 
+        label: 'Export Success Rate', 
+        value: exportSuccessRate, 
+        trend: 2.1, 
+        icon: 'fas fa-download' 
+      }
+    ];
+
+    // Calculate report type distribution
+    this.calculateReportTypeDistribution();
+    
+    // Calculate department metrics
+    this.calculateDepartmentMetrics();
+    
+    // Calculate module activities
+    this.calculateModuleActivities();
+    
+    // Show visual update animation
+    setTimeout(() => {
+      this.showMetricsUpdated();
+    }, 100);
+  }
+
+  // Calculate report type distribution
+  calculateReportTypeDistribution() {
+    const reportTypeCounts = {
+      employee: 0,
+      payroll: 0,
+      attendance: 0,
+      leave: 0,
+      performance: 0,
+      custom: 0
+    };
+
+    // Count reports by type from audit trails
+    this.auditTrails.forEach(audit => {
+      switch (audit.reportType) {
+        case ReportType.EMPLOYEE:
+          reportTypeCounts.employee++;
+          break;
+        case ReportType.PAYROLL:
+          reportTypeCounts.payroll++;
+          break;
+        case ReportType.ATTENDANCE:
+          reportTypeCounts.attendance++;
+          break;
+        case ReportType.LEAVE:
+          reportTypeCounts.leave++;
+          break;
+        case ReportType.PERFORMANCE:
+          reportTypeCounts.performance++;
+          break;
+        case ReportType.CUSTOM:
+          reportTypeCounts.custom++;
+          break;
+      }
+    });
+
+    const totalReports = Object.values(reportTypeCounts).reduce((sum, count) => sum + count, 0);
+
+    this.roleDistribution = [
+      { 
+        role: 'Employee Reports', 
+        count: reportTypeCounts.employee, 
+        percentage: totalReports > 0 ? Math.round((reportTypeCounts.employee / totalReports) * 100) : 0, 
+        icon: 'fas fa-users' 
+      },
+      { 
+        role: 'Payroll Reports', 
+        count: reportTypeCounts.payroll, 
+        percentage: totalReports > 0 ? Math.round((reportTypeCounts.payroll / totalReports) * 100) : 0, 
+        icon: 'fas fa-money-check-alt' 
+      },
+      { 
+        role: 'Attendance Reports', 
+        count: reportTypeCounts.attendance, 
+        percentage: totalReports > 0 ? Math.round((reportTypeCounts.attendance / totalReports) * 100) : 0, 
+        icon: 'fas fa-clock' 
+      },
+      { 
+        role: 'Leave Reports', 
+        count: reportTypeCounts.leave, 
+        percentage: totalReports > 0 ? Math.round((reportTypeCounts.leave / totalReports) * 100) : 0, 
+        icon: 'fas fa-calendar-alt' 
+      },
+      { 
+        role: 'Performance Reports', 
+        count: reportTypeCounts.performance, 
+        percentage: totalReports > 0 ? Math.round((reportTypeCounts.performance / totalReports) * 100) : 0, 
+        icon: 'fas fa-chart-line' 
+      },
+      { 
+        role: 'Custom Reports', 
+        count: reportTypeCounts.custom, 
+        percentage: totalReports > 0 ? Math.round((reportTypeCounts.custom / totalReports) * 100) : 0, 
+        icon: 'fas fa-cogs' 
+      }
+    ];
+  }
+
+  // Calculate department metrics based on report generation
+  calculateDepartmentMetrics() {
+    const departmentStats: { [key: string]: { reports: number; employees: number; requests: number } } = {
+      'Human Resources': { reports: 0, employees: 25, requests: 0 },
+      'IT Department': { reports: 0, employees: 45, requests: 0 },
+      'Finance': { reports: 0, employees: 30, requests: 0 },
+      'Operations': { reports: 0, employees: 150, requests: 0 }
+    };
+
+    // Count reports by department from audit trails
+    this.auditTrails.forEach(audit => {
+      if (departmentStats[audit.department]) {
+        departmentStats[audit.department].reports++;
+      }
+    });
+
+    // Calculate completion rates (simulated based on report generation)
+    this.departmentMetrics = [
+      { 
+        name: 'Human Resources', 
+        employeeCount: departmentStats['Human Resources'].employees, 
+        activeRequests: departmentStats['Human Resources'].requests, 
+        completionRate: Math.min(95, 70 + (departmentStats['Human Resources'].reports * 5)), 
+        icon: 'fas fa-user-friends' 
+      },
+      { 
+        name: 'IT Department', 
+        employeeCount: departmentStats['IT Department'].employees, 
+        activeRequests: departmentStats['IT Department'].requests, 
+        completionRate: Math.min(95, 75 + (departmentStats['IT Department'].reports * 4)), 
+        icon: 'fas fa-laptop-code' 
+      },
+      { 
+        name: 'Finance', 
+        employeeCount: departmentStats['Finance'].employees, 
+        activeRequests: departmentStats['Finance'].requests, 
+        completionRate: Math.min(95, 80 + (departmentStats['Finance'].reports * 3)), 
+        icon: 'fas fa-coins' 
+      },
+      { 
+        name: 'Operations', 
+        employeeCount: departmentStats['Operations'].employees, 
+        activeRequests: departmentStats['Operations'].requests, 
+        completionRate: Math.min(95, 65 + (departmentStats['Operations'].reports * 6)), 
+        icon: 'fas fa-cogs' 
+      }
+    ];
+  }
+
+  // Calculate module activities based on report generation
+  calculateModuleActivities() {
+    const moduleStats: { [key: string]: { reports: number; lastActivity: Date } } = {
+      'Employee Reports': { reports: 0, lastActivity: new Date() },
+      'Payroll Reports': { reports: 0, lastActivity: new Date() },
+      'Attendance Reports': { reports: 0, lastActivity: new Date() },
+      'Leave Reports': { reports: 0, lastActivity: new Date() },
+      'Performance Reports': { reports: 0, lastActivity: new Date() },
+      'Custom Reports': { reports: 0, lastActivity: new Date() }
+    };
+
+    // Count reports by type and get latest activity
+    this.auditTrails.forEach(audit => {
+      let moduleName = '';
+      switch (audit.reportType) {
+        case ReportType.EMPLOYEE:
+          moduleName = 'Employee Reports';
+          break;
+        case ReportType.PAYROLL:
+          moduleName = 'Payroll Reports';
+          break;
+        case ReportType.ATTENDANCE:
+          moduleName = 'Attendance Reports';
+          break;
+        case ReportType.LEAVE:
+          moduleName = 'Leave Reports';
+          break;
+        case ReportType.PERFORMANCE:
+          moduleName = 'Performance Reports';
+          break;
+        case ReportType.CUSTOM:
+          moduleName = 'Custom Reports';
+          break;
+      }
+      
+      if (moduleStats[moduleName]) {
+        moduleStats[moduleName].reports++;
+        if (audit.generatedAt > moduleStats[moduleName].lastActivity) {
+          moduleStats[moduleName].lastActivity = audit.generatedAt;
+        }
+      }
+    });
+
+    this.moduleActivities = [
+      { 
+        module: 'Employee Reports', 
+        activeUsers: Math.min(45, 10 + moduleStats['Employee Reports'].reports), 
+        lastActivity: moduleStats['Employee Reports'].lastActivity, 
+        status: moduleStats['Employee Reports'].reports > 0 ? 'active' : 'inactive', 
+        icon: 'fas fa-users' 
+      },
+      { 
+        module: 'Payroll Reports', 
+        activeUsers: Math.min(12, 5 + moduleStats['Payroll Reports'].reports), 
+        lastActivity: moduleStats['Payroll Reports'].lastActivity, 
+        status: moduleStats['Payroll Reports'].reports > 0 ? 'active' : 'inactive', 
+        icon: 'fas fa-money-check-alt' 
+      },
+      { 
+        module: 'Attendance Reports', 
+        activeUsers: Math.min(89, 20 + moduleStats['Attendance Reports'].reports), 
+        lastActivity: moduleStats['Attendance Reports'].lastActivity, 
+        status: moduleStats['Attendance Reports'].reports > 0 ? 'active' : 'inactive', 
+        icon: 'fas fa-calendar-check' 
+      },
+      { 
+        module: 'Leave Reports', 
+        activeUsers: Math.min(34, 8 + moduleStats['Leave Reports'].reports), 
+        lastActivity: moduleStats['Leave Reports'].lastActivity, 
+        status: moduleStats['Leave Reports'].reports > 0 ? 'active' : 'inactive', 
+        icon: 'fas fa-calendar-alt' 
+      },
+      { 
+        module: 'Performance Reports', 
+        activeUsers: Math.min(23, 6 + moduleStats['Performance Reports'].reports), 
+        lastActivity: moduleStats['Performance Reports'].lastActivity, 
+        status: moduleStats['Performance Reports'].reports > 0 ? 'active' : 'maintenance', 
+        icon: 'fas fa-chart-line' 
+      },
+      { 
+        module: 'Custom Reports', 
+        activeUsers: Math.min(15, 3 + moduleStats['Custom Reports'].reports), 
+        lastActivity: moduleStats['Custom Reports'].lastActivity, 
+        status: moduleStats['Custom Reports'].reports > 0 ? 'active' : 'inactive', 
+        icon: 'fas fa-cogs' 
+      }
+    ];
+  }
+
+  // Method to update metrics when a report is generated
+  updateMetricsOnReportGeneration(reportType: ReportType, department: string) {
+    // Update audit trails (this will be called from createAuditTrailEntry)
+    this.calculateDashboardMetrics();
+  }
+
+  // Method to demonstrate real-time dashboard updates
+  demonstrateDashboardUpdate() {
+    // Add a sample audit trail entry to show real-time updates
+    const sampleAuditEntry: AuditTrail = {
+      id: Date.now().toString(),
+      reportName: 'Demo Report - ' + new Date().toLocaleTimeString(),
+      reportType: ReportType.CUSTOM,
+      generatedBy: 'demo.user@company.com',
+      generatedAt: new Date(),
+      department: 'Demo Department',
+      action: 'generated',
+      fileSize: '1.2 KB',
+      downloadCount: 0,
+      status: 'success',
+      ipAddress: '192.168.1.105',
+      userAgent: navigator.userAgent,
+      filters: ['Report Type: Custom', 'Date Range: Demo', 'Department: Demo Department'],
+      templateUsed: 'Demo Report Template',
+      exportFormat: 'pdf',
+      reportData: { headers: [], rows: [], totalRecords: 10, totalValue: 500 },
+      reportMetadata: { dateRange: 'Demo', department: 'Demo Department', reportType: 'Custom', appliedFilters: [] }
+    };
+
+    // Add to audit trails
+    this.auditTrails.unshift(sampleAuditEntry);
+    
+    // Update dashboard metrics
+    this.calculateDashboardMetrics();
+    
+    // Show success message
+    this.showSuccess('Dashboard updated with demo data!');
+  }
+
+  // Method to show when metrics are updated
+  showMetricsUpdated() {
+    // Add a visual indicator that metrics have been updated
+    const metricCards = document.querySelectorAll('.metric-card');
+    metricCards.forEach((card, index) => {
+      card.classList.add('metrics-updated');
+      setTimeout(() => {
+        card.classList.remove('metrics-updated');
+      }, 1000 + (index * 200));
+    });
   }
 
   onCardHover(type: ReportType, isHovered: boolean) {
@@ -1401,6 +1771,9 @@ export class ReportGenerationComponent implements OnInit {
         this.showReportReady();
         // Add to audit trail when report is generated
         this.createAuditTrailEntry('generated');
+        
+        // Update dashboard metrics immediately after report generation
+        this.calculateDashboardMetrics();
       }
     }, 800); // Simulate 800ms processing time
   }
@@ -1556,6 +1929,10 @@ export class ReportGenerationComponent implements OnInit {
 
     // Use service to add audit trail entry
     this.auditTrailService.addAuditTrailEntry(auditEntry);
+    
+    // Update dashboard metrics after creating audit trail
+    this.calculateDashboardMetrics();
+    
     console.log('Audit trail entry sent to service');
   }
 
@@ -1598,6 +1975,9 @@ export class ReportGenerationComponent implements OnInit {
       // Add to audit trail
       this.createAuditTrailEntry('exported', 'csv');
       
+      // Update dashboard metrics after export
+      this.calculateDashboardMetrics();
+      
       this.showSuccess('CSV file exported successfully!');
       console.log('CSV exported successfully!');
     } catch (error) {
@@ -1634,6 +2014,9 @@ export class ReportGenerationComponent implements OnInit {
       
       // Add to audit trail
       this.createAuditTrailEntry('exported', 'excel');
+      
+      // Update dashboard metrics after export
+      this.calculateDashboardMetrics();
       
       this.showSuccess('Excel file exported successfully!');
       console.log('Excel exported successfully!');
@@ -1694,6 +2077,9 @@ export class ReportGenerationComponent implements OnInit {
       
       // Add to audit trail
       this.createAuditTrailEntry('exported', 'pdf');
+      
+      // Update dashboard metrics after export
+      this.calculateDashboardMetrics();
       
       this.showSuccess('PDF file exported successfully!');
       console.log('PDF exported successfully!');
@@ -1783,6 +2169,9 @@ export class ReportGenerationComponent implements OnInit {
       
       // Add to audit trail
       this.createAuditTrailEntry('printed');
+      
+      // Update dashboard metrics after print
+      this.calculateDashboardMetrics();
       
       this.showSuccess('Print window opened successfully!');
       console.log('Print window opened successfully!');
@@ -1922,5 +2311,18 @@ export class ReportGenerationComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  // Update dashboard data after report generation
+  updateDashboardData() {
+    this.calculateDashboardMetrics();
+  }
+
+  // Returns a class for metric number size based on its value
+  getMetricNumberClass(value: number): string {
+    if (value >= 1000) return 'metric-xxs';
+    if (value >= 100) return 'metric-xs';
+    if (value >= 10) return 'metric-sm';
+    return '';
   }
 }

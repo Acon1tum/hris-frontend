@@ -16,8 +16,6 @@ export class SidebarComponent implements OnInit {
   @Input() isOpen = false;
   @Input() isCollapsed = false;
   @Input() isSidebarCollapsed = false;
-  @Output() sidebarToggle = new EventEmitter<void>();
-  @Output() sidebarCollapse = new EventEmitter<boolean>();
   @Output() stateChange = new EventEmitter<{isOpen: boolean; isCollapsed: boolean}>();
 
   menuItems: MenuItem[] = [];
@@ -85,24 +83,6 @@ export class SidebarComponent implements OnInit {
     });
   }
 
-  toggleSidebar() {
-    if (this.isMobile) {
-      this.isOpen = !this.isOpen;
-      this.sidebarToggle.emit();
-    } else {
-      this.isCollapsed = !this.isCollapsed;
-      this.sidebarCollapse.emit(this.isCollapsed);
-    }
-    this.emitStateChange();
-  }
-
-  private emitStateChange() {
-    this.stateChange.emit({
-      isOpen: this.isOpen,
-      isCollapsed: this.isCollapsed
-    });
-  }
-
   toggleMenuItem(itemName: string, event: Event) {
     event.preventDefault();
     event.stopPropagation();
@@ -132,12 +112,18 @@ export class SidebarComponent implements OnInit {
   onMenuItemClick() {
     if (this.isMobile) {
       this.isOpen = false;
-      this.sidebarToggle.emit();
     }
   }
 
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  private emitStateChange() {
+    this.stateChange.emit({
+      isOpen: this.isOpen,
+      isCollapsed: this.isCollapsed
+    });
   }
 } 

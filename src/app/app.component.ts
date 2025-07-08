@@ -99,16 +99,12 @@ export class AppComponent implements OnInit, OnDestroy {
       this.isSidebarOpen = !this.isSidebarOpen;
       this.isSidebarCollapsed = false;
     } else {
-      // On desktop, cycle through states: open -> collapsed -> closed -> open
+      // On desktop, toggle between open and collapsed only
       if (this.isSidebarOpen && !this.isSidebarCollapsed) {
         // Currently open, collapse it
         this.isSidebarCollapsed = true;
-      } else if (this.isSidebarOpen && this.isSidebarCollapsed) {
-        // Currently collapsed, close it
-        this.isSidebarOpen = false;
-        this.isSidebarCollapsed = false;
       } else {
-        // Currently closed, open it
+        // If collapsed or closed, open it
         this.isSidebarOpen = true;
         this.isSidebarCollapsed = false;
       }

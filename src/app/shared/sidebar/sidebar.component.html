@@ -7,11 +7,6 @@
       <img alt="Company Logo" class="logo-icon" src="assets/images/QuanbyLogo.png"/>
       <span class="logo-text" *ngIf="!isCollapsed || isMobile">Quanby HRIS</span>
     </div>  
-    <button class="toggle-btn" (click)="toggleSidebar()" *ngIf="!isCollapsed || isMobile">
-      <span class="material-symbols-outlined">
-        {{ (isOpen && !isCollapsed) ? 'chevron_left' : 'chevron_right' }}
-      </span>
-    </button>
   </div>
 
   <!-- Sidebar Navigation -->
@@ -61,18 +56,8 @@
   </nav>
 </aside>
 
-<!-- Sidebar Toggle Button (outside, right edge, only when collapsed and not mobile) -->
-<div class="sidebar-toggle-center-outside" *ngIf="isCollapsed && !isMobile">
-  <button class="toggle-btn" (click)="toggleSidebar()">
-    <span class="material-symbols-outlined">
-      {{ isCollapsed ? 'chevron_right' : 'chevron_left' }}
-    </span>
-  </button>
-</div>
-
 <!-- Sidebar Overlay - only show on mobile -->
 <div class="sidebar-overlay" 
      [class.active]="isOpen && isMobile" 
-     (click)="toggleSidebar()"
      *ngIf="isMobile">
 </div> 

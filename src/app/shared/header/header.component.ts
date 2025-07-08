@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit, HostListener } from '@angular/core';
+import { Component, HostBinding, Input, OnInit, HostListener, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -43,6 +43,8 @@ export class HeaderComponent implements OnInit {
   searchText = '';
   isOnline = true;
   isMobile = window.innerWidth <= 768;
+
+  @Output() toggleSidebar = new EventEmitter<void>();
 
   constructor(
     private authService: AuthService,
@@ -117,5 +119,9 @@ export class HeaderComponent implements OnInit {
       'border-radius': this.isMobile ? '0 0 1.5rem 1.5rem' : '0 0 2rem 2rem',
       transition: 'left 0.3s cubic-bezier(.4,2,.6,1), width 0.3s cubic-bezier(.4,2,.6,1)',
     };
+  }
+
+  emitToggleSidebar() {
+    this.toggleSidebar.emit();
   }
 } 

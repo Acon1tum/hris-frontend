@@ -1,4 +1,11 @@
 <header class="app-header soft-rounded-shadow" [ngClass]="{'collapsed': isSidebarCollapsed}" [ngStyle]="headerDynamicStyle">
+  <div class="sidebar-toggle-corner">
+    <button class="sidebar-toggle-btn" (click)="emitToggleSidebar()" aria-label="Toggle sidebar">
+      <span class="material-symbols-outlined">
+        {{ (isSidebarOpenInput && !isSidebarCollapsed) ? 'chevron_left' : 'chevron_right' }}
+      </span>
+    </button>
+  </div>
   <div class="header-container">
     <!-- Left: Logo -->
     <div class="header-left">

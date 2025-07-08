@@ -15,9 +15,7 @@
       <app-sidebar 
         [isOpen]="isSidebarOpen"
         [isCollapsed]="isSidebarCollapsed"
-        (sidebarToggle)="toggleSidebar()"
-        (stateChange)="onSidebarStateChange($event)"
-        (sidebarCollapse)="onSidebarCollapse($event)">
+        (stateChange)="onSidebarStateChange($event)">
       </app-sidebar>
       
       <main class="main-content" 

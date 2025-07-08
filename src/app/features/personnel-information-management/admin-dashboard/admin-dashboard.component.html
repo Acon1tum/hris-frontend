@@ -308,6 +308,12 @@
 
     <!-- Employee Table -->
     <div class="flex flex-col gap-4 p-4 scroll-animate">
+      <div *ngIf="loadingEmployees" class="flex items-center justify-center py-8">
+        <span class="text-blue-500 text-lg font-semibold">Loading employees...</span>
+      </div>
+      <div *ngIf="employeeLoadError" class="flex items-center justify-center py-8">
+        <span class="text-red-500 text-lg font-semibold">{{ employeeLoadError }}</span>
+      </div>
       <div class="flex items-center justify-between">
         <h2 class="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em]">Employee Table</h2>
         <div class="flex items-center gap-3">
@@ -405,7 +411,6 @@
             (click)="onPageChange(currentPage - 1)">
             <span class="material-symbols-outlined text-lg">chevron_left</span>
           </button>
-          
           <div class="flex items-center gap-1">
             <button 
               *ngFor="let page of getPageNumbers()"
@@ -418,7 +423,6 @@
               {{ page }}
             </button>
           </div>
-
           <button 
             class="flex items-center justify-center w-8 h-8 rounded-lg border border-[#dce1e5] disabled:opacity-50 disabled:cursor-not-allowed"
             [disabled]="currentPage === totalPages"

@@ -15,6 +15,7 @@ import { MENU_CONFIG } from '../../config/menu-config';
 export class SidebarComponent implements OnInit {
   @Input() isOpen = false;
   @Input() isCollapsed = false;
+  @Input() isSidebarCollapsed = false;
   @Output() sidebarToggle = new EventEmitter<void>();
   @Output() sidebarCollapse = new EventEmitter<boolean>();
   @Output() stateChange = new EventEmitter<{isOpen: boolean; isCollapsed: boolean}>();

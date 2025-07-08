@@ -36,6 +36,10 @@ export interface Personnel201ModalData {
   fileName?: string;
   profilePictureUrl?: string;
   profilePictureFile?: File | null;
+  username?: string;
+  password?: string;
+  confirmPassword?: string;
+  profilePictureBase64?: string;
 }
 
 export interface Department {
@@ -87,7 +91,11 @@ export class CreateEditModalComponent implements AfterViewInit {
     emergencyContactRelationship: '',
     fileName: '',
     profilePictureUrl: '',
-    profilePictureFile: null
+    profilePictureFile: null,
+    username: '',
+    password: '',
+    confirmPassword: '',
+    profilePictureBase64: undefined
   };
   @Input() departments: Department[] = [];
   @Input() loading: boolean = false;
@@ -179,8 +187,25 @@ export class CreateEditModalComponent implements AfterViewInit {
       return;
     }
     
-    console.log('✅ Form is valid, emitting save event');
-    this.save.emit(this.data);
+    // Only require username/password fields in create mode
+    if (this.mode === 'create') {
+      if (!this.data.username || !this.data.password || !this.data.confirmPassword || this.data.password !== this.data.confirmPassword) {
+        this.showValidationMessage = true;
+        return;
+      }
+    }
+
+    // If a profile picture file is selected, convert to base64 and emit with data
+    if (this.data.profilePictureFile) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const base64 = e.target.result;
+        this.save.emit({ ...this.data, profilePictureBase64: base64 });
+      };
+      reader.readAsDataURL(this.data.profilePictureFile);
+    } else {
+      this.save.emit({ ...this.data, profilePictureBase64: undefined });
+    }
   }
 
   hideValidationMessage() {

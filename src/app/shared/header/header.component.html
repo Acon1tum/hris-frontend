@@ -1,13 +1,11 @@
-<header class="app-header">
+<header class="app-header soft-rounded-shadow" [ngClass]="{'collapsed': isSidebarCollapsed}" [ngStyle]="headerDynamicStyle">
   <div class="header-container">
     <!-- Left: Logo -->
     <div class="header-left">
-      <img src="assets/images/QuanbyLogo.png" alt="Logo" class="header-logo" />
       <span class="app-title" *ngIf="isSidebarCollapsed || isMobile">Quanby HRIS</span>
     </div>
 
-    <!-- Center: Search Bar -->
-    <div class="header-center">
+    <div class="header-right">
       <div class="search-container">
         <div class="search-input-wrapper">
           <span class="material-symbols-outlined search-icon">search</span>
@@ -17,10 +15,8 @@
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Right: User/Profile Icon -->
-    <div class="header-right">
+      <!-- Right: User/Profile Icon -->
       <div class="user-container" *ngIf="currentUser$ | async as currentUser">
         <button class="user-btn" (click)="toggleUserMenu()" aria-label="User menu">
           <div class="user-avatar">

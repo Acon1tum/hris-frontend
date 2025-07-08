@@ -49,6 +49,8 @@ export interface Personnel201File {
     email: string;
     status: string;
   };
+  jobLevel?: string;
+  jobGrade?: string;
 }
 
 export interface AuditTrailEntry {
@@ -80,6 +82,7 @@ export interface PersonnelCreateRequest {
   philhealth_number?: string;
   sss_number?: string;
   tin_number?: string;
+  profile_picture?: string;
 }
 
 export interface PersonnelUpdateRequest {
@@ -226,6 +229,11 @@ export class Personnel201Service {
       .filter(Boolean)
       .join(' ');
 
+    let profilePictureUrl = '';
+    if (data.user && data.user.profile_picture) {
+      profilePictureUrl = data.user.profile_picture;
+    }
+
     return {
       id: data.id,
       employeeName: fullName,
@@ -256,8 +264,10 @@ export class Personnel201Service {
       sss_number: data.sss_number,
       tin_number: data.tin_number,
       user: data.user,
-        profilePictureUrl: '',
-        profilePictureFile: null
+      profilePictureUrl: profilePictureUrl,
+      profilePictureFile: null,
+      jobLevel: data.jobLevel || '',
+      jobGrade: data.jobGrade || '',
     };
   }
 

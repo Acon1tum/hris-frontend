@@ -55,6 +55,33 @@
         <small class="text-gray-500 mt-1">JPG, PNG, GIF. Max 2MB.</small>
       </section>
       <!-- End Profile Picture Upload -->
+      <!-- Username & Password Card -->
+      <div class="profile-card" *ngIf="mode === 'create'">
+        <div class="card-header">
+          <h2 class="section-title">Account Credentials</h2>
+        </div>
+        <div class="card-content">
+          <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div class="profile-field">
+              <p class="field-label">Username</p>
+              <input type="text" [(ngModel)]="data.username" name="username" required class="form-control" placeholder="Username" [ngClass]="{'border-red-400': formSubmitted && !data.username}" />
+              <span *ngIf="formSubmitted && !data.username" class="text-xs text-red-500 mt-1">Username is required.</span>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Password</p>
+              <input type="password" [(ngModel)]="data.password" name="password" required class="form-control" placeholder="Password" [ngClass]="{'border-red-400': formSubmitted && !data.password}" />
+              <span *ngIf="formSubmitted && !data.password" class="text-xs text-red-500 mt-1">Password is required.</span>
+            </div>
+            <div class="profile-field">
+              <p class="field-label">Confirm Password</p>
+              <input type="password" [(ngModel)]="data.confirmPassword" name="confirmPassword" required class="form-control" placeholder="Confirm Password" [ngClass]="{'border-red-400': formSubmitted && (!data.confirmPassword || data.password !== data.confirmPassword)}" />
+              <span *ngIf="formSubmitted && !data.confirmPassword" class="text-xs text-red-500 mt-1">Confirm Password is required.</span>
+              <span *ngIf="formSubmitted && data.password && data.confirmPassword && data.password !== data.confirmPassword" class="text-xs text-red-500 mt-1">Passwords do not match.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End Username & Password Card -->
       <div class="profile-card">
         <div class="card-header">
           <h2 class="section-title">General Information</h2>
@@ -168,9 +195,9 @@
               <span *ngIf="formSubmitted && !data.employmentType" class="text-xs text-red-500 mt-1">Employment Type is required.</span>
             </div>
             <div class="profile-field">
-              <p class="field-label">Designation</p>
-              <input type="text" [(ngModel)]="data.designation" name="designation" required class="form-control" placeholder="Designation" [ngClass]="{'border-red-400': formSubmitted && !data.designation}" />
-              <span *ngIf="formSubmitted && !data.designation" class="text-xs text-red-500 mt-1">Designation is required.</span>
+              <p class="field-label">Position</p>
+              <input type="text" [(ngModel)]="data.designation" name="designation" required class="form-control" placeholder="Enter position/job title" [ngClass]="{'border-red-400': formSubmitted && !data.designation}" />
+              <span *ngIf="formSubmitted && !data.designation" class="text-xs text-red-500 mt-1">Position is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Department</p>
@@ -186,9 +213,9 @@
               <span *ngIf="!loading && departments.length === 0" class="text-xs text-amber-600 mt-1">No departments available. Please contact administrator.</span>
             </div>
             <div class="profile-field">
-              <p class="field-label">Position</p>
-              <input type="text" [(ngModel)]="data.position" name="position" required class="form-control" placeholder="Enter position/job title" [ngClass]="{'border-red-400': formSubmitted && !data.position}" />
-              <span *ngIf="formSubmitted && !data.position" class="text-xs text-red-500 mt-1">Position is required.</span>
+              <p class="field-label">Designation</p>
+              <input type="text" [(ngModel)]="data.position" name="position" required class="form-control" placeholder="Designation" [ngClass]="{'border-red-400': formSubmitted && !data.position}" />
+              <span *ngIf="formSubmitted && !data.position" class="text-xs text-red-500 mt-1">Designation is required.</span>
             </div>
             <div class="profile-field">
               <p class="field-label">Appointment Date</p>

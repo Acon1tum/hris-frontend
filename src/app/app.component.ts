@@ -124,4 +124,8 @@ export class AppComponent implements OnInit, OnDestroy {
     const currentUrl = window.location.pathname;
     return currentUrl !== '/' && currentUrl !== '/dashboard' && currentUrl !== '/login';
   }
+
+  onSidebarCollapse(collapsed: boolean) {
+    this.isSidebarCollapsed = collapsed;
+  }
 } 

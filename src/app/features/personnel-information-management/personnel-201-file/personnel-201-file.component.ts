@@ -95,7 +95,11 @@ export class Personnel201FileComponent implements OnInit {
       emergencyContactName: '',
       emergencyContactNumber: '',
       emergencyContactRelationship: '',
-      tin_number: ''
+      tin_number: '',
+      username: '',
+      password: '',
+      confirmPassword: '',
+      profilePictureBase64: undefined
     };
   }
 
@@ -178,23 +182,27 @@ export class Personnel201FileComponent implements OnInit {
         birthdate: data.date_of_birth || '',
         gender: data.gender || '',
         civilStatus: data.civil_status || '',
-        citizenship: '',
+        citizenship: data.citizenship || '',
         employmentType: data.employment_type || '',
         designation: data.designation || '',
         appointmentDate: data.date_hired || '',
         startDate: data.date_hired || '',
         employmentStatus: data.user?.status || '',
-        jobLevel: '',
-        jobGrade: '',
+        jobLevel: data.jobLevel || '',
+        jobGrade: data.jobGrade || '',
         gsis: data.gsis_number || '',
         pagibig: data.pagibig_number || '',
         philhealth: data.philhealth_number || '',
         sss: data.sss_number || '',
-        dependents: '',
-        emergencyContactName: '',
-        emergencyContactNumber: '',
-        emergencyContactRelationship: '',
-        tin_number: data.tin_number || ''
+        dependents: data.dependents || '',
+        emergencyContactName: data.emergencyContactName || '',
+        emergencyContactNumber: data.emergencyContactNumber || '',
+        emergencyContactRelationship: data.emergencyContactRelationship || '',
+        tin_number: data.tin_number || '',
+        username: data.user?.username || '',
+        password: '',
+        confirmPassword: '',
+        profilePictureBase64: undefined
       };
       (this.editFileData as any).id = data.id;
     } else {
@@ -220,8 +228,7 @@ export class Personnel201FileComponent implements OnInit {
       // Generate unique username to avoid conflicts
       const baseUsername = modalData.email?.split('@')[0] || 
                           `${modalData.firstName?.toLowerCase()}.${modalData.lastName?.toLowerCase()}`;
-      const timestamp = Date.now().toString().slice(-4); // Last 4 digits of timestamp
-      const username = `${baseUsername}.${timestamp}`;
+      const username = baseUsername;
 
       // Map department name to department_id
       let department_id: string | undefined = undefined;
@@ -238,7 +245,7 @@ export class Personnel201FileComponent implements OnInit {
       // Set a reasonable default salary or make it configurable
       const defaultSalary = 25000; // Default starting salary
 
-      const createRequest: PersonnelCreateRequest = {
+      const createRequest: any = {
         username: username,
         email: modalData.email || '',
         password: 'TempPassword123!', // TODO: Implement proper password generation
@@ -261,6 +268,9 @@ export class Personnel201FileComponent implements OnInit {
         sss_number: modalData.sss || undefined,
         tin_number: modalData.tin_number || undefined // Fixed: Added missing TIN number
       };
+      if (modalData.profilePictureBase64) {
+        createRequest.profile_picture = modalData.profilePictureBase64;
+      }
 
       console.log('🚀 Creating personnel with data:', createRequest);
 

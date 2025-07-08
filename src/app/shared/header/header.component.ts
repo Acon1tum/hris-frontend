@@ -22,6 +22,7 @@ interface Notification {
 export class HeaderComponent implements OnInit {
   @HostBinding('class.sidebar-open') isSidebarOpen = false;
   @Input() isSidebarCollapsed = false;
+  @Input() isSidebarOpenInput = true;
   
   currentUser$ = this.authService.currentUser$;
   
@@ -97,5 +98,24 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     // Initialization logic can go here if needed
+  }
+
+  get headerClass() {
+    return this.isSidebarCollapsed ? 'collapsed' : '';
+  }
+
+  /**
+   * Returns the dynamic style object for the header based on sidebar state.
+   */
+  get headerDynamicStyle() {
+    const margin = this.isMobile ? '0.5rem' : '1.5rem';
+    const sidebarWidth = this.isSidebarCollapsed ? '80px' : '280px';
+    return {
+      left: sidebarWidth,
+      width: `calc(100vw - ${sidebarWidth} - (${margin} * 2))`,
+      'max-width': `calc(100vw - ${sidebarWidth} - (${margin} * 2))`,
+      'border-radius': this.isMobile ? '0 0 1.5rem 1.5rem' : '0 0 2rem 2rem',
+      transition: 'left 0.3s cubic-bezier(.4,2,.6,1), width 0.3s cubic-bezier(.4,2,.6,1)',
+    };
   }
 } 

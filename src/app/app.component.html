@@ -7,7 +7,8 @@
     <app-header 
       (toggleSidebar)="toggleSidebar()"
       (logout)="onLogout()"
-      [isSidebarCollapsed]="isSidebarCollapsed">
+      [isSidebarCollapsed]="isSidebarCollapsed"
+      [isSidebarOpenInput]="isSidebarOpen">
     </app-header>
     
     <div class="content-wrapper">
@@ -15,7 +16,8 @@
         [isOpen]="isSidebarOpen"
         [isCollapsed]="isSidebarCollapsed"
         (sidebarToggle)="toggleSidebar()"
-        (stateChange)="onSidebarStateChange($event)">
+        (stateChange)="onSidebarStateChange($event)"
+        (sidebarCollapse)="onSidebarCollapse($event)">
       </app-sidebar>
       
       <main class="main-content" 

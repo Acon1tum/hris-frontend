@@ -4,23 +4,14 @@ import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CdkDragDrop, moveItemInArray, CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { PersonnelService, Employee } from '../personnel.service';
+import { AuthService } from '../../../services/auth.service';
 
 interface DepartmentStat {
   name: string;
   count: number;
   percentage: number;
-}
-
-interface Employee {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  department: string;
-  position: string;
-  hireDate: string;
-  status: string;
-  profileImage?: string;
 }
 
 interface StatCard {
@@ -78,85 +69,7 @@ export class AdminDashboardComponent implements OnInit {
     { name: 'Graphics', count: 20, percentage: 40 }
   ];
 
-  recentEmployees: Employee[] = [
-    {
-      id: 1,
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      email: 'sarah.j@acme.com',
-      department: 'Marketing',
-      position: 'Marketing Manager',
-      status: 'Active',
-      hireDate: '15 Jan 2020',
-      profileImage: 'https://randomuser.me/api/portraits/women/44.jpg'
-    },
-    {
-      id: 2,
-      firstName: 'Michael',
-      lastName: 'Chen',
-      email: 'michael.c@acme.com',
-      department: 'Engineering',
-      position: 'Senior Developer',
-      status: 'Active',
-      hireDate: '22 Mar 2019',
-      profileImage: 'https://randomuser.me/api/portraits/men/32.jpg'
-    },
-    {
-      id: 3,
-      firstName: 'Emily',
-      lastName: 'Rodriguez',
-      email: 'emily.r@acme.com',
-      department: 'Human Resources',
-      position: 'HR Specialist',
-      status: 'On Leave',
-      hireDate: '05 Aug 2021',
-      profileImage: 'https://randomuser.me/api/portraits/women/68.jpg'
-    },
-    {
-      id: 4,
-      firstName: 'David',
-      lastName: 'Wilson',
-      email: 'david.w@acme.com',
-      department: 'Finance',
-      position: 'Financial Analyst',
-      status: 'Active',
-      hireDate: '12 Nov 2022',
-      profileImage: 'https://randomuser.me/api/portraits/men/75.jpg'
-    },
-    {
-      id: 5,
-      firstName: 'Michael',
-      lastName: 'Chen',
-      email: 'michael.c@acme.com',
-      department: 'Engineering',
-      position: 'Senior Developer',
-      status: 'Active',
-      hireDate: '22 Mar 2019',
-      profileImage: 'https://randomuser.me/api/portraits/men/32.jpg'
-    },
-    {
-      id: 6,
-      firstName: 'Emily',
-      lastName: 'Rodriguez',
-      email: 'emily.r@acme.com',
-      department: 'Human Resources',
-      position: 'HR Specialist',
-      status: 'On Leave',
-      hireDate: '05 Aug 2021',
-      profileImage: 'https://randomuser.me/api/portraits/women/68.jpg'
-    },
-    {
-      id: 7,
-      firstName: 'David',
-      lastName: 'Wilson',
-      email: 'david.w@acme.com',
-      department: 'Finance',
-      position: 'Financial Analyst',
-      status: 'Active',
-      hireDate: '12 Nov 2022',
-      profileImage: 'https://randomuser.me/api/portraits/men/75.jpg'
-    }
-  ];
+  recentEmployees: Employee[] = [];
 
   // Pagination properties
   currentPage = 1;
@@ -364,10 +277,15 @@ export class AdminDashboardComponent implements OnInit {
     'Total Onleave Employees': 'https://cdn-icons-png.flaticon.com/512/11498/11498606.png' 
   };  
 
+  loadingEmployees = false;
+  employeeLoadError = '';
+
   constructor(
     private router: Router,
     private fb: FormBuilder,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private personnelService: PersonnelService,
+    private authService: AuthService
   ) {
     this.editEmployeeForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -421,108 +339,85 @@ export class AdminDashboardComponent implements OnInit {
     this.statCards[4].change = this.satisfactionChange;
     this.statCards[5].value = this.performanceRating;
     this.statCards[5].change = this.performanceChange;
+    this.fetchEmployees();
+  }
+
+  fetchEmployees() {
+    this.loadingEmployees = true;
+    this.employeeLoadError = '';
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    this.personnelService.getPersonnel(this.currentPage, this.pageSize, this.searchTerm)
+      .subscribe({
+        next: (res) => {
+          this.recentEmployees = res.data;
+          this.totalItems = res.pagination?.total || res.data.length;
+          this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+          this.updatePagination();
+          this.loadingEmployees = false;
+        },
+        error: (err) => {
+          this.employeeLoadError = 'Failed to load employees.';
+          this.loadingEmployees = false;
+        }
+      });
   }
 
   // Pagination methods
   updatePagination() {
-    // Filter employees based on search term
-    let filteredEmployees = this.recentEmployees;
-    if (this.searchTerm) {
-      const searchLower = this.searchTerm.toLowerCase();
-      filteredEmployees = this.recentEmployees.filter(emp => 
-        emp.firstName.toLowerCase().includes(searchLower) ||
-        emp.lastName.toLowerCase().includes(searchLower) ||
-        emp.department.toLowerCase().includes(searchLower) ||
-        emp.position.toLowerCase().includes(searchLower) ||
-        emp.status.toLowerCase().includes(searchLower)
-      );
-    }
-
-    this.totalItems = filteredEmployees.length;
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-
-    // Ensure current page is valid
-    if (this.currentPage > this.totalPages) {
-      this.currentPage = this.totalPages || 1;
-    }
-
-    // Get paginated data
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    this.paginatedEmployees = filteredEmployees.slice(startIndex, startIndex + this.pageSize);
-  }
-
-  onPageChange(page: number) {
-    this.currentPage = page;
-    this.updatePagination();
-    // Scroll to bottom of the page
-    setTimeout(() => {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
-      });
-    }, 100); // Small delay to ensure content is updated
-  }
-
-  onPageSizeChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    this.pageSize = parseInt(select.value, 10);
-    this.currentPage = 1; // Reset to first page when changing page size
-    this.updatePagination();
-  }
-
-  onSearch(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
-    this.currentPage = 1; // Reset to first page when searching
-    this.updatePagination();
+    // Use backend pagination: just assign the result
+    this.paginatedEmployees = this.recentEmployees;
   }
 
   getPageNumbers(): number[] {
     const pages: number[] = [];
     const maxVisiblePages = 5;
-    
     if (this.totalPages <= maxVisiblePages) {
-      // Show all pages if total pages is less than max visible
       for (let i = 1; i <= this.totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Always show first page
-      pages.push(1);
-      
-      // Calculate start and end of visible pages
-      let start = Math.max(2, this.currentPage - 1);
-      let end = Math.min(this.totalPages - 1, this.currentPage + 1);
-      
-      // Adjust if at the start
-      if (this.currentPage <= 2) {
-        end = 4;
+      let start = Math.max(1, this.currentPage - 2);
+      let end = Math.min(this.totalPages, this.currentPage + 2);
+      if (this.currentPage <= 3) {
+        end = 5;
+        start = 1;
+      } else if (this.currentPage >= this.totalPages - 2) {
+        end = this.totalPages;
+        start = this.totalPages - 4;
       }
-      // Adjust if at the end
-      if (this.currentPage >= this.totalPages - 1) {
-        start = this.totalPages - 3;
-      }
-      
-      // Add ellipsis if needed
-      if (start > 2) {
-        pages.push(-1); // -1 represents ellipsis
-      }
-      
-      // Add middle pages
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
-      
-      // Add ellipsis if needed
-      if (end < this.totalPages - 1) {
-        pages.push(-2); // -2 represents ellipsis
-      }
-      
-      // Always show last page
-      pages.push(this.totalPages);
     }
-    
     return pages;
+  }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+    this.fetchEmployees();
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
+  }
+
+  onPageSizeChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.pageSize = parseInt(select.value, 10);
+    this.currentPage = 1;
+    this.fetchEmployees();
+  }
+
+  onSearch(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.searchTerm = input.value;
+    this.currentPage = 1;
+    this.fetchEmployees();
   }
 
   onAddEmployee(): void {

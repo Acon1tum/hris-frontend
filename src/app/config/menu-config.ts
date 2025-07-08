@@ -185,6 +185,12 @@ export const MENU_CONFIG: MenuItem[] = [
         icon: 'payments',
         path: '/payroll-management/payroll-run',
         permissions: PermissionGroups.PAYROLL_OPERATIONS
+      },
+      {
+        name: 'Employee Payroll',
+        icon: 'payments',
+        path: '/payroll-management/employee-payroll',
+        permissions: PermissionGroups.PAYROLL_OPERATIONS
       }
     ]
   },

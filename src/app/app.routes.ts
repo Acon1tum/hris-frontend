@@ -194,6 +194,12 @@ export const routes: Routes = [
     data: { permissions: [Permission.payroll_record_create, Permission.payroll_record_update] }
   },
   {
+    path: 'payroll-management/employee-payroll',
+    loadComponent: () => import('./features/payroll-management/employee-payroll/employee-payroll.component').then(m => m.EmployeePayrollComponent),
+    canActivate: [PermissionGuard],
+    data: { permissions: [Permission.payroll_record_create, Permission.payroll_record_update] }
+  },
+  {
     path: 'leave-management',
     loadComponent: () => import('./features/leave-management/index.component').then(m => m.LeaveManagementComponent),
     canActivate: [PermissionGuard],

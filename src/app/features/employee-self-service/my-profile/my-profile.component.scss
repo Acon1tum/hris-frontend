@@ -269,4 +269,21 @@
        padding-right: 0;
      }
    }
- } 
+ }
+
+.profile-card:first-child .profile-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-card:first-child .profile-field {
+  border-top: none;
+  padding: 0.5rem 0;
+}
+
+// Ibalik sa grid ang ibang profile-card
+.profile-card:not(:first-child) .profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+}

@@ -28,31 +28,17 @@
     <div class="metrics-grid">
       <div class="metric-card">
         <div class="metric-icon">
-          <i class="fas fa-users"></i>
+          <i class="fas fa-chart-bar"></i>
         </div>
         <div class="metric-content">
-          <h3>Total Employees</h3>
+          <h3>Total Reports Generated</h3>
           <div class="metric-value">
-            <span class="number">1250</span>
-            <span class="trend positive">
-              <i class="fas fa-arrow-up"></i>
-              5.2%
+            <span class="number" [ngClass]="getMetricNumberClass(keyMetrics[0].value)">
+              {{ keyMetrics[0].value }}
             </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-icon">
-          <i class="fas fa-tasks"></i>
-        </div>
-        <div class="metric-content">
-          <h3>Active Requests</h3>
-          <div class="metric-value">
-            <span class="number">48</span>
-            <span class="trend negative">
-              <i class="fas fa-arrow-down"></i>
-              -2.1%
+            <span class="trend" [ngClass]="keyMetrics[0].trend > 0 ? 'positive' : keyMetrics[0].trend < 0 ? 'negative' : ''">
+              <i [class]="getTrendIcon(keyMetrics[0].trend)"></i>
+              {{ keyMetrics[0].trend }}%
             </span>
           </div>
         </div>
@@ -63,12 +49,14 @@
           <i class="fas fa-clock"></i>
         </div>
         <div class="metric-content">
-          <h3>Pending Approvals</h3>
+          <h3>Active Scheduled Reports</h3>
           <div class="metric-value">
-            <span class="number">15</span>
-            <span class="trend">
-              <i class="fas fa-minus"></i>
-              0%
+            <span class="number" [ngClass]="getMetricNumberClass(keyMetrics[1].value)">
+              {{ keyMetrics[1].value }}
+            </span>
+            <span class="trend" [ngClass]="keyMetrics[1].trend > 0 ? 'positive' : keyMetrics[1].trend < 0 ? 'negative' : ''">
+              <i [class]="getTrendIcon(keyMetrics[1].trend)"></i>
+              {{ keyMetrics[1].trend }}%
             </span>
           </div>
         </div>
@@ -76,15 +64,35 @@
 
       <div class="metric-card">
         <div class="metric-icon">
-          <i class="fas fa-server"></i>
+          <i class="fas fa-file-alt"></i>
         </div>
         <div class="metric-content">
-          <h3>System Uptime</h3>
+          <h3>Templates Available</h3>
           <div class="metric-value">
-            <span class="number">99.9</span>
-            <span class="trend positive">
-              <i class="fas fa-arrow-up"></i>
-              0.1%
+            <span class="number" [ngClass]="getMetricNumberClass(keyMetrics[2].value)">
+              {{ keyMetrics[2].value }}
+            </span>
+            <span class="trend" [ngClass]="keyMetrics[2].trend > 0 ? 'positive' : keyMetrics[2].trend < 0 ? 'negative' : ''">
+              <i [class]="getTrendIcon(keyMetrics[2].trend)"></i>
+              {{ keyMetrics[2].trend }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-download"></i>
+        </div>
+        <div class="metric-content">
+          <h3>Export Success Rate</h3>
+          <div class="metric-value">
+            <span class="number" [ngClass]="getMetricNumberClass(keyMetrics[3].value)">
+              {{ keyMetrics[3].value }}%
+            </span>
+            <span class="trend" [ngClass]="keyMetrics[3].trend > 0 ? 'positive' : keyMetrics[3].trend < 0 ? 'negative' : ''">
+              <i [class]="getTrendIcon(keyMetrics[3].trend)"></i>
+              {{ keyMetrics[3].trend }}%
             </span>
           </div>
         </div>
@@ -95,14 +103,14 @@
     <div class="dashboard-row">
       <div class="dashboard-card module-activities">
         <div class="card-header">
-          <h2><i class="fas fa-chart-line"></i> Module Activities</h2>
-          <span class="card-subtitle">Real-time activity across HR modules</span>
+          <h2><i class="fas fa-chart-line"></i> Report Type Activity</h2>
+          <span class="card-subtitle">Recent activity across different report types</span>
         </div>
         <div class="activity-list">
           <div class="activity-item" *ngFor="let activity of moduleActivities">
             <div class="activity-header">
               <span class="module-name">
-                <i class="fas fa-folder"></i> {{ activity.module }}
+                <i [class]="activity.icon"></i> {{ activity.module }}
               </span>
               <span class="status-badge" [ngClass]="activity.status">
                 <i class="fas fa-circle"></i> {{ activity.status }}
@@ -110,8 +118,8 @@
             </div>
             <div class="activity-details">
               <span class="active-users">
-                <i class="fas fa-user-circle"></i>
-                {{ activity.activeUsers }} active users
+                <i class="fas fa-file-alt"></i>
+                {{ activity.activeUsers }} reports generated
               </span>
               <span class="last-activity">
                 <i class="fas fa-history"></i>
@@ -125,14 +133,14 @@
       <!-- Department Overview -->
       <div class="dashboard-card department-overview">
         <div class="card-header">
-          <h2><i class="fas fa-building"></i> Department Overview</h2>
-          <span class="card-subtitle">Performance metrics by department</span>
+          <h2><i class="fas fa-building"></i> Department Report Usage</h2>
+          <span class="card-subtitle">Report generation activity by department</span>
         </div>
         <div class="department-list">
           <div class="department-item" *ngFor="let dept of departmentMetrics">
             <div class="department-header">
               <span class="department-name">
-                <i class="fas fa-sitemap"></i> {{ dept.name }}
+                <i [class]="dept.icon"></i> {{ dept.name }}
               </span>
               <span class="completion-rate">{{ dept.completionRate }}%</span>
             </div>
@@ -142,8 +150,8 @@
                 {{ dept.employeeCount }} employees
               </span>
               <span class="stat">
-                <i class="fas fa-tasks"></i>
-                {{ dept.activeRequests }} active requests
+                <i class="fas fa-file-alt"></i>
+                {{ dept.activeRequests }} reports generated
               </span>
             </div>
             <div class="progress-bar">
@@ -153,17 +161,17 @@
         </div>
       </div>
 
-      <!-- Role Distribution -->
+      <!-- Report Type Distribution -->
       <div class="dashboard-card role-distribution">
         <div class="card-header">
-          <h2><i class="fas fa-user-tag"></i> Role Distribution</h2>
-          <span class="card-subtitle">User roles across the organization</span>
+          <h2><i class="fas fa-chart-pie"></i> Report Type Distribution</h2>
+          <span class="card-subtitle">Distribution of generated reports by type</span>
         </div>
         <div class="role-list">
           <div class="role-item" *ngFor="let role of roleDistribution">
             <div class="role-header">
               <span class="role-name">
-                <i class="fas fa-user-circle"></i> {{ role.role }}
+                <i [class]="role.icon"></i> {{ role.role }}
               </span>
               <span class="role-count">{{ role.count }}</span>
             </div>

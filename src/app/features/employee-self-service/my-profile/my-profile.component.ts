@@ -1,48 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface GeneralInformation {
-  fullName: string;
-  birthdate: string;
-  contactNumber: string;
-  address: string;
-  email: string;
-  gender: string;
-  civilStatus: string;
-  citizenship: string;
-}
-
-interface EmploymentDetails {
-  employmentType: string;
-  designation: string;
-  department: string;
-  appointmentDate: string;
-  startDate: string;
-  employmentStatus: string;
-  jobLevel: string;
-  jobGrade: string;
-}
-
-interface MembershipInformation {
-  gsis: string;
-  pagibig: string;
-  philhealth: string;
-  sss: string;
-}
-
-interface OtherInformation {
-  dependents: string;
-  emergencyContactName: string;
-  emergencyContactNumber: string;
-  emergencyContactRelationship: string;
-}
-
-interface UserProfile {
-  general: GeneralInformation;
-  employment: EmploymentDetails;
-  membership: MembershipInformation;
-  other: OtherInformation;
-}
+import { EmployeeSelfService } from '../../../services/employee-self-service.service';
+import { UserProfile } from '../../../interfaces/my-profile.interface';
 
 @Component({
   selector: 'app-my-profile',
@@ -51,42 +10,42 @@ interface UserProfile {
   templateUrl: './my-profile.component.html',
   styleUrls: ['./my-profile.component.scss']
 })
-export class MyProfileComponent {
-  
-  userProfile: UserProfile = {
-    general: {
-      fullName: 'Sophia Rodriguez',
-      birthdate: 'July 15, 1993',
-      contactNumber: '+1-555-123-4567',
-      address: '123 Maple Street, Anytown, USA',
-      email: 'sophia.rodriguez@email.com',
-      gender: 'Female',
-      civilStatus: 'Single',
-      citizenship: 'Filipino'
-    },
-    employment: {
-      employmentType: 'Regular',
-      designation: 'Senior Software Engineer',
-      department: 'Technology',
-      appointmentDate: 'January 1, 2020',
-      startDate: 'January 1, 2020',
-      employmentStatus: 'Active',
-      jobLevel: 'Level 3',
-      jobGrade: 'Grade 15'
-    },
-    membership: {
-      gsis: '123-456-7890',
-      pagibig: '987-654-3210',
-      philhealth: '11-222222222-3',
-      sss: '33-444444444-5'
-    },
-    other: {
-      dependents: 'None',
-      emergencyContactName: 'Ethan Carter',
-      emergencyContactNumber: '+1-555-987-6543',
-      emergencyContactRelationship: 'Father'
-    }
-  };
+export class MyProfileComponent implements OnInit {
+  userProfile: UserProfile | null = null;
+  loading = false;
+  error: string | null = null;
+
+  constructor(private employeeSelfService: EmployeeSelfService) {}
+
+  ngOnInit() {
+    this.fetchProfile();
+  }
+
+  fetchProfile() {
+    this.loading = true;
+    this.error = null;
+    this.employeeSelfService.fetchMyProfile().subscribe({
+      next: (res) => {
+        console.log('API my-profile response:', res);
+        if (res.data) {
+          console.log('General:', res.data.general);
+          console.log('Employment:', res.data.employment);
+          console.log('Membership:', res.data.membership);
+          console.log('Other:', res.data.other);
+        }
+        if (res.success) {
+          this.userProfile = res.data;
+        } else {
+          this.error = res.message || 'Failed to load profile';
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = err.message || 'Error loading profile';
+        this.loading = false;
+      }
+    });
+  }
 
   onEditProfile() {
     console.log('Edit profile clicked');
@@ -95,8 +54,11 @@ export class MyProfileComponent {
 
   // Helper methods for template - organized field data for clean display
   get generalInformationFields() {
+    if (!this.userProfile) return [];
     return [
-      { label: 'Full Name', value: this.userProfile.general.fullName },
+      { label: 'First Name', value: this.userProfile.general.firstName },
+      { label: 'Middle Name', value: this.userProfile.general.middleName },
+      { label: 'Last Name', value: this.userProfile.general.lastName },
       { label: 'Birthdate', value: this.userProfile.general.birthdate },
       { label: 'Contact Number', value: this.userProfile.general.contactNumber },
       { label: 'Address', value: this.userProfile.general.address },
@@ -108,6 +70,7 @@ export class MyProfileComponent {
   }
 
   get employmentDetailsFields() {
+    if (!this.userProfile) return [];
     return [
       { label: 'Employment Type', value: this.userProfile.employment.employmentType },
       { label: 'Designation', value: this.userProfile.employment.designation },
@@ -121,6 +84,7 @@ export class MyProfileComponent {
   }
 
   get membershipInformationFields() {
+    if (!this.userProfile) return [];
     return [
       { label: 'GSIS', value: this.userProfile.membership.gsis },
       { label: 'Pag-IBIG', value: this.userProfile.membership.pagibig },
@@ -130,6 +94,7 @@ export class MyProfileComponent {
   }
 
   get otherInformationFields() {
+    if (!this.userProfile) return [];
     return [
       { label: 'Dependents', value: this.userProfile.other.dependents },
       { label: 'Emergency Contact Name', value: this.userProfile.other.emergencyContactName },

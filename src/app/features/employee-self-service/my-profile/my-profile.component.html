@@ -14,75 +14,86 @@
     </div>
   </div>
 
-  <!-- General Information Section -->
-  <div class="profile-card">
-    <div class="card-header">
-      <h2 class="section-title">General Information</h2>
-    </div>
-    <div class="card-content">
-      <div class="profile-grid">
-        <div 
-          *ngFor="let field of generalInformationFields"
-          class="profile-field"
-        >
-          <p class="field-label">{{ field.label }}</p>
-          <p class="field-value">{{ field.value }}</p>
-        </div>
-      </div>
-    </div>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="profile-loading">
+    <p>Loading profile...</p>
   </div>
 
-  <!-- Employment Details Section -->
-  <div class="profile-card">
-    <div class="card-header">
-      <h2 class="section-title">Employment Details</h2>
-    </div>
-    <div class="card-content"> 
-      <div class="profile-grid">
-        <div 
-          *ngFor="let field of employmentDetailsFields"
-          class="profile-field"
-        >
-          <p class="field-label">{{ field.label }}</p>
-          <p class="field-value">{{ field.value }}</p>
-        </div>
-      </div>
-    </div>
+  <!-- Error State -->
+  <div *ngIf="!loading && error" class="profile-error">
+    <p>{{ error }}</p>
+    <button (click)="fetchProfile()">Retry</button>
   </div>
 
-  <!-- Membership Information Section -->
-  <div class="profile-card">
-    <div class="card-header">
-      <h2 class="section-title">Membership Information</h2>
-    </div>
-    <div class="card-content">
-      <div class="profile-grid">
-        <div 
-          *ngFor="let field of membershipInformationFields"
-          class="profile-field"
-        >
-          <p class="field-label">{{ field.label }}</p>
-          <p class="field-value">{{ field.value }}</p>
+  <!-- Profile Sections -->
+  <ng-container *ngIf="!loading && !error && userProfile">
+    <!-- General Information Section -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h2 class="section-title">General Information</h2>
+      </div>
+      <div class="card-content">
+        <div class="profile-grid">
+          <div *ngFor="let field of generalInformationFields" class="profile-field">
+            <p class="field-label">{{ field.label }}</p>
+            <p class="field-value">{{ field.value }}</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Other Information Section -->
-  <div class="profile-card">
-    <div class="card-header">
-      <h2 class="section-title">Other Information</h2>
-    </div>
-    <div class="card-content">
-      <div class="profile-grid">
-        <div 
-          *ngFor="let field of otherInformationFields"
-          class="profile-field"
-        >
-          <p class="field-label">{{ field.label }}</p>
-          <p class="field-value">{{ field.value }}</p>
+    <!-- Employment Details Section -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h2 class="section-title">Employment Details</h2>
+      </div>
+      <div class="card-content"> 
+        <div class="profile-grid">
+          <div 
+            *ngFor="let field of employmentDetailsFields"
+            class="profile-field"
+          >
+            <p class="field-label">{{ field.label }}</p>
+            <p class="field-value">{{ field.value }}</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+
+    <!-- Membership Information Section -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h2 class="section-title">Membership Information</h2>
+      </div>
+      <div class="card-content">
+        <div class="profile-grid">
+          <div 
+            *ngFor="let field of membershipInformationFields"
+            class="profile-field"
+          >
+            <p class="field-label">{{ field.label }}</p>
+            <p class="field-value">{{ field.value }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Other Information Section -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h2 class="section-title">Other Information</h2>
+      </div>
+      <div class="card-content">
+        <div class="profile-grid">
+          <div 
+            *ngFor="let field of otherInformationFields"
+            class="profile-field"
+          >
+            <p class="field-label">{{ field.label }}</p>
+            <p class="field-value">{{ field.value }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
 </div> 

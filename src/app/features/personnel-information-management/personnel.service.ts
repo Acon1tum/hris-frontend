@@ -57,7 +57,7 @@ export class PersonnelService {
       position: data.designation || '',
       hireDate: data.date_hired ? new Date(data.date_hired).toISOString().slice(0, 10) : '',
       status: data.user?.status || '',
-      profileImage: data.employeeSelfServiceProfile?.profilePicture || '' // or your fallback logic
+      profileImage: data.user?.profile_picture || data.employeeSelfServiceProfile?.profilePicture || ''
     };
   }
 

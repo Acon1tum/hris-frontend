@@ -15,4 +15,8 @@ export class EmployeeSelfService {
   fetchMyProfile(): Observable<MyProfileResponse> {
     return this.http.get<MyProfileResponse>(`${this.apiUrl}/my-profile`);
   }
+
+  updateMyProfile(payload: any): Observable<MyProfileResponse> {
+    return this.http.put<MyProfileResponse>(`${this.apiUrl}/my-profile`, payload);
+  }
 } 

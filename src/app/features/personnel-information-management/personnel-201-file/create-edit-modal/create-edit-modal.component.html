@@ -333,7 +333,7 @@
       <div class="card-content">
         <div class="profile-grid">
           <div class="profile-field md:col-span-3">
-            <p class="field-label">Attach File</p>
+            <p class="field-label"> </p>
       
             <!-- Custom file upload UI with drag and drop -->
             <div
@@ -352,20 +352,19 @@
                 type="file"
                 class="hidden-file-input"
                 (change)="onFileChange($event)"
+                multiple
               />
             </div>
       
-            <!-- File preview with delete -->
-            <div *ngIf="data?.fileName" class="file-preview">
-              <span class="file-icon">📄</span>
-              <span class="file-name">{{ data.fileName }}</span>
-              <button
-                type="button"
-                class="delete-btn text-red-500"
-                (click)="removeFile()"
-              >
-                Delete
-              </button>
+            <!-- File preview for multiple files -->
+            <div *ngIf="selectedFiles.length > 0" class="file-preview-list">
+              <div *ngFor="let file of selectedFiles; let i = index" class="file-preview-item flex items-center gap-2 mb-2">
+                <span class="file-icon">📄</span>
+                <span class="file-name">{{ file.name }}</span>
+                <input type="text" [(ngModel)]="fileMetas[i].title" placeholder="Title" class="form-control w-32" />
+                <input type="text" [(ngModel)]="fileMetas[i].description" placeholder="Description" class="form-control w-48" />
+                <button type="button" class="delete-btn text-red-500" (click)="removeFile(i)">Delete</button>
+              </div>
             </div>
           </div>
         </div>

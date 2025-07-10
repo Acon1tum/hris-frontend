@@ -186,6 +186,12 @@ export class Personnel201Service {
     );
   }
 
+  getUniquePositions(): Observable<string[]> {
+    return this.getPersonnelFiles().pipe(
+      map(response => Array.from(new Set(response.data.map((f: any) => f.position).filter(Boolean))))
+    );
+  }
+
   // Helper method to map department name to ID
   async getDepartmentIdByName(departmentName: string): Promise<string | undefined> {
     try {
@@ -285,4 +291,8 @@ export class Personnel201Service {
     console.error('Personnel Service Error:', errorMessage);
     return throwError(() => new Error(errorMessage));
   };
+
+  uploadDocuments(personnelId: string, documents: any[]): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${personnelId}/documents`, { documents });
+  }
 } 

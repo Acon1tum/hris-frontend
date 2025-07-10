@@ -182,13 +182,33 @@
         <div class="card-content">
           <div class="profile-grid">
             <div class="profile-field md:col-span-3">
-              <p class="field-label">Attached File</p>
-              <div *ngIf="file?.fileName; else noFile" class="file-preview flex items-center gap-2">
-                <span class="file-icon">📄</span>
-                <span class="file-name">{{ file?.fileName }}</span>
+              <p class="field-label">Uploaded Documents</p>
+              <div *ngIf="documents.length > 0; else noDocs">
+                <table class="min-w-full text-sm border">
+                  <thead>
+                    <tr>
+                      <th class="px-2 py-1 border">Title</th>
+                      <th class="px-2 py-1 border">Description</th>
+                      <th class="px-2 py-1 border">File Name</th>
+                      <th class="px-2 py-1 border">Uploaded At</th>
+                      <th class="px-2 py-1 border">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let doc of documents">
+                      <td class="border px-2 py-1">{{ doc.title }}</td>
+                      <td class="border px-2 py-1">{{ doc.description }}</td>
+                      <td class="border px-2 py-1">{{ doc.fileUrl.split('/').pop() }}</td>
+                      <td class="border px-2 py-1">{{ doc.createdAt | date:'short' }}</td>
+                      <td class="border px-2 py-1">
+                        <a [href]="doc.fileUrl" target="_blank" class="text-blue-600 hover:underline">View/Download</a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <ng-template #noFile>
-                <span class="text-gray-400">No file attached</span>
+              <ng-template #noDocs>
+                <span class="text-gray-400">No documents uploaded</span>
               </ng-template>
             </div>
           </div>

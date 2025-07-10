@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CreateEditModalComponent, Personnel201ModalData, Department } from './create-edit-modal/create-edit-modal.component';
+import { CreateEditModalComponent, Department } from './create-edit-modal/create-edit-modal.component';
 import { Personnel201Service, Personnel201File, PersonnelCreateRequest, PersonnelUpdateRequest } from './personnel-201.service';
 import { DetailsAuditTrailModalComponent } from './details-audit-trail-modal/details-audit-trail-modal.component';
 import { AuthService } from '../../../services/auth.service';
@@ -12,6 +12,47 @@ export interface AuditTrailEntry {
   timestamp: string;
   user: string;
   details: string;
+}
+
+export interface Personnel201ModalData {
+  id?: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  suffix: string;
+  email: string;
+  number: string;
+  address: string;
+  department: string;
+  position: string;
+  file?: File | null;
+  birthdate?: string;
+  gender?: string;
+  civilStatus?: string;
+  citizenship?: string;
+  employmentType?: string;
+  designation?: string;
+  appointmentDate?: string;
+  startDate?: string;
+  employmentStatus?: string;
+  jobLevel?: string;
+  jobGrade?: string;
+  gsis?: string;
+  pagibig?: string;
+  philhealth?: string;
+  sss?: string;
+  tin_number?: string;
+  dependents?: string;
+  emergencyContactName?: string;
+  emergencyContactNumber?: string;
+  emergencyContactRelationship?: string;
+  fileName?: string;
+  profilePictureUrl?: string;
+  profilePictureFile?: File | null;
+  username?: string;
+  password?: string;
+  confirmPassword?: string;
+  profilePictureBase64?: string;
 }
 
 @Component({
@@ -38,12 +79,23 @@ export class Personnel201FileComponent implements OnInit {
 
   // Pagination
   currentPage = 1;
-  pageSize = 10;
+  pageSize = 5;
   totalRecords = 0;
   totalPages = 0;
 
+  // Filter state
+  filter = {
+    nameSort: '', // '', 'az', 'za'
+    department: '',
+    position: ''
+  };
+  positions: string[] = [];
+
   // Make Math available in template
   Math = Math;
+
+  pendingFiles: File[] = [];
+  pendingMetas: { title: string; description: string }[] = [];
 
   constructor(
     private personnelService: Personnel201Service,
@@ -118,8 +170,10 @@ export class Personnel201FileComponent implements OnInit {
       next: (response) => {
         this.personnelFiles = response.data;
         this.totalRecords = response.pagination.total;
-        this.totalPages = response.pagination.pages;
+        this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
         this.loading = false;
+        // Populate unique positions for filter
+        this.positions = Array.from(new Set(this.personnelFiles.map(f => f.position).filter(Boolean)));
       },
       error: (error) => {
         this.error = error.message;
@@ -152,14 +206,36 @@ export class Personnel201FileComponent implements OnInit {
     this.loadPersonnelFiles();
   }
 
-  onPageChange(page: number) {
-    this.currentPage = page;
-    this.loadPersonnelFiles();
+  get filteredPersonnelFiles(): Personnel201File[] {
+    let files = [...this.personnelFiles];
+    // Department filter
+    if (this.filter.department) {
+      files = files.filter(f => f.department === this.filter.department);
+    }
+    // Position filter
+    if (this.filter.position) {
+      files = files.filter(f => f.position === this.filter.position);
+    }
+    // Name sort
+    if (this.filter.nameSort === 'az') {
+      files.sort((a, b) => (a.employeeName || '').localeCompare(b.employeeName || ''));
+    } else if (this.filter.nameSort === 'za') {
+      files.sort((a, b) => (b.employeeName || '').localeCompare(a.employeeName || ''));
+    }
+    return files;
   }
 
-  get filteredPersonnelFiles(): Personnel201File[] {
-    // Since we're now doing server-side filtering, just return the loaded files
-    return this.personnelFiles;
+  get isFilterActive(): boolean {
+    const f = this.filter;
+    return !!(f.nameSort || f.department || f.position);
+  }
+
+  clearFilters() {
+    this.filter = {
+      nameSort: '',
+      department: '',
+      position: ''
+    };
   }
 
   openEditModal(mode: 'create' | 'edit', data?: Personnel201File) {
@@ -220,6 +296,11 @@ export class Personnel201FileComponent implements OnInit {
     this.showEditModal = false;
   }
 
+  handleUploadDocuments(event: { files: File[]; metas: { title: string; description: string }[] }) {
+    this.pendingFiles = event.files;
+    this.pendingMetas = event.metas;
+  }
+
   private async createPersonnel(modalData: Personnel201ModalData) {
     this.loading = true;
     this.error = null;
@@ -275,8 +356,12 @@ export class Personnel201FileComponent implements OnInit {
       console.log('🚀 Creating personnel with data:', createRequest);
 
       this.personnelService.createPersonnel(createRequest).subscribe({
-        next: () => {
+        next: (createdPersonnel) => {
           console.log('✅ Personnel created successfully');
+          // Upload documents if any
+          if (this.pendingFiles.length > 0) {
+            this.uploadDocumentsToBackend(createdPersonnel.id);
+          }
           this.loadPersonnelFiles();
           this.loading = false;
         },
@@ -336,8 +421,12 @@ export class Personnel201FileComponent implements OnInit {
       console.log('🚀 Updating personnel with data:', updateRequest);
 
       this.personnelService.updatePersonnel(id, updateRequest).subscribe({
-        next: () => {
+        next: (updatedPersonnel) => {
           console.log('✅ Personnel updated successfully');
+          // Upload documents if any
+          if (this.pendingFiles.length > 0) {
+            this.uploadDocumentsToBackend(id);
+          }
           this.loadPersonnelFiles();
           this.loading = false;
         },
@@ -352,6 +441,39 @@ export class Personnel201FileComponent implements OnInit {
       this.loading = false;
       console.error('❌ Error in updatePersonnel:', error);
     }
+  }
+
+  private async uploadDocumentsToBackend(personnelId: string) {
+    const files = this.pendingFiles;
+    const metas = this.pendingMetas;
+    if (!files.length) return;
+    const documents = await Promise.all(files.map((file, i) => {
+      return new Promise<any>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          resolve({
+            base64: e.target.result,
+            title: metas[i].title,
+            description: metas[i].description,
+            fileType: file.type,
+            category: 'general',
+            isPrivate: false
+          });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }));
+    this.personnelService.uploadDocuments(personnelId, documents).subscribe({
+      next: () => {
+        this.pendingFiles = [];
+        this.pendingMetas = [];
+        this.loadPersonnelFiles();
+      },
+      error: (err: any) => {
+        console.error('❌ Error uploading documents:', err);
+      }
+    });
   }
 
   handleModalCancel() {
@@ -395,41 +517,48 @@ export class Personnel201FileComponent implements OnInit {
     this.openEditModal('edit', file);
   }
 
-  // Pagination helpers
-  getPaginationArray(): number[] {
+  // Pagination logic (admin dashboard style)
+  getPageNumbers(): number[] {
     const pages: number[] = [];
-    const startPage = Math.max(1, this.currentPage - 2);
-    const endPage = Math.min(this.totalPages, this.currentPage + 2);
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
+    const maxVisiblePages = 5;
+    if (this.totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      let start = Math.max(1, this.currentPage - 2);
+      let end = Math.min(this.totalPages, this.currentPage + 2);
+      if (this.currentPage <= 3) {
+        end = 5;
+        start = 1;
+      } else if (this.currentPage >= this.totalPages - 2) {
+        end = this.totalPages;
+        start = this.totalPages - 4;
+      }
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
     }
-    
     return pages;
   }
 
-  goToFirstPage() {
-    if (this.currentPage > 1) {
-      this.onPageChange(1);
-    }
+  onPageChange(page: number) {
+    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    this.currentPage = page;
+    this.loadPersonnelFiles();
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
   }
 
-  goToLastPage() {
-    if (this.currentPage < this.totalPages) {
-      this.onPageChange(this.totalPages);
-    }
-  }
-
-  goToPreviousPage() {
-    if (this.currentPage > 1) {
-      this.onPageChange(this.currentPage - 1);
-    }
-  }
-
-  goToNextPage() {
-    if (this.currentPage < this.totalPages) {
-      this.onPageChange(this.currentPage + 1);
-    }
+  onPageSizeChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.pageSize = parseInt(select.value, 10);
+    this.currentPage = 1;
+    this.loadPersonnelFiles();
   }
 
 

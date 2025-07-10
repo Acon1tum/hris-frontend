@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, HostListener, AfterViewInit, ElementRef, Renderer2, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 export interface Personnel201ModalData {
   firstName: string;
@@ -101,12 +102,14 @@ export class CreateEditModalComponent implements AfterViewInit {
   @Input() loading: boolean = false;
   @Output() save = new EventEmitter<Personnel201ModalData>();
   @Output() cancel = new EventEmitter<void>();
+  @Input() personnelId: string = '';
+  @Output() uploadDocuments = new EventEmitter<{ files: File[]; metas: { title: string; description: string }[] }>();
 
   @ViewChildren('fadeSection', { read: ElementRef }) fadeSections!: QueryList<ElementRef>;
   @ViewChild('modalForm') modalForm: any;
   private lastScrollTop = 0;
 
-  constructor(private renderer: Renderer2) {}
+  constructor(private renderer: Renderer2, private http: HttpClient) {}
 
   isDragOver = false;
   showFloatingProfile = false;
@@ -114,6 +117,9 @@ export class CreateEditModalComponent implements AfterViewInit {
 
   public formSubmitted: boolean = false;
   public showValidationMessage: boolean = false;
+
+  selectedFiles: File[] = [];
+  fileMetas: { title: string; description: string }[] = [];
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
@@ -131,29 +137,30 @@ export class CreateEditModalComponent implements AfterViewInit {
     this.isDragOver = false;
   }
 
+  onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      for (let i = 0; i < input.files.length; i++) {
+        this.selectedFiles.push(input.files[i]);
+        this.fileMetas.push({ title: input.files[i].name, description: '' });
+      }
+    }
+  }
+
   onFileDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragOver = false;
-
-    const file = event.dataTransfer?.files[0];
-    if (file) {
-      this.data.file = file;
-      this.data.fileName = file.name;
+    if (event.dataTransfer?.files) {
+      for (let i = 0; i < event.dataTransfer.files.length; i++) {
+        this.selectedFiles.push(event.dataTransfer.files[i]);
+        this.fileMetas.push({ title: event.dataTransfer.files[i].name, description: '' });
+      }
     }
   }
 
-  onFileChange(event: any): void {
-    const file = event.target.files && event.target.files[0];
-    if (file) {
-      this.data.file = file;
-      this.data.fileName = file.name;
-    }
-    // Do nothing if no file is selected (cancelled)
-  }
-
-  removeFile(): void {
-    this.data.file = null;
-    this.data.fileName = '';
+  removeFile(index: number) {
+    this.selectedFiles.splice(index, 1);
+    this.fileMetas.splice(index, 1);
   }
 
   onProfilePictureChange(event: any): void {
@@ -173,38 +180,21 @@ export class CreateEditModalComponent implements AfterViewInit {
     this.data.profilePictureUrl = '';
   }
 
-  onSave() {
-    console.log(`💾 Modal onSave called in ${this.mode} mode`);
-    console.log('📝 Form data to save:', this.data);
-    console.log('🔍 Form valid:', this.modalForm?.form?.valid);
-    console.log('❌ Form errors:', this.modalForm?.form?.errors);
-    
+  async onSave() {
     this.formSubmitted = true;
-    // Check form validity (file is now optional)
     if (this.modalForm && !this.modalForm.form.valid) {
-      console.warn('⚠️ Form validation failed, showing validation message');
       this.showValidationMessage = true;
       return;
     }
-    
-    // Only require username/password fields in create mode
     if (this.mode === 'create') {
       if (!this.data.username || !this.data.password || !this.data.confirmPassword || this.data.password !== this.data.confirmPassword) {
         this.showValidationMessage = true;
         return;
       }
     }
-
-    // If a profile picture file is selected, convert to base64 and emit with data
-    if (this.data.profilePictureFile) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const base64 = e.target.result;
-        this.save.emit({ ...this.data, profilePictureBase64: base64 });
-      };
-      reader.readAsDataURL(this.data.profilePictureFile);
-    } else {
-      this.save.emit({ ...this.data, profilePictureBase64: undefined });
+    this.save.emit({ ...this.data });
+    if (this.selectedFiles.length > 0) {
+      this.uploadDocuments.emit({ files: this.selectedFiles, metas: this.fileMetas });
     }
   }
 

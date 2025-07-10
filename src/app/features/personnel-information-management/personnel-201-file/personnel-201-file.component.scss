@@ -270,4 +270,112 @@ button[aria-label="Close"] {
   .sticky-footer {
     padding: 0.5rem 0;
   }
+}
+
+// Filter bar styles
+.filter-select {
+  min-width: 120px;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  color: #111418;
+  font-size: 0.95rem;
+  padding: 0 1rem;
+  outline: none;
+  transition: border 0.2s;
+  &:focus {
+    border-color: #1993e5;
+  }
+}
+.filter-date {
+  width: 8.5rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  color: #111418;
+  font-size: 0.95rem;
+  padding: 0 0.75rem;
+  outline: none;
+  transition: border 0.2s;
+  &:focus {
+    border-color: #1993e5;
+  }
+}
+.clear-filter-btn {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 1rem;
+  transition: background 0.2s, transform 0.1s;
+  &:hover {
+    background: #b91c1c;
+    transform: scale(1.04);
+  }
+}
+.filter-bar-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 1rem;
+  align-items: flex-end;
+  background: transparent;
+  border: none;
+  margin-left: 0.5rem;
+  padding: 0;
+}
+.filter-bar-inline > div {
+  margin-bottom: 0;
+}
+@media (max-width: 900px) {
+  .filter-bar-inline {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-left: 0;
+  }
+} 
+
+// Pagination controls (admin dashboard style)
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+.pagination-controls .page-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dce1e5;
+  background: #fff;
+  color: #1993e5;
+  font-weight: 500;
+  margin: 0 0.15rem;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  cursor: pointer;
+}
+.pagination-controls .page-btn.active,
+.pagination-controls .page-btn:focus {
+  background: #1993e5;
+  color: #fff;
+  border-color: #1993e5;
+}
+.pagination-controls .page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pagination-controls .page-size-select {
+  margin-left: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dce1e5;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.95rem;
+  background: #f8fafc;
+  color: #111418;
 } 

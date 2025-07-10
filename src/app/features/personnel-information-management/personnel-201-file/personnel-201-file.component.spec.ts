@@ -1,3 +1,4 @@
+// Fade-in animation for main container and table rows is handled via CSS (.fade-in-smooth) and template class bindings.
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Personnel201FileComponent } from './personnel-201-file.component';
 import { By } from '@angular/platform-browser';

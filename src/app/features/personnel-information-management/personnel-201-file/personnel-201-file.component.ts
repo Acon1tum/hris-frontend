@@ -1,3 +1,4 @@
+// Fade-in animation for main container and table rows is handled via CSS (.fade-in-smooth) and template class bindings.
 // Personnel 201 File Component with Dynamic Departments
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';

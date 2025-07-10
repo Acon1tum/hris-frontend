@@ -1,3 +1,4 @@
+// Fade-in animation for personnel-201-file is handled in the component's HTML and SCSS via the .fade-in-smooth class.
 import { Injectable } from '@angular/core';
 import { Observable, throwError, firstValueFrom } from 'rxjs';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';

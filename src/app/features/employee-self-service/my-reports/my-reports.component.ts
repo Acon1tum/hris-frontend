@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { EmployeeSelfService, EmployeeDocument, UploadDocumentRequest } from '../../../services/employee-self.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 export interface ReportDocument {
   id: number;
@@ -50,6 +52,17 @@ export class MyReportsComponent implements OnInit {
   // Active tab
   activeTab: string = 'my-reports';
   
+  // Document upload states
+  showUploadModal = false;
+  uploading = false;
+  uploadError: string | null = null;
+  selectedFile: File | null = null;
+  uploadForm = {
+    title: '',
+    description: '',
+    category: 'Personal'
+  };
+  
   // Tab configuration
   tabs: ReportTab[] = [
     { id: 'my-reports', label: 'My Reports' },
@@ -96,124 +109,43 @@ export class MyReportsComponent implements OnInit {
   selectedRequest: RequestReport | null = null;
 
   // Documents data
-  documents: ReportDocument[] = [
-    {
-      id: 1,
-      name: 'Personal Data Sheet (PDS)',
-      description: 'Contains personal information such as contact details, address, and educational background.',
-      type: 'pdf',
-      dateGenerated: new Date('2024-01-15'),
-      size: '2.5 MB',
-      downloadUrl: 'pds-2024.pdf',
-      isAvailable: true
-    },
-    {
-      id: 2,
-      name: 'Service Record',
-      description: 'Details of employment history, including positions held, salary, and tenure.',
-      type: 'pdf',
-      dateGenerated: new Date('2024-02-20'),
-      size: '1.8 MB',
-      downloadUrl: 'service-record-2024.pdf',
-      isAvailable: true
-    },
-    {
-      id: 3,
-      name: 'Certificate of Employment',
-      description: 'Official document verifying current employment status and details.',
-      type: 'pdf',
-      dateGenerated: new Date('2024-03-10'),
-      size: '850 KB',
-      downloadUrl: 'coe-2024.pdf',
-      isAvailable: true
-    },
-    {
-      id: 4,
-      name: 'Summary of Leave Credits',
-      description: 'Summary of available leave credits, including vacation and sick leaves.',
-      type: 'excel',
-      dateGenerated: new Date('2024-03-15'),
-      size: '420 KB',
-      downloadUrl: 'leave-credits-2024.xlsx',
-      isAvailable: true
-    },
-    {
-      id: 5,
-      name: 'Payslip - March 2024',
-      description: 'Monthly payslip containing salary breakdown and deductions.',
-      type: 'pdf',
-      dateGenerated: new Date('2024-03-31'),
-      size: '650 KB',
-      downloadUrl: 'payslip-march-2024.pdf',
-      isAvailable: true
-    },
-    {
-      id: 6,
-      name: 'Performance Evaluation Report',
-      description: 'Annual performance evaluation and assessment report.',
-      type: 'pdf',
-      dateGenerated: new Date('2024-01-30'),
-      size: '1.2 MB',
-      downloadUrl: 'performance-2023.pdf',
-      isAvailable: true
-    }
-  ];
+  uploadedDocuments: EmployeeDocument[] = [];
 
   // Request reports data
-  requestReports: RequestReport[] = [
-    {
-      id: 1,
-      requestType: 'Leave',
-      dateFiled: new Date('2024-03-15'),
-      status: 'approved',
-      dateApproved: new Date('2024-03-16'),
-      approvedBy: 'John Smith'
-    },
-    {
-      id: 2,
-      requestType: 'Overtime',
-      dateFiled: new Date('2024-02-20'),
-      status: 'approved',
-      dateApproved: new Date('2024-02-21'),
-      approvedBy: 'Jane Doe'
-    },
-    {
-      id: 3,
-      requestType: 'DTR Adjustment',
-      dateFiled: new Date('2024-01-10'),
-      status: 'approved',
-      dateApproved: new Date('2024-01-12'),
-      approvedBy: 'Mike Johnson'
-    },
-    {
-      id: 4,
-      requestType: 'Certification',
-      dateFiled: new Date('2024-03-01'),
-      status: 'pending',
-      dateApproved: undefined,
-      approvedBy: undefined
-    },
-    {
-      id: 5,
-      requestType: 'Training Request',
-      dateFiled: new Date('2024-02-15'),
-      status: 'rejected',
-      dateApproved: new Date('2024-02-18'),
-      approvedBy: 'Sarah Wilson'
-    },
-    {
-      id: 6,
-      requestType: 'Equipment Request',
-      dateFiled: new Date('2024-01-25'),
-      status: 'approved',
-      dateApproved: new Date('2024-01-27'),
-      approvedBy: 'Tom Brown'
-    }
-  ];
+  requestReports: RequestReport[] = [];
+
+  // Add state for uploaded document viewing
+  showUploadedDocumentModal: boolean = false;
+  selectedUploadedDocument: EmployeeDocument | null = null;
+
+  // CSV preview state
+  csvPreviewData: string[][] | null = null;
+  csvPreviewLoading = false;
+  csvPreviewError: string | null = null;
+
+  constructor(
+    private employeeSelfService: EmployeeSelfService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit() {
     this.initializeYears();
     this.updateTabCounts();
+    this.loadUploadedDocuments();
+  }
+
+  loadUploadedDocuments() {
+    this.employeeSelfService.getMyDocuments().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.uploadedDocuments = response.data;
+          this.updateTabCounts();
+        }
+      },
+      error: (error) => {
+        console.error('Error loading documents:', error);
+      }
+    });
   }
 
   initializeYears() {
@@ -233,7 +165,7 @@ export class MyReportsComponent implements OnInit {
     this.tabs.forEach(tab => {
       switch (tab.id) {
         case 'my-reports':
-          tab.count = this.documents.length + this.requestReports.length;
+          tab.count = this.uploadedDocuments.length;
           break;
         case 'company-reports':
           tab.count = 12; // Mock count for company reports
@@ -243,21 +175,19 @@ export class MyReportsComponent implements OnInit {
   }
 
   // Document management
-  get filteredDocuments(): ReportDocument[] {
-    let filtered = this.documents;
-
+  get filteredDocuments(): EmployeeDocument[] {
+    let filtered = this.uploadedDocuments;
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(doc => 
-        doc.name.toLowerCase().includes(term) ||
-        doc.description.toLowerCase().includes(term)
+      filtered = filtered.filter(doc =>
+        doc.title.toLowerCase().includes(term) ||
+        (doc.description || '').toLowerCase().includes(term)
       );
     }
-
     return filtered;
   }
 
-  get paginatedDocuments(): ReportDocument[] {
+  get paginatedDocuments(): EmployeeDocument[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
     return this.filteredDocuments.slice(start, end);
@@ -454,13 +384,350 @@ export class MyReportsComponent implements OnInit {
     });
   }
 
-  formatFileSize(sizeStr: string): string {
-    return sizeStr;
+  formatFileSize(sizeBytes: number): string {
+    if (sizeBytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(sizeBytes) / Math.log(k));
+    return parseFloat((sizeBytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  getFileType(mimeType: string): string {
+    if (mimeType.includes('pdf')) return 'pdf';
+    if (mimeType.includes('word') || mimeType.includes('document')) return 'doc';
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'excel';
+    if (mimeType.includes('image')) return 'image';
+    return 'pdf';
   }
 
   // Generate new reports (placeholder functionality)
   generateDocument(type: string) {
     console.log(`Generating ${type} document...`);
     // This would trigger actual document generation in a real application
+  }
+
+  // Document upload methods
+  openUploadModal() {
+    this.showUploadModal = true;
+    this.uploadError = null;
+    this.selectedFile = null;
+    this.uploadForm = {
+      title: '',
+      description: '',
+      category: 'Personal'
+    };
+  }
+
+  closeUploadModal() {
+    this.showUploadModal = false;
+    this.uploading = false;
+    this.uploadError = null;
+    this.selectedFile = null;
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      this.uploadError = null;
+    }
+  }
+
+  uploadDocument() {
+    if (!this.selectedFile || !this.uploadForm.title.trim()) {
+      this.uploadError = 'Please select a file and provide a title.';
+      return;
+    }
+
+    this.uploading = true;
+    this.uploadError = null;
+
+    const uploadData: UploadDocumentRequest = {
+      title: this.uploadForm.title,
+      description: this.uploadForm.description || undefined,
+      category: this.uploadForm.category,
+      file: this.selectedFile
+    };
+
+    this.employeeSelfService.uploadDocument(uploadData).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.uploadedDocuments.unshift(response.data);
+          this.updateTabCounts();
+          this.closeUploadModal();
+          this.showToastNotification('Document uploaded successfully!');
+        } else {
+          this.uploadError = response.message || 'Upload failed';
+        }
+        this.uploading = false;
+      },
+      error: (error) => {
+        this.uploadError = error.message || 'Upload failed';
+        this.uploading = false;
+      }
+    });
+  }
+
+  deleteUploadedDocument(document: EmployeeDocument) {
+    if (confirm('Are you sure you want to delete this document?')) {
+      this.employeeSelfService.deleteDocument(document.id).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.uploadedDocuments = this.uploadedDocuments.filter(doc => doc.id !== document.id);
+            this.updateTabCounts();
+            this.showToastNotification('Document deleted successfully!');
+          }
+        },
+        error: (error) => {
+          console.error('Error deleting document:', error);
+        }
+      });
+    }
+  }
+
+  // Toast notification
+  showToastNotification(message: string) {
+    // Implementation for toast notification
+    console.log(message);
+  }
+
+  formatDateString(dateStr: string): string {
+    return this.formatDate(new Date(dateStr));
+  }
+
+  // Add helper methods for file type detection
+  isPdf(urlOrType: string): boolean {
+    return urlOrType.toLowerCase().endsWith('.pdf') || urlOrType.toLowerCase().includes('pdf');
+  }
+  isImage(urlOrType: string): boolean {
+    return (
+      urlOrType.toLowerCase().endsWith('.jpg') ||
+      urlOrType.toLowerCase().endsWith('.jpeg') ||
+      urlOrType.toLowerCase().endsWith('.png') ||
+      urlOrType.toLowerCase().endsWith('.gif') ||
+      urlOrType.toLowerCase().includes('image')
+    );
+  }
+
+  // Add methods to open/close uploaded document modal
+  viewUploadedDocument(document: EmployeeDocument) {
+    this.selectedUploadedDocument = document;
+    this.showUploadedDocumentModal = true;
+    this.csvPreviewData = null;
+    this.csvPreviewError = null;
+    if (this.isCsv(document.fileUrl)) {
+      this.csvPreviewLoading = true;
+      fetch(this.getFullFileUrl(document.fileUrl))
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch CSV');
+          return res.text();
+        })
+        .then(text => {
+          this.csvPreviewData = this.parseCsv(text);
+          this.csvPreviewLoading = false;
+        })
+        .catch(err => {
+          this.csvPreviewError = 'Failed to load CSV: ' + err.message;
+          this.csvPreviewLoading = false;
+        });
+    }
+  }
+  closeUploadedDocumentModal() {
+    this.showUploadedDocumentModal = false;
+    this.selectedUploadedDocument = null;
+  }
+
+  // Helper to get full file URL (handles different ports/hosts)
+  getFullFileUrl(fileUrl: string): string {
+    if (!fileUrl) return '';
+    if (fileUrl.startsWith('http')) return fileUrl;
+    // Adjust the base URL if your backend is not on localhost:3000
+    return `http://localhost:3000${fileUrl}`;
+  }
+
+  // Helper to get a SafeResourceUrl for iframes
+  getSafeResourceUrl(fileUrl: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.getFullFileUrl(fileUrl));
+  }
+
+  // Helper: detect CSV
+  isCsv(urlOrType: string): boolean {
+    return (
+      urlOrType.toLowerCase().endsWith('.csv') ||
+      urlOrType.toLowerCase().includes('csv')
+    );
+  }
+
+  // Helper: detect Excel
+  isExcel(urlOrType: string): boolean {
+    return (
+      urlOrType.toLowerCase().endsWith('.xls') ||
+      urlOrType.toLowerCase().endsWith('.xlsx') ||
+      urlOrType.toLowerCase().includes('excel')
+    );
+  }
+
+  // Simple CSV parser (no quoted fields)
+  parseCsv(csv: string): string[][] {
+    return csv.split(/\r?\n/)
+      .filter(row => row.trim().length > 0)
+      .map(row => row.split(','));
+  }
+
+  // Download functionality for icon buttons in modal
+  downloadDocumentFromModal(doc: ReportDocument) {
+    if (!doc.downloadUrl) {
+      this.showToastNotification('Download URL not available');
+      return;
+    }
+
+    try {
+      const link = document.createElement('a');
+      link.href = doc.downloadUrl;
+      link.download = doc.name || 'document';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.showToastNotification('Download started successfully!');
+    } catch (error) {
+      console.error('Download error:', error);
+      this.showToastNotification('Download failed. Please try again.');
+    }
+  }
+
+  downloadUploadedDocumentFromModal(doc: EmployeeDocument) {
+    if (!doc.fileUrl) {
+      this.showToastNotification('File URL not available');
+      return;
+    }
+
+    try {
+      const fullUrl = this.getFullFileUrl(doc.fileUrl);
+      const link = document.createElement('a');
+      link.href = fullUrl;
+      link.download = doc.title || 'document';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.showToastNotification('Download started successfully!');
+    } catch (error) {
+      console.error('Download error:', error);
+      this.showToastNotification('Download failed. Please try again.');
+    }
+  }
+
+  // Enhanced download method with proper filename extraction
+  downloadFileWithProperName(fileUrl: string, title: string, fileType: string) {
+    if (!fileUrl) {
+      this.showToastNotification('File URL not available');
+      return;
+    }
+
+    try {
+      const fullUrl = this.getFullFileUrl(fileUrl);
+      const link = document.createElement('a');
+      link.href = fullUrl;
+      
+      // Extract proper filename with extension
+      const fileName = this.getFileNameWithExtension(title, fileType);
+      link.download = fileName;
+      link.target = '_blank';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      this.showToastNotification(`Downloading ${fileName}...`);
+    } catch (error) {
+      console.error('Download error:', error);
+      this.showToastNotification('Download failed. Please try again.');
+    }
+  }
+
+  // Helper method to get proper filename with extension
+  getFileNameWithExtension(title: string, fileType: string): string {
+    // Clean the title (remove special characters that might cause issues)
+    const cleanTitle = title.replace(/[^a-zA-Z0-9\s\-_]/g, '').trim();
+    
+    // Add appropriate extension based on file type
+    let extension = '';
+    switch (fileType.toLowerCase()) {
+      case 'pdf':
+        extension = '.pdf';
+        break;
+      case 'doc':
+      case 'word':
+        extension = '.doc';
+        break;
+      case 'excel':
+      case 'xls':
+        extension = '.xlsx';
+        break;
+      case 'image':
+      case 'jpg':
+      case 'jpeg':
+        extension = '.jpg';
+        break;
+      case 'png':
+        extension = '.png';
+        break;
+      case 'gif':
+        extension = '.gif';
+        break;
+      case 'csv':
+        extension = '.csv';
+        break;
+      default:
+        extension = '.pdf'; // Default to PDF
+    }
+    
+    return `${cleanTitle}${extension}`;
+  }
+
+  // Method to handle download with progress indication
+  downloadWithProgress(fileUrl: string, title: string, fileType: string) {
+    if (!fileUrl) {
+      this.showToastNotification('File URL not available');
+      return;
+    }
+
+    const fullUrl = this.getFullFileUrl(fileUrl);
+    
+    // Show loading state
+    this.showToastNotification('Preparing download...');
+    
+    // Fetch the file first to check if it's accessible
+    fetch(fullUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const fileName = this.getFileNameWithExtension(title, fileType);
+        link.download = fileName;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        
+        this.showToastNotification(`${fileName} downloaded successfully!`);
+      })
+      .catch(error => {
+        console.error('Download error:', error);
+        this.showToastNotification('Download failed. Please check your connection and try again.');
+      });
   }
 } 

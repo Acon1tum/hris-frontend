@@ -107,6 +107,61 @@ export interface PersonnelUpdateRequest {
   tin_number?: string;
 }
 
+export interface EmployeeDocument {
+  id: string;
+  personnelId: string;
+  title: string;
+  description?: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+  category: string;
+  isPrivate: boolean;
+  createdAt: string;
+  updatedAt: string;
+  base64?: string; // Optional: base64-encoded file data with data URL prefix
+  showPreview?: boolean; // For inline PDF preview toggling
+  // If base64 is not present, fileUrl should be used with backend prefix
+}
+
+// Helper to get the correct document source for viewing
+export function getDocumentSrc(doc: EmployeeDocument): string {
+  // Check if fileUrl contains base64 data (starts with data:)
+  if (doc.fileUrl && doc.fileUrl.startsWith('data:')) {
+    return doc.fileUrl;
+  }
+  // Fallback to base64 field if it exists
+  if (doc.base64) {
+    return doc.base64;
+  }
+  // Fallback to fileUrl with backend prefix (adjust as needed)
+  return 'http://localhost:3000' + doc.fileUrl;
+}
+
+// Optionally, for large files or better performance, you can convert base64 to Blob URL:
+export function getDocumentBlobUrl(doc: EmployeeDocument): string | null {
+  // Check if fileUrl contains base64 data (starts with data:)
+  const base64Data = doc.fileUrl && doc.fileUrl.startsWith('data:') ? doc.fileUrl : doc.base64;
+  
+  if (base64Data) {
+    const arr = base64Data.split(',');
+    if (arr.length === 2) {
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      if (!mimeMatch) return null;
+      const mime = mimeMatch[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+      return URL.createObjectURL(blob);
+    }
+  }
+  return null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -295,5 +350,37 @@ export class Personnel201Service {
 
   uploadDocuments(personnelId: string, documents: any[]): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${personnelId}/documents`, { documents });
+  }
+
+  getEmployeeDocuments(personnelId: string): Observable<EmployeeDocument[]> {
+    return this.http.get<any>(`${this.apiUrl}/${personnelId}/documents`).pipe(
+      map(res => res.data)
+    );
+  }
+
+  uploadDocumentAsBase64(personnelId: string, file: File, title: string, description: string): Observable<any> {
+    return new Observable(observer => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        this.http.post<any>(`${this.apiUrl}/${personnelId}/documents`, {
+          documents: [{
+            title,
+            description,
+            fileType: file.type,
+            fileSize: file.size,
+            base64,
+            category: 'general',
+            isPrivate: false
+          }]
+        }).subscribe({
+          next: (res) => observer.next(res),
+          error: (err) => observer.error(err),
+          complete: () => observer.complete()
+        });
+      };
+      reader.onerror = (err) => observer.error(err);
+      reader.readAsDataURL(file); // This will produce a data URL with the correct prefix
+    });
   }
 } 

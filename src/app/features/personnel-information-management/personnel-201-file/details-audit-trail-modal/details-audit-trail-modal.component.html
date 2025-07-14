@@ -176,36 +176,36 @@
       </div>
       <div class="divider"></div>
       <div class="profile-card">
-        <div class="card-header">
+        <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
           <h2 class="section-title">Attachments</h2>
+          <button class="btn btn-primary btn-sm" (click)="downloadAllAttachments()" [disabled]="!employeeDocuments.length">
+            Download Attachment
+          </button>
         </div>
         <div class="card-content">
           <div class="profile-grid">
             <div class="profile-field md:col-span-3">
               <p class="field-label">Uploaded Documents</p>
-              <div *ngIf="documents.length > 0; else noDocs">
-                <table class="min-w-full text-sm border">
-                  <thead>
-                    <tr>
-                      <th class="px-2 py-1 border">Title</th>
-                      <th class="px-2 py-1 border">Description</th>
-                      <th class="px-2 py-1 border">File Name</th>
-                      <th class="px-2 py-1 border">Uploaded At</th>
-                      <th class="px-2 py-1 border">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let doc of documents">
-                      <td class="border px-2 py-1">{{ doc.title }}</td>
-                      <td class="border px-2 py-1">{{ doc.description }}</td>
-                      <td class="border px-2 py-1">{{ doc.fileUrl.split('/').pop() }}</td>
-                      <td class="border px-2 py-1">{{ doc.createdAt | date:'short' }}</td>
-                      <td class="border px-2 py-1">
-                        <a [href]="doc.fileUrl" target="_blank" class="text-blue-600 hover:underline">View/Download</a>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div *ngIf="employeeDocuments.length > 0">
+                <div *ngFor="let doc of employeeDocuments" class="attachment-row">
+                  <div class="attachment-info">
+                    <div class="attachment-title">{{ doc.title }}</div>
+                    <div class="attachment-desc">{{ doc.description }}</div>
+                    <div class="attachment-meta">
+                      <span>{{ formatFileSize(doc.fileSize) }}</span>
+                      <span class="dot">•</span>
+                      <span>{{ doc.fileType }}</span>
+                    </div>
+                  </div>
+                  <div class="attachment-actions">
+                    <button class="icon-btn" (click)="downloadSingleAttachment(doc)" title="Download">
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button class="icon-btn" (click)="viewSingleAttachment(doc)" title="View">
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
               <ng-template #noDocs>
                 <span class="text-gray-400">No documents uploaded</span>
@@ -218,5 +218,31 @@
     <div class="sticky-footer flex justify-end gap-3 px-6 py-4">
       <button type="button" class="close-btn-modern" (click)="onClose()">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- Image Modal Overlay -->
+<div *ngIf="showImageModal" class="image-modal-overlay" (click)="closeImageModal()">
+  <div class="image-modal-content" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeImageModal()">&times;</button>
+    <ng-container *ngIf="selectedImageDoc">
+      <div class="zoom-controls" style="text-align:center; margin-bottom:0.5rem; z-index: 1001;">
+        <button class="zoom-btn" (click)="zoomOut()" title="Zoom Out">−</button>
+        <button class="zoom-btn" (click)="resetZoom()" title="Reset Zoom">⟳</button>
+        <button class="zoom-btn" (click)="zoomIn()" title="Zoom In">+</button>
+      </div>
+      <img [src]="getDocumentSrc(selectedImageDoc)" [alt]="selectedImageDoc.title"
+           [style.transform]="'scale(' + zoomLevel + ') translate(' + panX/zoomLevel + 'px, ' + panY/zoomLevel + 'px)'"
+           style="max-width: 90vw; max-height: 80vh; display: block; margin: 0 auto; transition: transform 0.2s; cursor: grab;"
+           (mousedown)="onImageMouseDown($event)"
+           (mousemove)="onImageMouseMove($event)"
+           (mouseup)="onImageMouseUp()"
+           (mouseleave)="onImageMouseLeave()"
+           (touchstart)="onImageTouchStart($event)"
+           (touchmove)="onImageTouchMove($event)"
+           (touchend)="onImageTouchEnd()"
+      >
+      <div style="text-align:center; margin-top:0.5rem;">{{ selectedImageDoc.title }}</div>
+    </ng-container>
   </div>
 </div> 

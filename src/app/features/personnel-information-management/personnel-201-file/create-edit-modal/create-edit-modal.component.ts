@@ -17,7 +17,6 @@ export interface Personnel201ModalData {
   birthdate?: string;
   gender?: string;
   civilStatus?: string;
-  citizenship?: string;
   employmentType?: string;
   designation?: string;
   appointmentDate?: string;
@@ -73,7 +72,6 @@ export class CreateEditModalComponent implements AfterViewInit {
     birthdate: '',
     gender: '',
     civilStatus: '',
-    citizenship: '',
     employmentType: '',
     designation: '',
     appointmentDate: '',
@@ -104,6 +102,7 @@ export class CreateEditModalComponent implements AfterViewInit {
   @Output() cancel = new EventEmitter<void>();
   @Input() personnelId: string = '';
   @Output() uploadDocuments = new EventEmitter<{ files: File[]; metas: { title: string; description: string }[] }>();
+  @Output() refreshTable = new EventEmitter<void>();
 
   @ViewChildren('fadeSection', { read: ElementRef }) fadeSections!: QueryList<ElementRef>;
   @ViewChild('modalForm') modalForm: any;
@@ -170,6 +169,7 @@ export class CreateEditModalComponent implements AfterViewInit {
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.data.profilePictureUrl = e.target.result;
+        this.data.profilePictureBase64 = e.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -193,6 +193,7 @@ export class CreateEditModalComponent implements AfterViewInit {
       }
     }
     this.save.emit({ ...this.data });
+    this.refreshTable.emit();
     if (this.selectedFiles.length > 0) {
       this.uploadDocuments.emit({ files: this.selectedFiles, metas: this.fileMetas });
     }

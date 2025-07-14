@@ -277,3 +277,134 @@ button[aria-label="Close"] {
     box-shadow: 0 4px 16px 0 rgba(37,99,235,0.13);
   }
 } 
+
+.image-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-modal-content {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
+  position: relative;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.close-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.7rem;
+  background-color: #ffffff; /* Solid white background */
+  border: none;
+  font-size: 1.5rem;
+  color: #444; /* Dark gray text for good contrast */
+  cursor: pointer;
+  z-index: 1002; /* Ensure it's above the image */
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-in-out;
+}
+
+.close-btn:hover {
+  background-color: #f8f9fa; /* Subtle hover background */
+  color: #d32f2f; /* Red color on hover */
+  transform: scale(1.05);
+}
+
+
+.zoom-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.zoom-btn {
+  background: #f3f4f6;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 1.3rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  outline: none;
+}
+.zoom-btn:hover {
+  background: #e0e7ef;
+  border-color: #888;
+} 
+
+.attachment-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1rem 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  gap: 1.5rem;
+}
+.attachment-info {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.attachment-title {
+  font-weight: 600;
+  font-size: 1.08rem;
+  color: #222;
+  margin-bottom: 0.1rem;
+  word-break: break-all;
+}
+.attachment-desc {
+  color: #666;
+  font-size: 0.97rem;
+  margin-bottom: 0.2rem;
+  word-break: break-all;
+}
+.attachment-meta {
+  font-size: 0.93rem;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.attachment-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.icon-btn {
+  background: #f3f4f6;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn:hover {
+  background: #e0e7ef;
+  border-color: #888;
+}
+.dot {
+  font-size: 1.2em;
+  color: #bbb;
+  margin: 0 0.2em;
+} 

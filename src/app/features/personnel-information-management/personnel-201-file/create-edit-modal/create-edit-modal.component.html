@@ -133,11 +133,6 @@
               </select>
               <span *ngIf="formSubmitted && !data.civilStatus" class="text-xs text-red-500 mt-1">Civil Status is required.</span>
             </div>
-            <div class="profile-field">
-              <p class="field-label">Citizenship</p>
-              <input type="text" [(ngModel)]="data.citizenship" name="citizenship" required class="form-control" placeholder="Citizenship" [ngClass]="{'border-red-400': formSubmitted && !data.citizenship}" />
-              <span *ngIf="formSubmitted && !data.citizenship" class="text-xs text-red-500 mt-1">Citizenship is required.</span>
-            </div>
           </div>
         </div>
       </div>

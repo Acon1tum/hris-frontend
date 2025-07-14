@@ -7,6 +7,8 @@ import { CreateEditModalComponent, Department } from './create-edit-modal/create
 import { Personnel201Service, Personnel201File, PersonnelCreateRequest, PersonnelUpdateRequest } from './personnel-201.service';
 import { DetailsAuditTrailModalComponent } from './details-audit-trail-modal/details-audit-trail-modal.component';
 import { AuthService } from '../../../services/auth.service';
+import * as JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 export interface AuditTrailEntry {
   action: 'create' | 'edit' | 'delete';
@@ -97,6 +99,17 @@ export class Personnel201FileComponent implements OnInit {
 
   pendingFiles: File[] = [];
   pendingMetas: { title: string; description: string }[] = [];
+
+  showDeleteConfirm = false;
+  showTypeConfirm = false;
+  deleteConfirmInput = '';
+  employeeToDelete: Personnel201File | null = null;
+  deleteDelay = 3;
+  deleteCountdown = 3;
+  private deleteTimer: any = null;
+
+  showNoDocumentsNotification = false;
+  downloadDocumentsLoading = false;
 
   constructor(
     private personnelService: Personnel201Service,
@@ -487,22 +500,112 @@ export class Personnel201FileComponent implements OnInit {
   }
 
   deleteFile(file: Personnel201File) {
-    if (confirm(`Delete 201 file for ${file.employeeName}?`)) {
-      this.loading = true;
-      this.error = null;
-
-      this.personnelService.deletePersonnel(file.id).subscribe({
-        next: () => {
-          this.loadPersonnelFiles();
-          this.loading = false;
-        },
-        error: (error) => {
-          this.error = error.message;
-          this.loading = false;
-          console.error('Error deleting personnel:', error);
-        }
-      });
+    this.employeeToDelete = file;
+    this.showDeleteConfirm = true;
+    this.deleteCountdown = this.deleteDelay;
+    if (this.deleteTimer) clearInterval(this.deleteTimer);
+    this.deleteTimer = setInterval(() => {
+      if (this.deleteCountdown > 0) {
+        this.deleteCountdown--;
+      } else {
+        clearInterval(this.deleteTimer);
+        this.deleteTimer = null;
+      }
+    }, 1000);
+  }
+  closeDeleteConfirm() {
+    this.showDeleteConfirm = false;
+    this.employeeToDelete = null;
+    if (this.deleteTimer) clearInterval(this.deleteTimer);
+    this.deleteTimer = null;
+    this.deleteCountdown = this.deleteDelay;
+    this.showTypeConfirm = false;
+    this.showNoDocumentsNotification = false;
+    this.downloadDocumentsLoading = false;
+    this.deleteConfirmInput = '';
+  }
+  onDeleteButtonClick() {
+    this.showTypeConfirm = true;
+    this.deleteConfirmInput = '';
+  }
+  confirmDeleteEmployee() {
+    if (!this.employeeToDelete) return;
+    if (this.showTypeConfirm) {
+      // Only proceed if input matches
+      const last = this.employeeToDelete.lastName ? this.employeeToDelete.lastName.trim() : '';
+      if (this.deleteConfirmInput.trim() !== `DELETE ${last}`) return;
     }
+    this.loading = true;
+    this.error = null;
+    this.personnelService.deletePersonnel(this.employeeToDelete.id).subscribe({
+      next: () => {
+        this.loadPersonnelFiles();
+        this.loading = false;
+        this.closeDeleteConfirm();
+      },
+      error: (error) => {
+        this.error = error.message;
+        this.loading = false;
+        this.closeDeleteConfirm();
+        console.error('Error deleting personnel:', error);
+      }
+    });
+  }
+  async downloadEmployeeDocuments() {
+    if (!this.employeeToDelete) return;
+    this.downloadDocumentsLoading = true;
+    // Fetch documents for the employee
+    this.personnelService.getEmployeeDocuments(this.employeeToDelete.id).subscribe(async (docs) => {
+      if (!docs.length) {
+        this.showNoDocumentsNotification = true;
+        setTimeout(() => {
+          this.showNoDocumentsNotification = false;
+          this.downloadDocumentsLoading = false;
+        }, 3000);
+        return;
+      }
+      const zip = new JSZip();
+      const fetchBlob = async (url: string) => {
+        const response = await fetch(url);
+        return await response.blob();
+      };
+      const addFileToZip = async (doc: any) => {
+        let filename = doc.title || 'document';
+        if (doc.fileType && !filename.endsWith('.' + doc.fileType.split('/')[1])) {
+          filename += '.' + doc.fileType.split('/')[1];
+        }
+        if (doc.fileUrl && doc.fileUrl.startsWith('data:')) {
+          const arr = doc.fileUrl.split(',');
+          if (arr.length === 2) {
+            const mimeMatch = arr[0].match(/:(.*?);/);
+            const mime = mimeMatch ? mimeMatch[1] : '';
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
+            }
+            zip.file(filename, u8arr, { binary: true });
+          }
+        } else if (doc.fileUrl) {
+          try {
+            const blob = await fetchBlob(doc.fileUrl.startsWith('http') ? doc.fileUrl : 'http://localhost:3000' + doc.fileUrl);
+            zip.file(filename, blob);
+          } catch (e) {}
+        }
+      };
+      await Promise.all(docs.map((doc: any) => addFileToZip(doc)));
+      // Generate zip filename based on employee name
+      let zipName = 'attachments.zip';
+      const first = this.employeeToDelete && this.employeeToDelete.firstName ? this.employeeToDelete.firstName.trim() : '';
+      const last = this.employeeToDelete && this.employeeToDelete.lastName ? this.employeeToDelete.lastName.trim() : '';
+      zipName = `${first} ${last} - Document(s).zip`;
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, zipName);
+      this.downloadDocumentsLoading = false;
+    }, (error) => {
+      this.downloadDocumentsLoading = false;
+    });
   }
 
   closeDetailsModal() {
@@ -559,6 +662,29 @@ export class Personnel201FileComponent implements OnInit {
     const select = event.target as HTMLSelectElement;
     this.pageSize = parseInt(select.value, 10);
     this.currentPage = 1;
+    this.loadPersonnelFiles();
+  }
+
+  onUploadDocument(event: Event, personnelId: string) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const title = file.name;
+      const description = ''; // You can add a description input if needed
+
+      this.personnelService.uploadDocumentAsBase64(personnelId, file, title, description).subscribe({
+        next: (res) => {
+          // Optionally refresh the document list or show a success message
+          alert('Document uploaded!');
+        },
+        error: (err) => {
+          alert('Upload failed: ' + err.message);
+        }
+      });
+    }
+  }
+
+  refreshPersonnelTable() {
     this.loadPersonnelFiles();
   }
 

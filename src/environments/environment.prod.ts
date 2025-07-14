@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-production-api-url.com/api',
+  apiUrl: 'https://quanby-staging.com/api',
   appName: 'HRIS System',
   version: '1.0.0',
   features: {

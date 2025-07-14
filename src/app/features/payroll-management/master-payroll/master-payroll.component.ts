@@ -25,55 +25,55 @@ export class MasterPayrollComponent {
     {
       id: 'EMP001',
       name: 'Ethan Carter',
-      monthlySalary: 5000.00,
-      bankAccountInfo: 'Bank of America ...1234',
-      salaryAdjustments: 200.00,
-      loanBalances: 1000.00,
+      monthlySalary: 250000.00,
+      bankAccountInfo: 'BDO ...1234',
+      salaryAdjustments: 10000.00,
+      loanBalances: 50000.00,
       status: 'Active'
     },
     {
       id: 'EMP002',
       name: 'Olivia Bennett',
-      monthlySalary: 6000.00,
-      bankAccountInfo: 'Chase ...5678',
-      salaryAdjustments: 150.00,
-      loanBalances: 500.00,
+      monthlySalary: 300000.00,
+      bankAccountInfo: 'BPI ...5678',
+      salaryAdjustments: 7500.00,
+      loanBalances: 25000.00,
       status: 'Active'
     },
     {
       id: 'EMP003',
       name: 'Noah Thompson',
-      monthlySalary: 4500.00,
-      bankAccountInfo: 'Wells Fargo ...9012',
-      salaryAdjustments: 100.00,
-      loanBalances: 200.00,
+      monthlySalary: 225000.00,
+      bankAccountInfo: 'Metrobank ...9012',
+      salaryAdjustments: 5000.00,
+      loanBalances: 10000.00,
       status: 'Inactive'
     },
     {
       id: 'EMP004',
       name: 'Ava Martinez',
-      monthlySalary: 5500.00,
-      bankAccountInfo: 'Citibank ...3456',
-      salaryAdjustments: 250.00,
-      loanBalances: 750.00,
+      monthlySalary: 275000.00,
+      bankAccountInfo: 'UnionBank ...3456',
+      salaryAdjustments: 12500.00,
+      loanBalances: 37500.00,
       status: 'Active'
     },
     {
       id: 'EMP005',
       name: 'Liam Harris',
-      monthlySalary: 7000.00,
-      bankAccountInfo: 'Capital One ...7890',
-      salaryAdjustments: 300.00,
-      loanBalances: 1200.00,
+      monthlySalary: 350000.00,
+      bankAccountInfo: 'Security Bank ...7890',
+      salaryAdjustments: 15000.00,
+      loanBalances: 60000.00,
       status: 'Active'
     },
     {
       id: 'EMP006',
       name: 'Isabella Clark',
-      monthlySalary: 4800.00,
-      bankAccountInfo: 'US Bank ...2468',
-      salaryAdjustments: 180.00,
-      loanBalances: 300.00,
+      monthlySalary: 240000.00,
+      bankAccountInfo: 'PNB ...2468',
+      salaryAdjustments: 9000.00,
+      loanBalances: 15000.00,
       status: 'Inactive'
     }
   ];
@@ -114,9 +114,9 @@ export class MasterPayrollComponent {
   }
 
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-PH', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'PHP'
     }).format(amount);
   }
 } 

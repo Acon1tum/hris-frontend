@@ -90,22 +90,22 @@ export class DeductionsComponent {
   contributionTotals: ContributionTotal[] = [
     {
       title: 'Total Employee Contributions',
-      value: '$12,500.00',
+      value: '₱625,000.00',
       description: 'Sum of all employee deductions'
     },
     {
       title: 'Total Employer Share',
-      value: '$7,500.00',
+      value: '₱375,000.00',
       description: 'Employer contribution matching'
     },
     {
       title: 'Total Deductions',
-      value: '$20,000.00',
+      value: '₱1,000,000.00',
       description: 'Combined deductions for period'
     },
     {
       title: 'Net Pay (Example)',
-      value: '$80,000.00',
+      value: '₱4,000,000.00',
       description: 'Sample net pay calculation'
     }
   ];
@@ -160,9 +160,9 @@ export class DeductionsComponent {
   }
 
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-PH', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'PHP'
     }).format(amount);
   }
 

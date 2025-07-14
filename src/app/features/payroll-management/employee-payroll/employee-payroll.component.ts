@@ -51,10 +51,10 @@ export class EmployeePayrollComponent implements OnInit {
   currentMonth = 'July 2024';
   
   // Dashboard Stats
-  netPay = 2500.00;
-  totalDeductions = 500.00;
+  netPay = 125000.00;
+  totalDeductions = 25000.00;
   nextPayDate = 'July 25';
-  activeLoansTotal = 1200.00;
+  activeLoansTotal = 60000.00;
   
   // Month Selection
   selectedMonth = 'July 2024';
@@ -68,33 +68,33 @@ export class EmployeePayrollComponent implements OnInit {
   
   // Payslip Data
   payslipData: PayslipData = {
-    grossSalary: 3000.00,
+    grossSalary: 150000.00,
     mandatoryDeductions: {
-      total: 300.00,
+      total: 15000.00,
       items: [
-        { name: 'BIR', amount: 150.00 },
-        { name: 'Pag-Ibig', amount: 50.00 },
-        { name: 'PhilHealth', amount: 50.00 },
-        { name: 'Others', amount: 50.00 }
+        { name: 'BIR', amount: 7500.00 },
+        { name: 'Pag-Ibig', amount: 2500.00 },
+        { name: 'PhilHealth', amount: 2500.00 },
+        { name: 'Others', amount: 2500.00 }
       ]
     },
     loanDeductions: {
-      total: 200.00,
+      total: 10000.00,
       items: [
-        { name: 'Consolidated', amount: 100.00 },
-        { name: 'Policy', amount: 50.00 },
-        { name: 'Multi-Purpose', amount: 25.00 },
-        { name: 'Others', amount: 25.00 }
+        { name: 'Consolidated', amount: 5000.00 },
+        { name: 'Policy', amount: 2500.00 },
+        { name: 'Multi-Purpose', amount: 1250.00 },
+        { name: 'Others', amount: 1250.00 }
       ]
     },
-    netAmount: 2500.00
+    netAmount: 125000.00
   };
   
   // Employee Information
   employeeInfo: EmployeeInfo = {
     name: 'Sarah Miller',
     id: 'EMP12345',
-    monthlySalary: 3000.00,
+    monthlySalary: 150000.00,
     salaryAdjustments: null
   };
   
@@ -102,24 +102,24 @@ export class EmployeePayrollComponent implements OnInit {
   loanSummary: LoanSummary[] = [
     {
       type: 'Consolidated Loan',
-      originalAmount: 5000.00,
-      paidAmount: 2000.00,
-      remainingBalance: 3000.00,
-      monthlyDeduction: 200.00
+      originalAmount: 250000.00,
+      paidAmount: 100000.00,
+      remainingBalance: 150000.00,
+      monthlyDeduction: 10000.00
     },
     {
       type: 'Policy Loan',
-      originalAmount: 2000.00,
-      paidAmount: 1000.00,
-      remainingBalance: 1000.00,
-      monthlyDeduction: 50.00
+      originalAmount: 100000.00,
+      paidAmount: 50000.00,
+      remainingBalance: 50000.00,
+      monthlyDeduction: 2500.00
     },
     {
       type: 'Multi-Purpose Loan',
-      originalAmount: 1000.00,
-      paidAmount: 500.00,
-      remainingBalance: 500.00,
-      monthlyDeduction: 25.00
+      originalAmount: 50000.00,
+      paidAmount: 25000.00,
+      remainingBalance: 25000.00,
+      monthlyDeduction: 1250.00
     }
   ];
   
@@ -127,19 +127,19 @@ export class EmployeePayrollComponent implements OnInit {
   contributionTracker: ContributionTracker[] = [
     {
       name: 'Pag-Ibig Contributions',
-      amount: 500,
+      amount: 25000,
       growth: 10,
       chartData: [70, 100, 40, 60, 20, 20]
     },
     {
       name: 'PhilHealth Contributions',
-      amount: 500,
+      amount: 25000,
       growth: 5,
       chartData: [70, 100, 100, 90, 90, 80]
     },
     {
       name: 'BIR Contributions',
-      amount: 1500,
+      amount: 75000,
       growth: 15,
       chartData: [60, 40, 10, 60, 100, 60]
     }

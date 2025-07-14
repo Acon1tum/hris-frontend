@@ -29,9 +29,9 @@ export class PayrollOverviewComponent {
 
   // Main KPI cards
   mainKPIs: PayrollKPI[] = [
-    { title: 'Total Gross Pay', value: '$1,250,000' },
-    { title: 'Total Net Pay', value: '$950,000' },
-    { title: 'Total Deductions', value: '$300,000' }
+    { title: 'Total Gross Pay', value: '₱62,500,000' },
+    { title: 'Total Net Pay', value: '₱47,500,000' },
+    { title: 'Total Deductions', value: '₱15,000,000' }
   ];
 
   // Secondary KPI cards
@@ -47,7 +47,7 @@ export class PayrollOverviewComponent {
 
   // Chart data
   chartData = {
-    currentValue: '$100,000',
+    currentValue: '₱5,000,000',
     period: 'This Month',
     growth: '+5%',
     months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']

@@ -21,32 +21,46 @@ describe('LeaveTypeManagementComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should render title', () => {
-    expect(component.title).toBe('Leave Types Management');
+  it('should initialize component properties', () => {
+    expect(component.leaveTypes).toBeDefined();
+    expect(component.isLoading).toBeDefined();
   });
 
-  it('should have leave types data', () => {
+  it('should have leave types array initialized', () => {
     expect(component.leaveTypes).toBeDefined();
-    expect(component.leaveTypes.length).toBeGreaterThan(0);
+    expect(Array.isArray(component.leaveTypes)).toBe(true);
   });
 
   it('should handle add new leave type', () => {
-    spyOn(console, 'log');
-    component.onAddNewLeaveType();
-    expect(console.log).toHaveBeenCalledWith('Add new leave type');
+    component.onAddLeaveType();
+    expect(component.showAddModal).toBe(true);
   });
 
   it('should handle edit leave type', () => {
-    spyOn(console, 'log');
-    const leaveType = component.leaveTypes[0];
-    component.onEditLeaveType(leaveType);
-    expect(console.log).toHaveBeenCalledWith('Edit leave type:', leaveType);
+    const mockLeaveType = {
+      id: '1',
+      leave_type_name: 'Test Leave',
+      description: 'Test Description',
+      requires_document: false,
+      max_days: 10,
+      is_active: true
+    };
+    component.onEditLeaveType(mockLeaveType);
+    expect(component.showEditModal).toBe(true);
+    expect(component.editForm.id).toBe('1');
   });
 
   it('should handle delete leave type', () => {
-    spyOn(console, 'log');
-    const leaveType = component.leaveTypes[0];
-    component.onDeleteLeaveType(leaveType);
-    expect(console.log).toHaveBeenCalledWith('Delete leave type:', leaveType);
+    const mockLeaveType = {
+      id: '1',
+      leave_type_name: 'Test Leave',
+      description: 'Test Description',
+      requires_document: false,
+      max_days: 10,
+      is_active: true
+    };
+    component.onDeleteLeaveType(mockLeaveType);
+    expect(component.showDeleteModal).toBe(true);
+    expect(component.leaveTypeToDelete).toBe(mockLeaveType);
   });
 }); 

@@ -229,7 +229,9 @@
 }
 
 .btn-icon.delete-btn {
-  color: #ef4444;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .btn-icon.delete-btn:disabled {
@@ -238,7 +240,10 @@
 }
 
 .btn-icon.delete-btn:hover:enabled {
-  background: #fdeaea;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: rgba(220, 38, 38, 0.3);
+  transform: scale(1.05);
 }
 
 .pagination-section {
@@ -437,6 +442,31 @@
 .form-actions button[type="button"]:hover {
   background: #e5e7eb;
   border-color: #cbd5e1;
+}
+
+// Specific styling for delete button in modal
+.form-actions button[type="button"].btn-danger {
+  background-color: #dc2626 !important;
+  color: white !important;
+  border: 1px solid #dc2626 !important;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}
+
+.form-actions button[type="button"].btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c !important;
+  border-color: #b91c1c !important;
+  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+  transform: translateY(-2px);
+}
+
+.form-actions button[type="button"].btn-danger:active:not(:disabled) {
+  background-color: #991b1b !important;
+  transform: translateY(0);
+  box-shadow: 0 3px 6px rgba(220, 38, 38, 0.3);
 }
 .form-actions button[type="submit"] {
   background: #0c7ff2;
@@ -709,15 +739,27 @@
   background-color: #dc2626;
   color: white;
   border: 1px solid #dc2626;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
   
   &:hover:not(:disabled) {
     background-color: #b91c1c;
     border-color: #b91c1c;
+    box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(:disabled) {
+    background-color: #991b1b;
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
   }
   
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 }
 

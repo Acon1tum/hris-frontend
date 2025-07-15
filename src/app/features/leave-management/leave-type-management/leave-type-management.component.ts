@@ -355,6 +355,14 @@ export class LeaveTypeManagementComponent implements OnInit, OnDestroy {
   }
 
   // Pagination methods
+  onPageChange(page: number): void {
+    this.currentPage = page;
+  }
+
+  getPaginationPages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
   onPreviousPage() {
     if (this.currentPage > 1) {
       this.currentPage--;

@@ -282,44 +282,44 @@
              </div>
              <div class="detail-item">
                <span class="detail-label">Leave Type:</span>
-               <span class="detail-value">{{ selectedApplication?.leave_type?.leave_type_name || '' }}</span>
+               <span class="detail-value">{{ selectedApplication.leave_type.leave_type_name || '' }}</span>
              </div>
              <div class="detail-item">
                <span class="detail-label">Period:</span>
                <span class="detail-value">
-                 {{ selectedApplication ? formatDate(selectedApplication.start_date) + ' - ' + formatDate(selectedApplication.end_date) : '' }}
+                 {{ formatDate(selectedApplication.start_date) + ' - ' + formatDate(selectedApplication.end_date) }}
                </span>
              </div>
              <div class="detail-item">
                <span class="detail-label">Total Days:</span>
-               <span class="detail-value">{{ selectedApplication?.total_days }}</span>
+               <span class="detail-value">{{ selectedApplication.total_days }}</span>
              </div>
              <div class="detail-item">
                <span class="detail-label">Request Date:</span>
-               <span class="detail-value">{{ selectedApplication ? formatDate(selectedApplication.request_date) : '' }}</span>
+               <span class="detail-value">{{ formatDate(selectedApplication.request_date) }}</span>
              </div>
           </div>
         </div>
 
                  <!-- Reason Section -->
-         <div class="detail-section" *ngIf="selectedApplication?.reason">
+         <div class="detail-section" *ngIf="selectedApplication.reason">
            <h3 class="detail-title">Reason</h3>
-           <p class="reason-text">{{ selectedApplication?.reason }}</p>
+           <p class="reason-text">{{ selectedApplication.reason }}</p>
          </div>
 
                  <!-- Supporting Document Section -->
-         <div class="detail-section" *ngIf="selectedApplication?.supporting_document">
+         <div class="detail-section" *ngIf="selectedApplication.supporting_document">
            <h3 class="detail-title">Supporting Document</h3>
            <div class="document-preview">
              <div class="document-info">
                <span class="material-symbols-outlined">
-                 {{ selectedApplication?.supporting_document && isImageFile(selectedApplication.supporting_document) ? 'image' : 'description' }}
+                 {{ selectedApplication.supporting_document && isImageFile(selectedApplication.supporting_document) ? 'image' : 'description' }}
                </span>
-               <span class="document-name">{{ selectedApplication?.supporting_document || '' }}</span>
+               <span class="document-name">{{ selectedApplication.supporting_document || '' }}</span>
              </div>
             
                          <!-- Image Preview -->
-             <div *ngIf="selectedApplication?.supporting_document && isImageFile(selectedApplication.supporting_document)" class="image-preview">
+             <div *ngIf="selectedApplication.supporting_document && isImageFile(selectedApplication.supporting_document)" class="image-preview">
                <img 
                  [src]="getSupportingDocumentUrl(selectedApplication.supporting_document!)" 
                  [alt]="selectedApplication.supporting_document || ''"
@@ -328,7 +328,7 @@
              </div>
              
              <!-- PDF Preview -->
-             <div *ngIf="selectedApplication?.supporting_document && isPdfFile(selectedApplication.supporting_document)" class="pdf-preview">
+             <div *ngIf="selectedApplication.supporting_document && isPdfFile(selectedApplication.supporting_document)" class="pdf-preview">
                <iframe 
                  [src]="getSupportingDocumentUrl(selectedApplication.supporting_document!)"
                  class="preview-pdf"
@@ -339,7 +339,7 @@
              <!-- Download Link -->
              <div class="document-actions">
                <a 
-                 [href]="selectedApplication?.supporting_document ? getSupportingDocumentUrl(selectedApplication.supporting_document!) : ''"
+                 [href]="selectedApplication.supporting_document ? getSupportingDocumentUrl(selectedApplication.supporting_document!) : ''"
                  target="_blank"
                  class="btn-download">
                  <span class="material-symbols-outlined">download</span>

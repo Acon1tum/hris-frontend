@@ -117,35 +117,37 @@
       </div>
     </div>
 
-    <!-- Pagination Section -->
-    <div class="pagination-section" *ngIf="paginatedLeaveTypes.length > 0">
-      <p class="pagination-info">
-        Showing 
-        <span class="font-medium">{{ displayStart }}</span> 
-        to 
-        <span class="font-medium">{{ displayEnd }}</span> 
-        of 
-        <span class="font-medium">{{ displayTotal }}</span> 
-        results
-      </p>
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination-section">
+      <div class="pagination-info">
+        <span class="pagination-text">
+          Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to {{ (currentPage * itemsPerPage > displayTotal ? displayTotal : currentPage * itemsPerPage) }} of {{ displayTotal }} entries
+        </span>
+      </div>
+      
       <div class="pagination-controls">
         <button 
-          class="pagination-button"
-          (click)="onPreviousPage()"
-          [disabled]="!canGoToPrevious"
-        >
-          <svg fill="currentColor" height="18" viewBox="0 0 256 256" width="18" xmlns="http://www.w3.org/2000/svg">
-            <path d="M160,208a8,8,0,0,1-5.66-2.34l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,120l74.35,74.34A8,8,0,0,1,160,208Z"></path>
-          </svg>
+          class="pagination-btn" 
+          [disabled]="currentPage === 1"
+          (click)="onPageChange(currentPage - 1)">
+          <span class="material-symbols-outlined">chevron_left</span>
         </button>
+        
+        <span class="pagination-pages">
+          <button 
+            *ngFor="let page of getPaginationPages(); let i = index"
+            class="pagination-page"
+            [class.active]="currentPage === i + 1"
+            (click)="onPageChange(i + 1)">
+            {{ i + 1 }}
+          </button>
+        </span>
+        
         <button 
-          class="pagination-button"
-          (click)="onNextPage()"
-          [disabled]="!canGoToNext"
-        >
-          <svg fill="currentColor" height="18" viewBox="0 0 256 256" width="18" xmlns="http://www.w3.org/2000/svg">
-            <path d="M96,208a8,8,0,0,1-5.66-13.66L164.69,120,90.34,45.66a8,8,0,0,1,11.32-11.32l80,80a8,8,0,0,1,0,11.32l-80,80A8,8,0,0,1,96,208Z"></path>
-          </svg>
+          class="pagination-btn" 
+          [disabled]="currentPage === totalPages"
+          (click)="onPageChange(currentPage + 1)">
+          <span class="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
     </div>

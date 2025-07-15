@@ -1,369 +1,549 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-interface Employee {
-  id: string;
-  name: string;
-  department: string;
-  type: string;
-  avatar: string;
-  accrued: number;
-  used: number;
-  remaining: number;
-  expiring: number;
-}
-
-interface EmployeeType {
-  id: string;
-  name: string;
-  department: string;
-  avatar: string;
-  accrued: number;
-  used: number;
-  remaining: number;
-  expiring: number;
-}
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
+import { LeaveBalanceService, EmployeeLeaveBalance, Department, LeaveBalanceFilter, LeaveAdjustmentRequest, LeaveAdjustment } from './leave-balance.service';
 
 @Component({
   selector: 'app-leave-balance',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './leave-balance.component.html',
   styleUrls: ['./leave-balance.component.scss']
 })
-export class LeaveBalanceComponent {
+export class LeaveBalanceComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
+  // Component state
   title = 'Leave Balances';
   subtitle = 'Manage and view leave balances for all employees.';
+  
+  // Data properties
+  employees: EmployeeLeaveBalance[] = [];
+  filteredEmployees: EmployeeLeaveBalance[] = [];
+  departments: Department[] = [];
+  
+  // UI state
+  isLoading = false;
+  isExporting = false;
+  error = '';
+  
+  // Filters
   searchTerm = '';
-
-  employees: Employee[] = [
-    {
-      id: 'EC1001',
-      name: 'Ethan Carter',
-      department: 'Marketing',
-      type: 'Regular',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCLakjcv3GTevMA4RWIJGxC8TXAcsihS02nkLM6AUMQ0tfRpxUZNcF59cgev20q6-wU6hbA8GYpJamRqRAeUpBzw4HKajtqKB-Zit8oqqXLrtpJOWlG-d0xrWyZ43tqgjR2b9PkffshikRechuPY8e-Q_W5B3lsPafTGOkyS1ku_raUytqoG2VMm6DWPeGAg79GST8G5CY53H7fgwfIn5XoTVhpxtve-ciCEqRs2gg12WFe0D4CI4la6IUUT3oFzRWtnKAJkwry2pgb',
-      accrued: 120,
-      used: 80,
-      remaining: 40,
-      expiring: 6
-    },
-    {
-      id: 'OB1002',
-      name: 'Olivia Bennett',
-      department: 'Sales',
-      type: 'Contractual',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC4ZhVbGKrvnJ-hHIbZNkviJAdAdryAWGmkx51mS-MQwVu9zJXdSiI-3fjR3gd296fD09cVpHcSgVBGbUGDMnHrULMToSZPgBxAU1CqvN2kxbXgTcBCSriFvsiwXQJtwiab2ZGKlUbyZblkZdxbACPGz6Eo4f47ztC5gTeiQ5DC9ou3GNAiBu-F9Kng8eJ6XeLnz6QTSk3R9Ac8yb522KHQ0yu4xNuNQ59YsameMGBZzRu5yAQtKpi4tr567nAw61PpcLnaYD2vyjFg',
-      accrued: 60,
-      used: 30,
-      remaining: 30,
-      expiring: 2
-    },
-    {
-      id: 'NT1003',
-      name: 'Noah Thompson',
-      department: 'Engineering',
-      type: 'Part_time',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNFV9TfaYpn9M8_I0v-n9qWyRQ8to2YJ3CDs5gKFtZx312cYBMUBjK1sGbLvn8OoqUpSjgZvtNFpzVqSKlMd7c0S6cp032_xFsoRRg6nd5-ak4Jy-zu1oxMbpieiFrnyWna6mNYhqY5IUfWOEeRkvq484x1lGie8sbPiF8ip-xrNHRm5U2mi8x9oVvt6cVOJne7kyqJNtHG5OI3UnqY_GIW-djzUjdAiQNzV8PCV4hDjuTmw4qgtjnAcZqAagfQjleXxZ8ik6YNrtD',
-      accrued: 40,
-      used: 15,
-      remaining: 25,
-      expiring: 1
-    },
-    {
-      id: 'AM1004',
-      name: 'Ava Martinez',
-      department: 'Product',
-      type: 'Temporary',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDc1Ei-2QhtIR4Vs1IgF0Bb8RCpEEVRsIlZhJ0f8BzkW7GdvVor0ZbPBDkRphGJYH_TFPCLdGeLUGdnpzgZVJ8AMFmTVm9mKwCaof9piT_rWqpwVQ5KpugUAJSzUJE_r69Qk3efJSzFEXysZq3oKTOAw5vGQQly7hxPOJ65UkMBHERSt9toRaBACSHe5ykJ18TdU13STHa2tO4t20v9h6jXl0LRiA6OVSDz69D4V1yrtD6s6F8f7epgBMHswOgHZyPMC_jW-T-Zf1xl',
-      accrued: 20,
-      used: 5,
-      remaining: 15,
-      expiring: 0
-    },
-    {
-      id: 'LH1005',
-      name: 'Liam Harris',
-      department: 'Customer Support',
-      type: 'Consultant',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDK8N4fY8JMJpdAe34vAySLz5D7RgB2dX-hTYiXRLrOLzAEQTtt2Bt5N7cS2eh5E9oqTL_MP6rO_xP6kSm77wWoAiaoepIpeiLFF53TzwH-dYsihvlX-l9axQSJp25LVHxZi2hsU4NYFUFxOEIfGYmYrTX6hoXry1HI_9jMbskw1gVTxdnYI5Z42PEEanu7mHH1WvM-d-McuVQ5v23c3fuIuJQfQb_B2gHlg44Ro3Wd3F8KgYabzr69gVJGkUi7LfFVAzsprz_pC99O',
-      accrued: 10,
-      used: 2,
-      remaining: 8,
-      expiring: 0
-    }
-  ];
-
-  employeeTypes: EmployeeType[] = [
-    {
-      id: 'REG',
-      name: 'Regular',
-      department: 'All',
-      avatar: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
-      accrued: 120,
-      used: 80,
-      remaining: 40,
-      expiring: 6
-    },
-    {
-      id: 'CON',
-      name: 'Contractual',
-      department: 'All',
-      avatar: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png',
-      accrued: 60,
-      used: 30,
-      remaining: 30,
-      expiring: 2
-    },
-    {
-      id: 'PT',
-      name: 'Part_time',
-      department: 'All',
-      avatar: 'https://cdn-icons-png.flaticon.com/512/3135/3135789.png',
-      accrued: 40,
-      used: 15,
-      remaining: 25,
-      expiring: 1
-    },
-    {
-      id: 'TMP',
-      name: 'Temporary',
-      department: 'All',
-      avatar: 'https://cdn-icons-png.flaticon.com/512/3135/3135792.png',
-      accrued: 20,
-      used: 5,
-      remaining: 15,
-      expiring: 0
-    },
-    {
-      id: 'CNS',
-      name: 'Consultant',
-      department: 'All',
-      avatar: 'https://cdn-icons-png.flaticon.com/512/3135/3135773.png',
-      accrued: 10,
-      used: 2,
-      remaining: 8,
-      expiring: 0
-    }
-  ];
-
-  filteredEmployees = [...this.employees];
+  selectedDepartment = '';
+  selectedYear = new Date().getFullYear().toString();
+  
+  // Pagination
   currentPage = 1;
-  itemsPerPage = 5;
-  totalResults = this.employees.length;
+  itemsPerPage = 10;
+  totalResults = 0;
+  totalPages = 0;
 
-  // Tab state
-  activeTab: 'employee' | 'employeeType' = 'employee';
-
-  // Modal state for Employee
+  // Modal states
   showEmployeeModal = false;
-  selectedEmployee: Employee | null = null;
-
-  // Modal state for Employee Type
-  showEmployeeTypeModal = false;
-  selectedEmployeeType: EmployeeType | null = null;
-
-  // Adjust Credits modal state for Employee
   showEmployeeAdjustModal = false;
-  selectedEmployeeForAdjust: Employee | null = null;
+  selectedEmployee: EmployeeLeaveBalance | null = null;
+  selectedEmployeeForAdjust: EmployeeLeaveBalance | null = null;
+  
+  // Adjustment form
+  adjustmentForm: FormGroup;
+  isSubmittingAdjustment = false;
+  adjustmentError = '';
+  
+  // Adjustment history
+  adjustmentHistory: LeaveAdjustment[] = [];
+  showAdjustmentHistory = false;
+  isLoadingHistory = false;
 
-  // Adjust Credits modal state for Employee Type
-  showEmployeeTypeAdjustModal = false;
-  selectedEmployeeTypeForAdjust: EmployeeType | null = null;
-
-  // Mock data for departments and employee types
-  departments: string[] = ['All', 'Marketing', 'Sales', 'Engineering', 'Product', 'Customer Support'];
-  employeeTypeList: string[] = ['All', 'Regular', 'Contractual', 'Part_time', 'Temporary', 'Consultant'];
-
-  // State for filters and selection in Adjust Credits modal
-  selectedDepartment: string = 'All';
-  selectedEmployeeTypeFilter: string = 'All';
-  filteredEmployeeList: Employee[] = [];
-  selectedEmployeeForDropdown: Employee | null = null;
-
-  // State for adjustment credit
-  adjustmentCredit: number = 0;
-
-  // State for Adjust Credits modal for Employee Type
-  selectedEmployeeTypeForDropdown: EmployeeType | null = null;
-  adjustmentCreditType: number = 0;
-
-  constructor() {
-    this.updateFilteredEmployees();
+  constructor(
+    private leaveBalanceService: LeaveBalanceService,
+    private formBuilder: FormBuilder
+  ) {
+    this.adjustmentForm = this.formBuilder.group({
+      personnel_id: ['', Validators.required],
+      leave_type_id: ['', Validators.required],
+      year: [new Date().getFullYear().toString(), Validators.required],
+      adjustment_type: ['increase', Validators.required],
+      adjustment_amount: [0, [Validators.required, Validators.min(0.01)]],
+      reason: ['', [Validators.required, Validators.minLength(10)]]
+    });
   }
 
-  onSearchChange(): void {
-    this.updateFilteredEmployees();
+  ngOnInit(): void {
+    this.initializeData();
   }
 
-  updateFilteredEmployees(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredEmployees = [...this.employees];
-    } else {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Initialize component data
+   */
+  private async initializeData(): Promise<void> {
+    try {
+      await Promise.all([
+        this.loadDepartments(),
+        this.loadLeaveBalances()
+      ]);
+    } catch (error) {
+      console.error('Error initializing data:', error);
+    }
+  }
+
+  /**
+   * Load departments for filtering
+   */
+  private loadDepartments(): Promise<void> {
+    return new Promise((resolve) => {
+      this.leaveBalanceService.getDepartments()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (departments) => {
+            this.departments = departments;
+            resolve();
+          },
+          error: (error) => {
+            console.error('Error loading departments:', error);
+            resolve(); // Don't fail the whole initialization
+          }
+        });
+    });
+  }
+
+  /**
+   * Load leave balances from backend
+   */
+  loadLeaveBalances(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.isLoading = true;
+      this.error = '';
+      
+      const filters: LeaveBalanceFilter = {};
+      
+      if (this.selectedDepartment) {
+        filters.department_id = this.selectedDepartment;
+      }
+      
+      if (this.selectedYear) {
+        filters.year = this.selectedYear;
+      }
+
+      this.leaveBalanceService.getLeaveBalanceReport(filters)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (employees) => {
+            this.employees = employees;
+            this.applyFilters();
+            this.isLoading = false;
+            resolve();
+          },
+          error: (error) => {
+            this.error = error.message;
+            this.employees = [];
+            this.filteredEmployees = [];
+            this.isLoading = false;
+            reject(error);
+          }
+        });
+    });
+  }
+
+  /**
+   * Apply search and pagination filters
+   */
+  applyFilters(): void {
+    let filtered = [...this.employees];
+
+    // Apply search filter
+    if (this.searchTerm.trim()) {
       const searchLower = this.searchTerm.toLowerCase();
-      this.filteredEmployees = this.employees.filter(employee =>
+      filtered = filtered.filter(employee =>
         employee.name.toLowerCase().includes(searchLower) ||
         employee.id.toLowerCase().includes(searchLower) ||
         employee.department.toLowerCase().includes(searchLower)
       );
     }
-    this.totalResults = this.filteredEmployees.length;
+
+    this.totalResults = filtered.length;
+    this.totalPages = Math.ceil(this.totalResults / this.itemsPerPage);
+
+    // Apply pagination
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.filteredEmployees = filtered.slice(startIndex, endIndex);
   }
 
-  adjustCredits(item?: Employee | EmployeeType): void {
-    if (this.activeTab === 'employee') {
-      // If called from button, no item, just open generic modal
-      if (!item) {
-        this.selectedEmployeeForAdjust = null;
-      } else {
-        this.selectedEmployeeForAdjust = item as Employee;
-      }
-      this.showEmployeeAdjustModal = true;
-    } else {
-      if (!item) {
-        this.selectedEmployeeTypeForAdjust = null;
-      } else {
-        this.selectedEmployeeTypeForAdjust = item as EmployeeType;
-      }
-      this.showEmployeeTypeAdjustModal = true;
+  /**
+   * Handle search input changes
+   */
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  /**
+   * Handle department filter changes
+   */
+  onDepartmentChange(): void {
+    this.currentPage = 1;
+    this.loadLeaveBalances();
+  }
+
+  /**
+   * Handle year filter changes
+   */
+  onYearChange(): void {
+    this.currentPage = 1;
+    this.loadLeaveBalances();
+  }
+
+  /**
+   * Handle pagination changes
+   */
+  onPageChange(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.applyFilters();
     }
   }
 
-  closeEmployeeAdjustModal(): void {
-    this.showEmployeeAdjustModal = false;
-    this.selectedEmployeeForAdjust = null;
+  /**
+   * Get pagination pages array
+   */
+  getPaginationPages(): number[] {
+    const pages: number[] = [];
+    const maxVisiblePages = 5;
+    
+    if (this.totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const halfVisible = Math.floor(maxVisiblePages / 2);
+      let start = Math.max(1, this.currentPage - halfVisible);
+      let end = Math.min(this.totalPages, start + maxVisiblePages - 1);
+      
+      if (end - start + 1 < maxVisiblePages) {
+        start = Math.max(1, end - maxVisiblePages + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
   }
 
-  closeEmployeeTypeAdjustModal(): void {
-    this.showEmployeeTypeAdjustModal = false;
-    this.selectedEmployeeTypeForAdjust = null;
+  /**
+   * Refresh data
+   */
+  refreshData(): void {
+    this.loadLeaveBalances();
   }
 
-  viewDetails(item: Employee | EmployeeType): void {
-    if (this.activeTab === 'employee') {
-      this.selectedEmployee = item as Employee;
+  /**
+   * View employee details
+   */
+  viewDetails(employee: EmployeeLeaveBalance): void {
+    this.selectedEmployee = employee;
       this.showEmployeeModal = true;
-    } else {
-      this.selectedEmployeeType = item as EmployeeType;
-      this.showEmployeeTypeModal = true;
-    }
   }
 
+  /**
+   * Close employee details modal
+   */
   closeEmployeeModal(): void {
     this.showEmployeeModal = false;
     this.selectedEmployee = null;
   }
 
-  closeEmployeeTypeModal(): void {
-    this.showEmployeeTypeModal = false;
-    this.selectedEmployeeType = null;
-  }
-
-  previousPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
+  /**
+   * Open adjust credits modal
+   */
+  adjustCredits(employee?: EmployeeLeaveBalance): void {
+    this.selectedEmployeeForAdjust = employee || null;
+    this.adjustmentError = '';
+    
+    if (employee) {
+      this.adjustmentForm.patchValue({
+        personnel_id: employee.id,
+        year: this.selectedYear
+      });
+    } else {
+      this.adjustmentForm.patchValue({
+        personnel_id: '',
+        year: this.selectedYear
+      });
     }
+    
+    this.showEmployeeAdjustModal = true;
   }
 
-  nextPage(): void {
-    const totalPages = Math.ceil(this.totalResults / this.itemsPerPage);
-    if (this.currentPage < totalPages) {
-      this.currentPage++;
-    }
-  }
-
-  get isPreviousDisabled(): boolean {
-    return this.currentPage === 1;
-  }
-
-  get isNextDisabled(): boolean {
-    const totalPages = Math.ceil(this.totalResults / this.itemsPerPage);
-    return this.currentPage >= totalPages;
-  }
-
-  get currentResults(): string {
-    const start = (this.currentPage - 1) * this.itemsPerPage + 1;
-    const end = Math.min(this.currentPage * this.itemsPerPage, this.totalResults);
-    return `Showing ${start} to ${end} of ${this.totalResults} results`;
-  }
-
-  setTab(tab: 'employee' | 'employeeType') {
-    this.activeTab = tab;
-  }
-
-  // Update filtered employee list based on filters
-  updateFilteredEmployeeList(): void {
-    this.filteredEmployeeList = this.employees.filter(emp => {
-      const matchesDept = this.selectedDepartment === 'All' || emp.department === this.selectedDepartment;
-      // For demo, assume all employees are of all types
-      return matchesDept;
+  /**
+   * Close adjust credits modal
+   */
+  closeEmployeeAdjustModal(): void {
+    this.showEmployeeAdjustModal = false;
+    this.selectedEmployeeForAdjust = null;
+    this.adjustmentForm.reset({
+      personnel_id: '',
+      leave_type_id: '',
+      year: new Date().getFullYear().toString(),
+      adjustment_type: 'increase',
+      adjustment_amount: 0,
+      reason: ''
     });
-    if (!this.filteredEmployeeList.includes(this.selectedEmployeeForDropdown!)) {
-      this.selectedEmployeeForDropdown = null;
+    this.adjustmentError = '';
+  }
+
+  /**
+   * Export to CSV
+   */
+  exportToCSV(): void {
+    if (this.employees.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    this.isExporting = true;
+    try {
+      this.leaveBalanceService.exportToCSV(this.employees);
+    } catch (error) {
+      console.error('Error exporting to CSV:', error);
+      alert('Error exporting to CSV');
+    } finally {
+      this.isExporting = false;
     }
   }
 
-  // Methods for adjustment credit
-  incrementAdjustmentCredit(): void {
-    this.adjustmentCredit++;
-  }
-  decrementAdjustmentCredit(): void {
-    if (this.adjustmentCredit > 0) this.adjustmentCredit--;
-  }
-  setAdjustmentCredit(value: number): void {
-    this.adjustmentCredit = value;
+  /**
+   * Export to PDF
+   */
+  exportToPDF(): void {
+    if (this.employees.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    this.isExporting = true;
+    try {
+      this.leaveBalanceService.exportToPDF(this.employees);
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      alert('Error exporting to PDF');
+    } finally {
+      this.isExporting = false;
+    }
   }
 
-  // Save Adjust Credits for Employee
-  saveEmployeeAdjustCredits(): void {
-    if (this.selectedEmployeeForDropdown) {
-      // Find the employee in the main array and update accrued
-      const idx = this.employees.findIndex(e => e.id === this.selectedEmployeeForDropdown!.id);
-      if (idx !== -1) {
-        this.employees[idx].accrued = this.adjustmentCredit;
-        // Auto-calculate remaining as accrued - used
-        this.employees[idx].remaining = this.adjustmentCredit - this.employees[idx].used;
+  /**
+   * Initialize leave balance for specific employee
+   */
+  initializeBalance(employee: EmployeeLeaveBalance): void {
+    this.leaveBalanceService.initializeLeaveBalance(employee.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.refreshData();
+        },
+        error: (error) => {
+          console.error('Error initializing balance:', error);
+          alert('Error initializing leave balance');
+        }
+      });
+  }
+
+  /**
+   * Get leave balance by type name
+   */
+  getLeaveBalanceByType(employee: EmployeeLeaveBalance, leaveTypeName: string): number {
+    const balance = employee.leave_balances.find(
+      balance => balance.leave_type.leave_type_name === leaveTypeName
+    );
+    return balance ? (balance.total_credits - balance.used_credits) : 0;
+  }
+
+  /**
+   * Get total accrued credits for display
+   */
+  getTotalAccrued(employee: EmployeeLeaveBalance): number {
+    return employee.total_accrued;
+  }
+
+  /**
+   * Get total used credits for display
+   */
+  getTotalUsed(employee: EmployeeLeaveBalance): number {
+    return employee.total_used;
+  }
+
+  /**
+   * Get total remaining credits for display
+   */
+  getTotalRemaining(employee: EmployeeLeaveBalance): number {
+    return employee.total_remaining;
+  }
+
+  /**
+   * Get progress percentage for remaining credits
+   */
+  getProgressPercentage(employee: EmployeeLeaveBalance): number {
+    if (employee.total_accrued === 0) return 0;
+    return Math.round((employee.total_remaining / employee.total_accrued) * 100);
+  }
+
+  /**
+   * Get progress bar color based on remaining percentage
+   */
+  getProgressColor(percentage: number): string {
+    if (percentage <= 25) return 'danger';
+    if (percentage <= 50) return 'warning';
+    return 'success';
+  }
+
+  /**
+   * Get year options for filter
+   */
+  getYearOptions(): number[] {
+    const currentYear = new Date().getFullYear();
+    const years: number[] = [];
+    for (let i = currentYear - 2; i <= currentYear + 1; i++) {
+      years.push(i);
+    }
+    return years;
+  }
+
+  /**
+   * Submit leave credit adjustment
+   */
+  submitAdjustment(): void {
+    if (this.adjustmentForm.invalid) {
+      this.adjustmentError = 'Please fill in all required fields correctly.';
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.adjustmentForm.controls).forEach(key => {
+        this.adjustmentForm.get(key)?.markAsTouched();
+      });
+      return;
+    }
+
+    // Additional validation for adjustment amount vs current balance
+    if (this.adjustmentForm.get('adjustment_type')?.value === 'decrease') {
+      const currentBalance = this.getCurrentBalance();
+      const adjustmentAmount = this.adjustmentForm.get('adjustment_amount')?.value;
+      
+      if (adjustmentAmount > currentBalance) {
+        this.adjustmentError = `Adjustment amount (${adjustmentAmount}) cannot exceed current balance (${currentBalance})`;
+        return;
       }
-      this.updateFilteredEmployees();
-      this.updateFilteredEmployeeList();
-      this.adjustmentCredit = 0;
-      this.selectedEmployeeForDropdown = null;
-      this.closeEmployeeAdjustModal();
     }
+
+    this.isSubmittingAdjustment = true;
+    this.adjustmentError = '';
+
+    const adjustmentRequest: LeaveAdjustmentRequest = this.adjustmentForm.value;
+
+    this.leaveBalanceService.createLeaveAdjustment(adjustmentRequest)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (adjustment) => {
+          this.isSubmittingAdjustment = false;
+          this.closeEmployeeAdjustModal();
+          this.refreshData();
+          alert('Leave credit adjustment created successfully!');
+        },
+        error: (error) => {
+          this.isSubmittingAdjustment = false;
+          this.adjustmentError = error.message || 'An error occurred while creating the adjustment';
+          console.error('Error creating adjustment:', error);
+        }
+      });
   }
 
-  incrementAdjustmentCreditType(): void {
-    this.adjustmentCreditType++;
-  }
-  decrementAdjustmentCreditType(): void {
-    if (this.adjustmentCreditType > 0) this.adjustmentCreditType--;
-  }
-  setAdjustmentCreditType(value: number): void {
-    this.adjustmentCreditType = value;
+  /**
+   * Load adjustment history for employee
+   */
+  loadAdjustmentHistory(employee: EmployeeLeaveBalance): void {
+    this.isLoadingHistory = true;
+    this.selectedEmployeeForAdjust = employee;
+    
+    this.leaveBalanceService.getPersonnelAdjustments(employee.id, this.selectedYear)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.adjustmentHistory = result.adjustments;
+          this.isLoadingHistory = false;
+          this.showAdjustmentHistory = true;
+        },
+        error: (error) => {
+          this.isLoadingHistory = false;
+          console.error('Error loading adjustment history:', error);
+          alert('Error loading adjustment history');
+        }
+      });
   }
 
-  saveEmployeeTypeAdjustCredits(): void {
-    if (this.selectedEmployeeTypeForDropdown) {
-      const idx = this.employeeTypes.findIndex(e => e.id === this.selectedEmployeeTypeForDropdown!.id);
-      if (idx !== -1) {
-        this.employeeTypes[idx].accrued = this.adjustmentCreditType;
-        // Auto-calculate remaining as accrued - used
-        this.employeeTypes[idx].remaining = this.adjustmentCreditType - this.employeeTypes[idx].used;
-        // Update all employees of this type
-        const typeName = this.employeeTypes[idx].name;
-        this.employees.forEach(emp => {
-          if (emp.type === typeName) {
-            emp.accrued = this.adjustmentCreditType;
-            emp.remaining = this.adjustmentCreditType - emp.used;
-          }
-        });
-        this.updateFilteredEmployees();
-        this.updateFilteredEmployeeList();
-      }
-      this.selectedEmployeeTypeForDropdown = null;
-      this.adjustmentCreditType = 0;
-      this.closeEmployeeTypeAdjustModal();
-    }
+  /**
+   * Close adjustment history modal
+   */
+  closeAdjustmentHistory(): void {
+    this.showAdjustmentHistory = false;
+    this.adjustmentHistory = [];
+    this.selectedEmployeeForAdjust = null;
+  }
+
+  /**
+   * Get available leave types for selected employee
+   */
+  getAvailableLeaveTypes(): any[] {
+    const personnelId = this.adjustmentForm.get('personnel_id')?.value;
+    if (!personnelId) return [];
+    
+    const employee = this.employees.find(emp => emp.id === personnelId);
+    if (!employee) return [];
+    
+    return employee.leave_balances.map(balance => balance.leave_type);
+  }
+
+  /**
+   * Get current balance for selected leave type
+   */
+  getCurrentBalance(): number {
+    const personnelId = this.adjustmentForm.get('personnel_id')?.value;
+    const leaveTypeId = this.adjustmentForm.get('leave_type_id')?.value;
+    
+    if (!personnelId || !leaveTypeId) return 0;
+    
+    const employee = this.employees.find(emp => emp.id === personnelId);
+    if (!employee) return 0;
+    
+    const balance = employee.leave_balances.find(bal => bal.leave_type.id === leaveTypeId);
+    return balance ? balance.total_credits : 0;
+  }
+
+  /**
+   * Format adjustment type for display
+   */
+  formatAdjustmentType(type: string): string {
+    return type === 'increase' ? 'Credit' : 'Debit';
+  }
+
+  /**
+   * Get adjustment type class for styling
+   */
+  getAdjustmentTypeClass(type: string): string {
+    return type === 'increase' ? 'text-green-600' : 'text-red-600';
+  }
+
+  /**
+   * Handle employee selection change
+   */
+  onEmployeeSelectionChange(): void {
+    // Reset leave type when employee changes
+    this.adjustmentForm.patchValue({
+      leave_type_id: ''
+    });
   }
 } 

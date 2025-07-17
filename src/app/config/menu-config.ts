@@ -1,5 +1,6 @@
 import { MenuItem } from '../interfaces/auth.interface';
 import { PermissionGroups } from '../interfaces/permission-groups';
+import { Subscription } from 'rxjs';
 import { Permission } from '../interfaces/auth.interface';
 
 export const MENU_CONFIG: MenuItem[] = [

@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter, OnInit, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MenuItem } from '../../interfaces/auth.interface';
 import { MENU_CONFIG } from '../../config/menu-config';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-sidebar',
@@ -12,7 +13,7 @@ import { MENU_CONFIG } from '../../config/menu-config';
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss']
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Input() isOpen = false;
   @Input() isCollapsed = false;
   @Input() isSidebarCollapsed = false;
@@ -37,6 +38,8 @@ export class SidebarComponent implements OnInit {
     { name: 'Framer', icon: 'dashboard_customize' },
     { name: 'Typeform', icon: 'description' }
   ];
+
+  private userSub: Subscription | undefined;
 
   constructor(
     private authService: AuthService,
@@ -64,8 +67,7 @@ export class SidebarComponent implements OnInit {
     this.isCollapsed = false;
     this.emitStateChange();
 
-    // Update menu items when user changes
-    this.currentUser$.subscribe(() => {
+    this.userSub = this.currentUser$.subscribe(() => {
       this.updateMenuItems();
     });
 
@@ -75,6 +77,10 @@ export class SidebarComponent implements OnInit {
         this.updateMenuItems();
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.userSub?.unsubscribe();
   }
 
   private updateMenuItems() {
@@ -97,19 +103,23 @@ export class SidebarComponent implements OnInit {
   }
 
   private filterMenuItemsByPermissions(items: MenuItem[]): MenuItem[] {
-    return items.filter(item => {
-      // Check if user has access to this menu item
-      const hasAccess = this.authService.canAccessRoute(item.permissions);
-      
-      if (hasAccess && item.children) {
-        // Filter children based on permissions
-        item.children = this.filterMenuItemsByPermissions(item.children);
-        // Only show parent if it has accessible children or direct access
-        return item.children.length > 0 || item.permissions.length === 0;
-      }
-      
-      return hasAccess;
-    });
+    return items
+      .map(item => {
+        const hasAccess = this.authService.canAccessRoute(item.permissions);
+        const filteredChildren = item.children ? this.filterMenuItemsByPermissions(item.children) : [];
+        if (hasAccess && filteredChildren.length > 0) {
+          return { ...item, children: filteredChildren };
+        }
+        if (hasAccess && (!item.children || item.children.length === 0)) {
+          return { ...item, children: [] };
+        }
+        if (!hasAccess && filteredChildren.length > 0) {
+          // If parent is not accessible but has accessible children, show parent as a group
+          return { ...item, children: filteredChildren };
+        }
+        return null;
+      })
+      .filter(item => item !== null) as MenuItem[];
   }
 
   toggleMenuItem(itemName: string, event: Event) {

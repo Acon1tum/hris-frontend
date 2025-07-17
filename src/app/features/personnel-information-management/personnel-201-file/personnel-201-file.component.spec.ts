@@ -108,4 +108,79 @@ describe('Personnel201FileComponent', () => {
     component.currentPage = 7;
     expect(component.getPageNumbers()).toEqual([3,4,5,6,7]);
   });
+
+  it('should refresh personnel table after modal save', () => {
+    spyOn(component, 'loadPersonnelFiles');
+    component.handleModalSave({} as any);
+    expect(component.loadPersonnelFiles).toHaveBeenCalled();
+  });
+
+  it('should refresh personnel table after modal cancel', () => {
+    spyOn(component, 'loadPersonnelFiles');
+    component.handleModalCancel();
+    expect(component.loadPersonnelFiles).toHaveBeenCalled();
+  });
+
+  it('should refresh personnel table after document upload', () => {
+    spyOn(component, 'loadPersonnelFiles');
+    component.handleUploadDocuments({ files: [], metas: [] });
+    expect(component.loadPersonnelFiles).toHaveBeenCalled();
+  });
+
+  it('should refresh personnel table after delete', () => {
+    spyOn(component, 'loadPersonnelFiles');
+    component.employeeToDelete = { id: '1', lastName: 'Smith' } as any;
+    component.showTypeConfirm = false;
+    spyOn(component.personnelService, 'deletePersonnel').and.returnValue({ subscribe: (cb: any) => cb.next() } as any);
+    component.confirmDeleteEmployee();
+    expect(component.loadPersonnelFiles).toHaveBeenCalled();
+  });
+
+  it('should include email in updateRequest when updating personnel', () => {
+    const modalData = {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'new@email.com',
+      middleName: '',
+      birthdate: '',
+      gender: '',
+      civilStatus: '',
+      number: '',
+      address: '',
+      department: '',
+      position: '',
+      employmentType: '',
+      designation: '',
+      appointmentDate: '',
+      startDate: '',
+      gsis: '',
+      pagibig: '',
+      philhealth: '',
+      sss: '',
+      tin_number: ''
+    } as any;
+    component.editMode = 'edit';
+    component.editFileData = { id: '1', ...modalData };
+    spyOn((component as any).personnelService, 'updatePersonnel').and.callFake((id: string, req: any) => {
+      expect(req.email).toBe('new@email.com');
+      return { subscribe: (cb: any) => cb({}) } as any;
+    });
+    component.handleModalSave(modalData);
+  });
+
+  it('should send profile_picture: null when removing profile picture in edit mode', () => {
+    const modalData = {
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane@email.com',
+      profilePictureBase64: null
+    } as any;
+    component.editMode = 'edit';
+    component.editFileData = { id: '2', ...modalData };
+    spyOn((component as any).personnelService, 'updatePersonnel').and.callFake((id: string, req: any) => {
+      expect(req.profile_picture).toBeNull();
+      return { subscribe: (cb: any) => cb({}) } as any;
+    });
+    component.handleModalSave(modalData);
+  });
 }); 

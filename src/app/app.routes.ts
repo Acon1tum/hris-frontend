@@ -277,5 +277,11 @@ export const routes: Routes = [
     canActivate: [PermissionGuard],
     data: { permissions: [] }
   },
+  {
+    path: 'job-portal-management',
+    loadComponent: () => import('./features/job-portal-management/index.component').then(m => m.JobPortalManagementComponent),
+    canActivate: [PermissionGuard],
+    data: { permissions: ['job_posting_create'] }
+  },
   { path: '**', redirectTo: '/login' }
 ]; 

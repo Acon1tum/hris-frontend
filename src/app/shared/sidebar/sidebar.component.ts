@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MenuItem } from '../../interfaces/auth.interface';
 import { MENU_CONFIG } from '../../config/menu-config';
@@ -22,6 +22,14 @@ export class SidebarComponent implements OnInit {
   currentUser$ = this.authService.currentUser$;
   expandedItem: string | null = null;
   isMobile = window.innerWidth <= 768;
+
+  // Tooltip state for collapsed sidebar
+  tooltip = {
+    visible: false,
+    text: '',
+    x: 0,
+    y: 0
+  };
 
   // Add static app links for the APP section
   appLinks = [
@@ -60,9 +68,30 @@ export class SidebarComponent implements OnInit {
     this.currentUser$.subscribe(() => {
       this.updateMenuItems();
     });
+
+    // Listen to route changes to update menu for job portal public mode
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.updateMenuItems();
+      }
+    });
   }
 
   private updateMenuItems() {
+    // If in job portal public mode and on the job portal route, show only Login/Register
+    const publicMode = localStorage.getItem('jobPortalPublicMode') === 'true';
+    const onJobPortal = this.router.url.startsWith('/online-job-application-portal');
+    if (publicMode && onJobPortal) {
+      this.menuItems = [
+        { name: 'Login', icon: 'login', path: '/login', permissions: [] },
+        { name: 'Register', icon: 'person_add', path: '/register', permissions: [] }
+      ];
+      return;
+    }
+    // If not on the job portal, clear the flag
+    if (publicMode && !onJobPortal) {
+      localStorage.removeItem('jobPortalPublicMode');
+    }
     // Use the imported menu configuration instead of defining items inline
     this.menuItems = this.filterMenuItemsByPermissions(MENU_CONFIG);
   }
@@ -118,6 +147,30 @@ export class SidebarComponent implements OnInit {
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  showTooltip(event: MouseEvent, text: string) {
+    if (this.isCollapsed && !this.isMobile) {
+      this.tooltip.visible = true;
+      this.tooltip.text = text;
+      this.setTooltipPosition(event);
+    }
+  }
+
+  moveTooltip(event: MouseEvent) {
+    if (this.tooltip.visible) {
+      this.setTooltipPosition(event);
+    }
+  }
+
+  hideTooltip() {
+    this.tooltip.visible = false;
+  }
+
+  private setTooltipPosition(event: MouseEvent) {
+    // Offset the tooltip a bit to the right of the cursor
+    this.tooltip.x = event.clientX + 16;
+    this.tooltip.y = event.clientY + 8;
   }
 
   private emitStateChange() {

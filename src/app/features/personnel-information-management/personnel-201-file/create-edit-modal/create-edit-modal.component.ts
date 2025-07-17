@@ -39,7 +39,7 @@ export interface Personnel201ModalData {
   username?: string;
   password?: string;
   confirmPassword?: string;
-  profilePictureBase64?: string;
+  profilePictureBase64?: string | null;
 }
 
 export interface Department {
@@ -178,6 +178,7 @@ export class CreateEditModalComponent implements AfterViewInit {
   removeProfilePicture(): void {
     this.data.profilePictureFile = null;
     this.data.profilePictureUrl = '';
+    this.data.profilePictureBase64 = null;
   }
 
   async onSave() {

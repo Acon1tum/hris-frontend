@@ -23,6 +23,7 @@ export class HeaderComponent implements OnInit {
   @HostBinding('class.sidebar-open') isSidebarOpen = false;
   @Input() isSidebarCollapsed = false;
   @Input() isSidebarOpenInput = true;
+  @Input() publicMode = false;
   
   currentUser$ = this.authService.currentUser$;
   
@@ -111,7 +112,7 @@ export class HeaderComponent implements OnInit {
    */
   get headerDynamicStyle() {
     const margin = this.isMobile ? '0.5rem' : '1.5rem';
-    const sidebarWidth = this.isSidebarCollapsed ? '80px' : '280px';
+    const sidebarWidth = this.isSidebarCollapsed ? '80px' : '290px';
     return {
       left: sidebarWidth,
       width: `calc(100vw - ${sidebarWidth} - (${margin} * 2))`,
@@ -123,5 +124,12 @@ export class HeaderComponent implements OnInit {
 
   emitToggleSidebar() {
     this.toggleSidebar.emit();
+  }
+
+  goToLogin() {
+    this.router.navigate(['/login']);
+  }
+  goToRegister() {
+    this.router.navigate(['/register']);
   }
 } 

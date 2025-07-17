@@ -57,9 +57,11 @@
       <!-- End Profile Picture Upload -->
       <!-- Username & Password Card -->
       <div class="profile-card" *ngIf="mode === 'create'">
-        <div class="card-header">
+        <div class="card-header flex items-center gap-2">
           <h2 class="section-title">Account Credentials</h2>
+          <p class="text-gray-400 text-sm mb-[20px]">(Non-editable in the table)</p><p class="text-red-500">*</p>
         </div>
+        
         <div class="card-content">
           <div class="profile-grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div class="profile-field">

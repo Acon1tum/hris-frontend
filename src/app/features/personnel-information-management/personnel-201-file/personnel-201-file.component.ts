@@ -55,7 +55,7 @@ export interface Personnel201ModalData {
   username?: string;
   password?: string;
   confirmPassword?: string;
-  profilePictureBase64?: string;
+  profilePictureBase64?: string | null;
 }
 
 @Component({
@@ -308,11 +308,15 @@ export class Personnel201FileComponent implements OnInit {
       this.updatePersonnel(modalData);
     }
     this.showEditModal = false;
+    // Always refresh table after modal closes
+    this.loadPersonnelFiles();
   }
 
   handleUploadDocuments(event: { files: File[]; metas: { title: string; description: string }[] }) {
     this.pendingFiles = event.files;
     this.pendingMetas = event.metas;
+    // Refresh table after document upload
+    this.loadPersonnelFiles();
   }
 
   private async createPersonnel(modalData: Personnel201ModalData) {
@@ -376,18 +380,20 @@ export class Personnel201FileComponent implements OnInit {
           if (this.pendingFiles.length > 0) {
             this.uploadDocumentsToBackend(createdPersonnel.id);
           }
-          this.loadPersonnelFiles();
+          this.loadPersonnelFiles(); // Always refresh
           this.loading = false;
         },
         error: (error) => {
           this.error = error.message;
           this.loading = false;
+          this.loadPersonnelFiles(); // Always refresh
           console.error('❌ Error creating personnel:', error);
         }
       });
     } catch (error) {
       this.error = 'Failed to create personnel. Please try again.';
       this.loading = false;
+      this.loadPersonnelFiles(); // Always refresh
       console.error('❌ Error in createPersonnel:', error);
     }
   }
@@ -429,7 +435,10 @@ export class Personnel201FileComponent implements OnInit {
         pagibig_number: modalData.pagibig || undefined,
         philhealth_number: modalData.philhealth || undefined,
         sss_number: modalData.sss || undefined,
-        tin_number: modalData.tin_number || undefined // Fixed: Added missing TIN number
+        tin_number: modalData.tin_number || undefined,
+        email: modalData.email || undefined,
+        ...(modalData.profilePictureBase64 === null ? { profile_picture: null } : {}),
+        ...(typeof modalData.profilePictureBase64 === 'string' ? { profile_picture: modalData.profilePictureBase64 } : {})
       };
 
       console.log('🚀 Updating personnel with data:', updateRequest);
@@ -441,18 +450,20 @@ export class Personnel201FileComponent implements OnInit {
           if (this.pendingFiles.length > 0) {
             this.uploadDocumentsToBackend(id);
           }
-          this.loadPersonnelFiles();
+          this.loadPersonnelFiles(); // Always refresh
           this.loading = false;
         },
         error: (error) => {
           this.error = error.message;
           this.loading = false;
+          this.loadPersonnelFiles(); // Always refresh
           console.error('❌ Error updating personnel:', error);
         }
       });
     } catch (error) {
       this.error = 'Failed to update personnel. Please try again.';
       this.loading = false;
+      this.loadPersonnelFiles(); // Always refresh
       console.error('❌ Error in updatePersonnel:', error);
     }
   }
@@ -492,6 +503,8 @@ export class Personnel201FileComponent implements OnInit {
 
   handleModalCancel() {
     this.showEditModal = false;
+    // Always refresh table after modal closes
+    this.loadPersonnelFiles();
   }
 
   viewFile(file: Personnel201File) {
@@ -539,7 +552,7 @@ export class Personnel201FileComponent implements OnInit {
     this.error = null;
     this.personnelService.deletePersonnel(this.employeeToDelete.id).subscribe({
       next: () => {
-        this.loadPersonnelFiles();
+        this.loadPersonnelFiles(); // Always refresh
         this.loading = false;
         this.closeDeleteConfirm();
       },
@@ -547,6 +560,7 @@ export class Personnel201FileComponent implements OnInit {
         this.error = error.message;
         this.loading = false;
         this.closeDeleteConfirm();
+        this.loadPersonnelFiles(); // Always refresh
         console.error('Error deleting personnel:', error);
       }
     });

@@ -105,6 +105,8 @@ export interface PersonnelUpdateRequest {
   philhealth_number?: string;
   sss_number?: string;
   tin_number?: string;
+  email?: string;
+  profile_picture?: string | null;
 }
 
 export interface EmployeeDocument {
@@ -181,7 +183,8 @@ export class Personnel201Service {
   }> {
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('limit', limit.toString());
+      .set('limit', limit.toString())
+      .set('_ts', Date.now().toString()); // cache-busting param
 
     if (search) {
       params = params.set('search', search);

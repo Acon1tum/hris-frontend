@@ -486,3 +486,51 @@ input[type="checkbox"]:checked {
     font-size: 1.875rem;
   }
 } 
+
+@keyframes floatUpDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.job-portal-fab {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 1000;
+  background: #00d46d;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+
+  /* Floating animation */
+  animation: floatUpDown 2.5s ease-in-out infinite;
+}
+
+.job-portal-fab:hover {
+  background: #00c063;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.28);
+  animation-play-state: paused;
+}
+
+
+@media (max-width: 600px) {
+  .job-portal-fab {
+    right: 1rem;
+    bottom: 1rem;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+  }
+} 

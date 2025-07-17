@@ -126,4 +126,10 @@ export class LoginComponent implements OnInit {
       }
     });
   }
+
+  openJobPortal() {
+    // Set a flag to indicate public job portal mode
+    localStorage.setItem('jobPortalPublicMode', 'true');
+    this.router.navigate(['/online-job-application-portal']);
+  }
 } 

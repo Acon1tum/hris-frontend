@@ -1,5 +1,6 @@
 import { MenuItem } from '../interfaces/auth.interface';
 import { PermissionGroups } from '../interfaces/permission-groups';
+import { Permission } from '../interfaces/auth.interface';
 
 export const MENU_CONFIG: MenuItem[] = [
   {
@@ -240,11 +241,12 @@ export const MENU_CONFIG: MenuItem[] = [
     badge: '2',
     permissions: PermissionGroups.RECRUITMENT_BASIC
   },
+  // Job Portal Management: Only for admins to manage job cards for the public job portal
   {
-    name: 'Job Portal',
-    icon: 'language',
-    path: '/online-job-application-portal',
-    permissions: PermissionGroups.PUBLIC_ACCESS
+    name: 'Job Portal Management',
+    icon: 'admin_panel_settings',
+    path: '/job-portal-management',
+    permissions: [Permission.job_posting_create]
   },
   {
     name: 'Performance Management',
